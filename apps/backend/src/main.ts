@@ -1,5 +1,6 @@
 import 'dotenv/config'
 
+import cors from 'cors'
 import express from 'express'
 
 import { AqiService } from '@application/services/AqiService'
@@ -36,6 +37,7 @@ import { JobScheduler } from '@jobs/JobScheduler'
 import { Normalizer } from '@jobs/Normalizer'
 
 const app = express()
+app.use(cors({ origin: env.CORS_ORIGIN.split(',').map((o) => o.trim()), credentials: true }))
 app.use(express.json())
 
 // Cache

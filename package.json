@@ -15,6 +15,7 @@
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "prettier": "^3.2.5",
     "turbo": "^2.0.0"
   },
@@ -25,6 +26,7 @@
   },
   "dependencies": {
     "@types/node-cache": "^4.1.3",
+    "cors": "^2.8.6",
     "fast-xml-parser": "^5.5.9",
     "node-cache": "^5.1.2",
     "tsc-alias": "^1.8.16"
