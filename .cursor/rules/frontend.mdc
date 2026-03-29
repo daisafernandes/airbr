@@ -1,0 +1,4 @@
+---
+globs: apps/frontend/*
+alwaysApply: true
+---
