@@ -21,6 +21,9 @@ export interface AqiReadingApi {
   co: number | null
   uv: number | null
   pollen: number | null
+  windDirection?: number | null
+  windSpeed?: number | null
+  temperature?: number | null
   timestamp: string
   source: string
 }

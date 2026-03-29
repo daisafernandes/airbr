@@ -1,7 +1,9 @@
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
-import { useCity } from '@hooks/useCity'
 import type { CityApiData } from '@app-types/airQuality.types'
+import { useCity } from '@hooks/useCity'
+
 import { CitySearchBar } from './CitySearchBar'
 import { OmsComplianceBadge } from './OmsComplianceBadge'
 
@@ -112,6 +114,34 @@ function PollutantBar({ label, valueA, valueB, unit, limit }: { label: string; v
   )
 }
 
+function TemperatureCompareRow({
+  valueA,
+  valueB,
+  label,
+  unit,
+}: {
+  valueA: number | null | undefined
+  valueB: number | null | undefined
+  label: string
+  unit: string
+}) {
+  const fmt = (v: number | null | undefined) =>
+    v != null && !Number.isNaN(v) ? v.toFixed(1) : '—'
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+        <span className="uppercase tracking-wider">{label}</span>
+        <span className="text-[9px]">{unit}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-10 text-right font-mono text-xs text-primary">{fmt(valueA)}</span>
+        <div className="flex-1 h-px bg-border" />
+        <span className="w-10 text-right font-mono text-xs text-yellow-400">{fmt(valueB)}</span>
+      </div>
+    </div>
+  )
+}
+
 function CityColumn({ city }: { city: CityApiData }) {
   const aqi = city.latestAqi?.aqi ?? 0
   const pm25 = city.latestAqi?.pm25 ?? null
@@ -120,6 +150,7 @@ function CityColumn({ city }: { city: CityApiData }) {
 }
 
 export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, onClose }: ComparisonPanelProps) => {
+  const { t } = useTranslation()
   const { data: dataA, isLoading: loadingA } = useCity(cityA)
   const { data: dataB, isLoading: loadingB } = useCity(cityB)
 
@@ -217,6 +248,12 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
               limit={p.limit}
             />
           ))}
+          <TemperatureCompareRow
+            label={t('cityDashboard.temperature')}
+            unit={t('cityDashboard.temperatureUnit')}
+            valueA={colA.city.latestAqi?.temperature}
+            valueB={colB.city.latestAqi?.temperature}
+          />
         </div>
       )}
     </div>

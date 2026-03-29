@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
+
 import { useSearchCities } from '@hooks/useSearchCities'
 
 interface CitySearchBarProps {
@@ -66,7 +67,7 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
   useLayoutEffect(() => {
     if (!useFixedDropdown || !open || !inputRef.current) return
     const rect = inputRef.current.getBoundingClientRect()
-    setDropdownRect({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width })
+    setDropdownRect({ top: rect.bottom, left: rect.left, width: rect.width })
   }, [open, useFixedDropdown])
 
   return (

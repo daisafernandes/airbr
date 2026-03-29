@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { Flame, Trees, Radio, SlidersHorizontal, Wind } from 'lucide-react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import { FireMap } from '@components/shared/FireMap'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
 import {
@@ -12,23 +13,29 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@components/ui/drawer'
-import { useFires } from '@hooks/useFires'
-import { useCities } from '@hooks/useCities'
 import { useIsMobile } from '@hooks/use-mobile'
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { useCities } from '@hooks/useCities'
+import { useFires } from '@hooks/useFires'
 
 type Period = 'hoje' | '7d' | '30d'
+
+const AFFECTED_CITIES_PREVIEW = 6
 
 function ImpactCard({
   fireCount,
   affectedCities,
+  affectedCityLabels,
   loading,
 }: {
   fireCount: number
   affectedCities: number
+  affectedCityLabels: string[]
   loading: boolean
 }) {
   const { t } = useTranslation()
+  const preview = affectedCityLabels.slice(0, AFFECTED_CITIES_PREVIEW)
+  const rest = Math.max(0, affectedCityLabels.length - preview.length)
+
   return (
     <div className="bg-card/90 backdrop-blur-md border border-border rounded-lg p-3 shadow-xl">
       <div className="flex items-start gap-2">
@@ -36,10 +43,24 @@ function ImpactCard({
         {loading ? (
           <div className="h-4 bg-muted animate-pulse rounded w-48" />
         ) : (
-          <p className="text-xs font-body text-foreground leading-snug">
-            <span className="font-mono font-bold text-accent">{fireCount}</span>{' '}
-            {t('firemap.activeFires', { cities: affectedCities })}
-          </p>
+          <div className="text-xs font-body text-foreground leading-snug min-w-0 flex-1">
+            <p>
+              <span className="font-mono font-bold text-accent">{fireCount}</span>{' '}
+              {t('firemap.activeFires', { cities: affectedCities })}
+            </p>
+            {preview.length > 0 && (
+              <ul className="mt-1.5 space-y-0.5 text-[11px] text-muted-foreground border-t border-border/60 pt-1.5">
+                {preview.map(label => (
+                  <li key={label} className="truncate" title={label}>
+                    {label}
+                  </li>
+                ))}
+                {rest > 0 && (
+                  <li className="text-[10px] font-mono italic">{t('firemap.andMoreCities', { count: rest })}</li>
+                )}
+              </ul>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -201,10 +222,15 @@ export const FireMapPage = () => {
   const impactStats = useMemo(() => {
     const fireCount = fires.length
     const affectedStates = new Set(fires.filter(f => f.state).map(f => f.state!))
-    const affectedCities = cities.filter(c =>
+    const inImpact = cities.filter(c =>
       stateFilter ? c.state === stateFilter : affectedStates.has(c.state),
-    ).length
-    return { fireCount, affectedCities }
+    )
+    const sorted = [...inImpact].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+    return {
+      fireCount,
+      affectedCities: sorted.length,
+      affectedCityLabels: sorted.map(c => `${c.name} (${c.state})`),
+    }
   }, [fires, cities, stateFilter])
 
   const filterControls = (
@@ -271,6 +297,7 @@ export const FireMapPage = () => {
             <ImpactCard
               fireCount={impactStats.fireCount}
               affectedCities={impactStats.affectedCities}
+              affectedCityLabels={impactStats.affectedCityLabels}
               loading={firesLoading}
             />
 
@@ -297,6 +324,7 @@ export const FireMapPage = () => {
               <ImpactCard
                 fireCount={impactStats.fireCount}
                 affectedCities={impactStats.affectedCities}
+                affectedCityLabels={impactStats.affectedCityLabels}
                 loading={firesLoading}
               />
             </div>

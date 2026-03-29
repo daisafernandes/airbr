@@ -1,14 +1,34 @@
-import { Sun, Wind, Flower2, Info } from 'lucide-react'
+import { Sun, Wind, Flower2, Info, Thermometer } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { getUVLevels, getPollenLevels } from '@utils/aqiInfo'
+
+/** Mirrors backend `OutdoorSafetyService` tempScore for bar fill and color. */
+function tempComfortBarAndColor(temp: number): { barFill: number; color: string } {
+  const score =
+    temp >= 18 && temp <= 28
+      ? 100
+      : temp >= 12 && temp < 18
+        ? 80
+        : temp > 28 && temp <= 34
+          ? 70
+          : temp >= 8 && temp < 12
+            ? 50
+            : temp > 34 && temp <= 38
+              ? 40
+              : 20
+  const color =
+    score >= 80 ? '#4af0c4' : score >= 50 ? '#facc15' : score >= 40 ? '#ff9f4a' : '#ef4444'
+  return { barFill: score, color }
+}
 
 interface OutdoorSafetyCardProps {
   score: number
   uvIndex: number
   pollenLevel: number
   aqi: number
+  temperature: number | null
 }
 
 function getSafetyLabelKey(score: number): keyof { safe: string; moderate: string; caution: string; dangerous: string; critical: string } {
@@ -80,10 +100,13 @@ function getPollenLabel(level: number, pollenLevels: ReturnType<typeof getPollen
   return pollenLevels[pollenLevels.length - 1]?.label ?? ''
 }
 
-export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorSafetyCardProps) => {
+export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi, temperature }: OutdoorSafetyCardProps) => {
   const { t } = useTranslation()
   const uvLevels = getUVLevels(t)
   const pollenLevels = getPollenLevels(t)
+
+  const tempVisual =
+    temperature !== null && !Number.isNaN(temperature) ? tempComfortBarAndColor(temperature) : null
 
   const labelKey = getSafetyLabelKey(score)
   const color = getSafetyColor(score)
@@ -118,6 +141,13 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorS
           </div>
         ))}
       </div>
+    </div>
+  )
+
+  const TemperatureTooltip = () => (
+    <div className="space-y-1.5">
+      <p className="text-xs font-body font-semibold text-foreground">{t('cityDashboard.temperatureTooltipTitle')}</p>
+      <p className="text-xs font-body text-muted-foreground">{t('cityDashboard.temperatureTooltipDesc')}</p>
     </div>
   )
 
@@ -171,6 +201,15 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorS
           barFill={(pollenLevel / 10) * 100}
           color={pollenLevel <= 2 ? '#4af0c4' : pollenLevel <= 5 ? '#facc15' : '#ff9f4a'}
           tooltip={<PollenTooltip />}
+        />
+        <MetricRow
+          icon={<Thermometer className="w-3.5 h-3.5" />}
+          label={t('cityDashboard.temperature')}
+          value={tempVisual != null && temperature != null ? temperature.toFixed(1) : '—'}
+          sublabel={tempVisual ? t('cityDashboard.temperatureUnit') : ''}
+          barFill={tempVisual?.barFill ?? 0}
+          color={tempVisual?.color ?? 'rgba(255,255,255,0.15)'}
+          tooltip={<TemperatureTooltip />}
         />
       </div>
     </div>

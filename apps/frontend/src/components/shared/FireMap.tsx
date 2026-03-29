@@ -2,9 +2,34 @@ import L from 'leaflet'
 import { useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
 
-import { useCities } from '@hooks/useCities'
+import type { CityApiData, FireFocusApi } from '@app-types/airQuality.types'
 import { GLOBAL_DEFORESTATION_AREAS } from '@data/mockCities'
-import type { FireFocusApi } from '@app-types/airQuality.types'
+import { useCities } from '@hooks/useCities'
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLng = ((lng2 - lng1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function getNearestCity(lat: number, lng: number, cities: CityApiData[]): CityApiData | null {
+  if (cities.length === 0) return null
+  let nearest: CityApiData = cities[0]!
+  let best = haversineKm(lat, lng, nearest.lat, nearest.lng)
+  for (let i = 1; i < cities.length; i++) {
+    const c = cities[i]!
+    const d = haversineKm(lat, lng, c.lat, c.lng)
+    if (d < best) {
+      best = d
+      nearest = c
+    }
+  }
+  return nearest
+}
 
 function getAQIColor(aqi: number): string {
   if (aqi <= 50) return '#22c55e'
@@ -69,26 +94,6 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
       maxZoom: 18,
     }).addTo(map)
 
-    // Deforestation layer — static mock (TODO Fase 4: PRODES API)
-    GLOBAL_DEFORESTATION_AREAS.forEach(area => {
-      L.circle([area.lat, area.lng], {
-        radius: area.radius,
-        fillColor: '#22c55e',
-        fillOpacity: 0.12,
-        color: '#22c55e',
-        weight: 1.5,
-        opacity: 0.4,
-        dashArray: '5 5',
-      })
-        .bindPopup(
-          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">🌳 Área Desmatada</strong><br/>
-            <span style="font-size:11px">Fonte: PRODES/INPE</span>
-          </div>`,
-        )
-        .addTo(deforestLayerRef.current)
-    })
-
     mapInstanceRef.current = map
 
     return () => {
@@ -104,6 +109,7 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
     if (!map) return
 
     fires.forEach(spot => {
+      const nearestCity = getNearestCity(spot.lat, spot.lng, cities)
       const color = getFireColor(spot.intensity)
       const radius = getFireRadius(spot.intensity)
       const label = getFireLabel(spot.intensity)
@@ -121,6 +127,7 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
               🔥 Foco de Queimada
             </strong><br/>
             ${spot.state ? `<span style="font-size:12px">Estado: <b>${spot.state}</b></span><br/>` : ''}
+            ${nearestCity ? `<span style="font-size:12px">Cidade próxima: <b>${nearestCity.name}</b></span><br/>` : ''}
             <span style="font-size:12px">Intensidade: <b>${label}</b></span><br/>
             ${spot.biome ? `<span style="font-size:11px">Bioma: ${spot.biome}</span><br/>` : ''}
             <span style="font-size:11px;color:#666">Fonte: INPE/BDQueimadas</span>
@@ -130,7 +137,36 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
     })
 
     if (showFires) fireLayerRef.current.addTo(map)
-  }, [fires, showFires])
+  }, [fires, showFires, cities])
+
+  // Deforestation layer — static mock (TODO Fase 4: PRODES API); popups need city list for nearest city
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    deforestLayerRef.current.clearLayers()
+    GLOBAL_DEFORESTATION_AREAS.forEach(area => {
+      const nearestCity = getNearestCity(area.lat, area.lng, cities)
+      L.circle([area.lat, area.lng], {
+        radius: area.radius,
+        fillColor: '#22c55e',
+        fillOpacity: 0.12,
+        color: '#22c55e',
+        weight: 1.5,
+        opacity: 0.4,
+        dashArray: '5 5',
+      })
+        .bindPopup(
+          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
+            <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">🌳 Área Desmatada</strong><br/>
+            ${nearestCity ? `<span style="font-size:11px">Estado: <b>${nearestCity.state}</b> · Cidade próxima: <b>${nearestCity.name}</b></span><br/>` : ''}
+            <span style="font-size:11px">Fonte: PRODES/INPE</span>
+          </div>`,
+        )
+        .addTo(deforestLayerRef.current)
+    })
+    if (showDeforestation) deforestLayerRef.current.addTo(map)
+    else deforestLayerRef.current.remove()
+  }, [cities, showDeforestation])
 
   // Redraw stations layer when city API data loads
   useEffect(() => {
@@ -169,14 +205,6 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
     if (showFires) fireLayerRef.current.addTo(map)
     else fireLayerRef.current.remove()
   }, [showFires])
-
-  // Toggle deforestation layer
-  useEffect(() => {
-    const map = mapInstanceRef.current
-    if (!map) return
-    if (showDeforestation) deforestLayerRef.current.addTo(map)
-    else deforestLayerRef.current.remove()
-  }, [showDeforestation])
 
   // Toggle stations layer
   useEffect(() => {

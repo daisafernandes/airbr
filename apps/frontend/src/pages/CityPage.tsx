@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useCity } from '@hooks/useCity'
 import { useCityHistory } from '@hooks/useCityHistory'
+import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
 import { AQIGauge } from '@components/shared/CityDashboard/AQIGauge'
 import { PollutantCards } from '@components/shared/CityDashboard/PollutantCards'
@@ -66,6 +67,7 @@ export const CityPage = () => {
 
   const { data: city, isLoading, isError } = useCity(id ?? null)
   const { data: historyReadings = [], isLoading: historyLoading } = useCityHistory(id ?? null, period === '1y' ? '1y' : period)
+  const { data: outdoorSafety } = useOutdoorSafety(id ?? null)
 
   const pollutantInfo = getPollutantInfo(t)
   const aqi = city?.latestAqi?.aqi ?? 0
@@ -75,7 +77,15 @@ export const CityPage = () => {
   const historyData = buildHistoryPoints(historyReadings, i18n.language)
   const pm25 = city?.latestAqi?.pm25 ?? null
   const omsCompliant = pm25 !== null ? pm25 <= 5 : false
-  const safety = city ? computeOutdoorSafety(aqi, city.latestAqi?.uv ?? null, city.latestAqi?.pollen ?? null) : null
+
+  const outdoorScore = outdoorSafety
+    ? outdoorSafety.score / 10
+    : city
+      ? computeOutdoorSafety(aqi, city.latestAqi?.uv ?? null, city.latestAqi?.pollen ?? null).score
+      : 0
+  const uvIndex = outdoorSafety?.breakdown.uv ?? city?.latestAqi?.uv ?? 0
+  const pollenLevel = outdoorSafety?.breakdown.pollen ?? city?.latestAqi?.pollen ?? 0
+  const temperature = outdoorSafety?.breakdown.temperature ?? city?.latestAqi?.temperature ?? null
 
   const navLinks = [
     { to: '/', label: t('nav.dashboard') },
@@ -230,14 +240,13 @@ export const CityPage = () => {
                 </div>
 
                 {/* Outdoor safety */}
-                {safety && (
-                  <OutdoorSafetyCard
-                    score={safety.score}
-                    uvIndex={safety.uvIndex}
-                    pollenLevel={safety.pollenLevel}
-                    aqi={aqi}
-                  />
-                )}
+                <OutdoorSafetyCard
+                  score={outdoorScore}
+                  uvIndex={uvIndex}
+                  pollenLevel={pollenLevel}
+                  aqi={aqi}
+                  temperature={temperature}
+                />
 
                 {/* Smoke source */}
                 <SmokeSourceCard
@@ -267,6 +276,14 @@ export const CityPage = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('cityDashboard.dataSource')}</span>
                       <span className="text-foreground">{city.source}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t('cityDashboard.temperature')}</span>
+                      <span className="text-foreground">
+                        {temperature != null && !Number.isNaN(temperature)
+                          ? `${temperature.toFixed(1)} ${t('cityDashboard.temperatureUnit')}`
+                          : '—'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('cityDashboard.whoLimitPM25')}</span>

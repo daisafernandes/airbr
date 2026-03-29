@@ -118,6 +118,8 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
       })()
   const uvIndex = outdoorSafety?.breakdown.uv ?? city.latestAqi?.uv ?? 0
   const pollenLevel = outdoorSafety?.breakdown.pollen ?? city.latestAqi?.pollen ?? 0
+  const temperature =
+    outdoorSafety?.breakdown.temperature ?? city.latestAqi?.temperature ?? null
 
   const lastUpdate = city.latestAqi
     ? formatDateTime(new Date(city.latestAqi.timestamp), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -186,7 +188,13 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
         )}
       </div>
 
-      <OutdoorSafetyCard score={outdoorScore} uvIndex={uvIndex} pollenLevel={pollenLevel} aqi={aqi} />
+      <OutdoorSafetyCard
+        score={outdoorScore}
+        uvIndex={uvIndex}
+        pollenLevel={pollenLevel}
+        aqi={aqi}
+        temperature={temperature}
+      />
 
       <SmokeSourceCard
         lat={city.lat}
