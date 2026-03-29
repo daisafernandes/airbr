@@ -1,6 +1,7 @@
 {
   "extends": "../../packages/typescript-config/react.json",
   "compilerOptions": {
+    "noEmit": true,
     "baseUrl": "./src",
     "types": ["vite/client"],
     "paths": {
