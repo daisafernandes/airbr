@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-import { Button } from '@components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 export const NotFoundPage = () => {
   return (
@@ -8,7 +8,7 @@ export const NotFoundPage = () => {
       <h1 className="text-6xl font-bold text-gray-300">404</h1>
       <p className="text-xl text-gray-600">Página não encontrada</p>
       <Link to="/">
-        <Button variant="primary">Voltar ao início</Button>
+        <Button>Voltar ao início</Button>
       </Link>
     </div>
   )

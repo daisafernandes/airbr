@@ -10,7 +10,7 @@ Cada fase é projetada para múltiplos agentes trabalhando em paralelo. Os agent
 
 | Agente | Foco | Responsabilidades |
 |--------|------|-------------------|
-| **Agente A** | Backend & Infra | Express, DB, Redis, Auth, endpoints REST |
+| **Agente A** | Backend & Infra | Express, DB, Redis, endpoints REST |
 | **Agente B** | Data Pipeline | Integrações externas, cron jobs, normalização |
 | **Agente C** | Frontend | React, mapa, dashboard, UI/UX |
 | **Agente D** | DevOps & Qualidade | Docker, CI/CD, testes, configs |
@@ -26,20 +26,11 @@ Corrigir inconsistências do scaffold atual antes de qualquer desenvolvimento no
 
 ### Agente A — Corrigir Backend
 
-- Adicionar `bcryptjs` e `@types/bcryptjs` ao `apps/backend/package.json` (dependência usada no código mas não declarada)
-- Implementar `GET /api/v1/users/:id` (frontend já chama, backend não tem o endpoint)
-- Adicionar `jsonwebtoken` e `@types/jsonwebtoken` ao `apps/backend/package.json` (`JWT_SECRET` já é validado no env mas JWT não está implementado)
-- Criar `apps/backend/src/infrastructure/http/middlewares/authMiddleware.ts` com verificação do Bearer token
-- Criar rota `POST /api/v1/auth/login` com resposta JWT
 - Garantir que o boot não quebra quando `DATABASE_URL` aponta para um banco inacessível (modo dev sem Docker)
 
 ### Agente C — Corrigir Frontend
 
 - Instalar `tailwindcss`, `postcss` e `autoprefixer`; criar `tailwind.config.ts` e `postcss.config.ts` em `apps/frontend/`
-- Criar rota `/login` + `apps/frontend/src/pages/LoginPage.tsx` (o interceptor Axios já redireciona para cá no 401, mas a rota não existe)
-- Criar rota `/register` + `apps/frontend/src/pages/RegisterPage.tsx` usando o hook `useCreateUser` existente
-- Criar `apps/frontend/src/services/authService.ts` com métodos `login` e `logout`
-- Conectar `AuthContext.signIn` ao endpoint real `POST /api/v1/auth/login`
 
 ### Agente D — Configuração Base
 
@@ -49,7 +40,7 @@ Corrigir inconsistências do scaffold atual antes de qualquer desenvolvimento no
 - Configurar **GitHub Actions** básico (`.github/workflows/ci.yml`): lint + type-check em cada PR
 - Atualizar `apps/backend/.env.example` com comentários explicativos por variável
 
-**Entregas:** `bcryptjs` instalado, `POST /auth/login`, página `/login`, Tailwind funcionando, Docker Compose (Postgres + Redis), CI básico.
+**Entregas:** Tailwind funcionando, Docker Compose (Postgres + Redis), CI básico.
 
 ---
 
@@ -69,9 +60,7 @@ Conectar ao banco real e trazer os primeiros dados externos. O Agente A prepara 
   - `City` — `id`, `name`, `state`, `lat`, `lng`, `source`
   - `AqiReading` — `cityId`, `aqi`, `pm25`, `pm10`, `o3`, `no2`, `co`, `uv`, `pollen`, `timestamp`, `source`
   - `FireFocus` — `lat`, `lng`, `intensity`, `satellite`, `detectedAt`, `biome`
-  - `User` — completo, substituindo o in-memory
 - Criar migrations e validar no Docker Compose local
-- Substituir `InMemoryUserRepository` pelo `PrismaUserRepository`
 - Instalar `ioredis` e criar `apps/backend/src/infrastructure/cache/RedisCache.ts`
 - Criar `CacheService` com métodos `get`, `set`, `invalidate` e fallback gracioso (sem Redis = sem cache, sem erro)
 
@@ -110,7 +99,7 @@ Automatizar a ingestão de dados e expor os primeiros endpoints REST. É o ponto
 - Criar modelo `JobLog` no banco: status, duração, registros inseridos, erros
 - Implementar rate limiting interno para respeitar limites das APIs gratuitas (ex: 1.000 req/dia do OWM)
 - Implementar retry com exponential backoff para falhas de rede
-- Adicionar `GET /api/v1/admin/jobs` protegido com JWT para status dos jobs
+- Adicionar `GET /api/v1/admin/jobs` para status dos jobs
 
 ### Agente A — Endpoints REST Core
 
@@ -210,9 +199,9 @@ Sistema de alertas proativo: o usuário define limites e é notificado quando o 
 
 ### Agente A — Sistema de Alertas
 
-- Adicionar modelo `Alert` ao schema Prisma: `userId`, `cityId`, `threshold`, `channels` (email | push), `active`
-- `POST /api/v1/alerts` — cadastrar alerta (requer autenticação)
-- `GET /api/v1/alerts` — listar alertas do usuário autenticado
+- Adicionar modelo `Alert` ao schema Prisma: `email`, `cityId`, `threshold`, `channels` (email | push), `active`
+- `POST /api/v1/alerts` — cadastrar alerta por e-mail
+- `GET /api/v1/alerts` — listar alertas por e-mail
 - `DELETE /api/v1/alerts/:id` — remover alerta
 - Criar `AlertCheckerJob` que roda a cada hora: verifica AQI das cidades monitoradas e dispara notificações quando threshold é ultrapassado
 - Integrar **Resend** (ou Nodemailer como fallback) para envio de e-mail de alerta
@@ -224,7 +213,6 @@ Sistema de alertas proativo: o usuário define limites e é notificado quando o 
 - Listar alertas ativos com botão de remoção
 - Solicitar permissão de Push Notification ao usuário no browser
 - Registrar Service Worker para receber push mesmo com o app fechado
-- Indicador visual na `CityPage` quando o usuário já tem um alerta ativo para aquela cidade
 
 **Entregas:** `POST/GET/DELETE /alerts`, AlertCheckerJob, e-mail de alerta, Web Push (VAPID), UI de gerenciamento, Service Worker.
 
@@ -277,10 +265,9 @@ Features de crescimento orgânico e abertura do ecossistema. Iniciar apenas apó
 ### Agente B — Relatos da Comunidade
 
 - Endpoint `POST /api/v1/reports` — usuário reporta fumaça, cheiro, visibilidade reduzida
-- Modelo `CommunityReport`: `lat`, `lng`, `type`, `description`, `userId`, `verifiedAt`
+- Modelo `CommunityReport`: `lat`, `lng`, `type`, `description`, `verifiedAt`
 - Job de moderação automática: cruzar relatos com dados de satélite para validação
 - Camada de relatos no mapa com ícones distintos por tipo de reporte
-- Gamificação: badge "Colaborador AirBR" para reporters frequentes
 
 ### Agente A — API Pública Aberta
 
@@ -300,6 +287,40 @@ Features de crescimento orgânico e abertura do ecossistema. Iniciar apenas apó
 
 ---
 
+## Fase 8 · v2 — Contas de Usuário e Autenticação
+
+**Duração estimada:** A definir após v1 estável em produção  
+**Agentes:** A + C em paralelo
+
+Introduzir sistema de identidade completo, vinculando alertas e relatos a contas de usuário e habilitando experiências personalizadas.
+
+### Agente A — Backend de Autenticação
+
+- Instalar `bcryptjs`, `@types/bcryptjs`, `jsonwebtoken` e `@types/jsonwebtoken`
+- Adicionar modelo `User` ao schema Prisma: `id`, `email`, `passwordHash`, `name`, `createdAt`
+- Criar `apps/backend/src/infrastructure/http/middlewares/authMiddleware.ts` com verificação do Bearer token
+- `POST /api/v1/auth/register` — criação de conta com hash de senha
+- `POST /api/v1/auth/login` — autenticação com retorno de JWT
+- `GET /api/v1/users/:id` — perfil do usuário autenticado
+- Migrar modelo `Alert`: substituir campo `email` por `userId`, vinculando alertas à conta
+- Vincular `CommunityReport` a `userId` para rastreabilidade
+- Proteger `GET /api/v1/admin/jobs` com JWT
+- Gamificação: badge "Colaborador AirBR" para reporters frequentes
+
+### Agente C — Frontend de Autenticação
+
+- Criar `apps/frontend/src/services/authService.ts` com métodos `login`, `register` e `logout`
+- Criar `apps/frontend/src/pages/LoginPage.tsx` + rota `/login`
+- Criar `apps/frontend/src/pages/RegisterPage.tsx` + rota `/register` (usando o hook `useCreateUser`)
+- Conectar `AuthContext.signIn` ao endpoint real `POST /api/v1/auth/login`
+- Adicionar interceptor Axios para redirecionar ao `/login` em respostas 401
+- Indicador visual na `CityPage` quando o usuário autenticado já tem um alerta ativo para aquela cidade
+- Persistência de alertas vinculada à conta entre dispositivos
+
+**Entregas:** Modelo `User` no banco, `POST /auth/register`, `POST /auth/login`, JWT + authMiddleware, páginas `/login` e `/register`, alertas vinculados à conta, gamificação de reporters.
+
+---
+
 ## Estimativas de Tempo
 
 | Fase | Descrição | Solo | Com agentes paralelos |
@@ -312,7 +333,8 @@ Features de crescimento orgânico e abertura do ecossistema. Iniciar apenas apó
 | Fase 5 | Alertas e notificações | 3–4 dias | 2–3 dias |
 | Fase 6 | Qualidade + deploy | 3–4 dias | 2–3 dias |
 | **Total v1** | | **~22–32 dias** | **~12–18 dias** |
-| Fase 7 | v2 (pós-lançamento) | A definir | A definir |
+| Fase 7 | v2 — Comunidade + API Pública + Widget | A definir | A definir |
+| Fase 8 | v2 — Contas de Usuário e Autenticação | A definir | A definir |
 
 > As fases 0 → 2 têm dependências sequenciais entre os Agentes A e B. A partir da Fase 3, os agentes são quase totalmente independentes e o paralelismo é mais eficiente.
 

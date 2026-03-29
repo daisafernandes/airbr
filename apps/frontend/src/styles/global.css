@@ -1,13 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  *, *::before, *::after {
-    box-sizing: border-box;
+  :root {
+    --background: 220 50% 3%;
+    --foreground: 210 20% 85%;
+
+    --card: 225 40% 6%;
+    --card-foreground: 210 20% 85%;
+
+    --popover: 225 40% 6%;
+    --popover-foreground: 210 20% 85%;
+
+    --primary: 161 85% 62%;
+    --primary-foreground: 220 50% 3%;
+
+    --secondary: 214 100% 65%;
+    --secondary-foreground: 220 50% 3%;
+
+    --muted: 225 30% 12%;
+    --muted-foreground: 215 15% 50%;
+
+    --accent: 30 100% 65%;
+    --accent-foreground: 220 50% 3%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 225 20% 14%;
+    --input: 225 20% 14%;
+    --ring: 161 85% 62%;
+
+    --radius: 0.25rem;
+
+    --surface: 225 40% 6%;
+    --surface-elevated: 225 35% 9%;
+
+    --sidebar-background: 225 40% 5%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 161 85% 62%;
+    --sidebar-primary-foreground: 220 50% 3%;
+    --sidebar-accent: 225 30% 12%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 225 20% 14%;
+    --sidebar-ring: 161 85% 62%;
+
+    --font-heading: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
 
   body {
-    @apply text-gray-900 antialiased;
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: 0.04em;
+  }
+}
+
+/* Grain overlay */
+.grain-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Ambient blobs */
+.ambient-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.12;
+}
+
+.blob-cyan {
+  background: hsl(161 85% 62%);
+  width: 500px;
+  height: 500px;
+  animation: blob-drift-1 20s ease-in-out infinite;
+}
+
+.blob-blue {
+  background: hsl(214 100% 65%);
+  width: 400px;
+  height: 400px;
+  animation: blob-drift-2 25s ease-in-out infinite;
+}
+
+.blob-orange {
+  background: hsl(30 100% 65%);
+  width: 350px;
+  height: 350px;
+  animation: blob-drift-3 22s ease-in-out infinite;
+}
+
+@keyframes blob-drift-1 {
+  0%, 100% { transform: translate(-20%, -20%); }
+  33% { transform: translate(10%, 30%); }
+  66% { transform: translate(-30%, 10%); }
+}
+
+@keyframes blob-drift-2 {
+  0%, 100% { transform: translate(80%, 60%); }
+  33% { transform: translate(50%, 20%); }
+  66% { transform: translate(70%, 80%); }
+}
+
+@keyframes blob-drift-3 {
+  0%, 100% { transform: translate(60%, -10%); }
+  33% { transform: translate(20%, 50%); }
+  66% { transform: translate(80%, 30%); }
+}
+
+/* Data mono font utility */
+.font-data {
+  font-family: var(--font-mono);
+}
+
+/* AQI color classes */
+.aqi-good { color: hsl(161 85% 62%); }
+.aqi-moderate { color: hsl(55 90% 55%); }
+.aqi-unhealthy-sensitive { color: hsl(30 100% 65%); }
+.aqi-unhealthy { color: hsl(0 80% 55%); }
+.aqi-very-unhealthy { color: hsl(280 60% 50%); }
+.aqi-hazardous { color: hsl(340 80% 40%); }
+
+/* Leaflet overrides for dark theme */
+.leaflet-container {
+  background: hsl(225 40% 6%) !important;
+}
+
+.leaflet-control-zoom a {
+  background: hsl(225 35% 9%) !important;
+  color: hsl(210 20% 85%) !important;
+  border-color: hsl(225 20% 14%) !important;
+}
+
+.leaflet-control-attribution {
+  background: hsl(225 40% 6% / 0.8) !important;
+  color: hsl(215 15% 50%) !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+  color: hsl(161 85% 62%) !important;
 }
