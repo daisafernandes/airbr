@@ -121,7 +121,7 @@ export const GlossaryPage = () => {
 
           <div className="grid grid-cols-1 gap-4">
             {POLLUTANTS_ORDER.map(key => {
-              const p = POLLUTANT_INFO[key]
+              const p = POLLUTANT_INFO[key]!
               return (
                 <div key={key} className="bg-card border border-border rounded p-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -179,7 +179,7 @@ export const GlossaryPage = () => {
               </thead>
               <tbody>
                 {UV_LEVELS.map((level, i) => {
-                  const min = i === 0 ? 0 : UV_LEVELS[i - 1].max + 1
+                  const min = i === 0 ? 0 : UV_LEVELS[i - 1]!.max + 1
                   return (
                     <tr key={level.label} className="border-b border-border last:border-0 bg-card hover:bg-muted/30 transition-colors">
                       <td className="px-3 py-2.5 font-mono" style={{ color: level.color }}>
@@ -225,7 +225,7 @@ export const GlossaryPage = () => {
               </thead>
               <tbody>
                 {POLLEN_LEVELS.map((level, i) => {
-                  const min = i === 0 ? 0 : POLLEN_LEVELS[i - 1].max + 1
+                  const min = i === 0 ? 0 : POLLEN_LEVELS[i - 1]!.max + 1
                   return (
                     <tr key={level.label} className="border-b border-border last:border-0 bg-card hover:bg-muted/30 transition-colors">
                       <td className="px-3 py-2.5 font-mono" style={{ color: level.color }}>
