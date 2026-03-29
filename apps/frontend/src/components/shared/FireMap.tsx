@@ -1,28 +1,37 @@
-import { useEffect, useRef } from 'react'
 import L from 'leaflet'
+import { useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
-import { CITIES_DATA } from '@data/mockCities'
+import { GLOBAL_FIRE_SPOTS, GLOBAL_DEFORESTATION_AREAS, CITIES_DATA, getAQIColor } from '@data/mockCities'
+import type { FireSpot } from '@app-types/city.types'
 
 interface FireMapProps {
-  showFires?: boolean
-  showDeforestation?: boolean
-  showStations?: boolean
-  stateFilter?: string
+  showFires: boolean
+  showDeforestation: boolean
+  showStations: boolean
+  stateFilter: string
+  periodDays: number
 }
 
-function getFireColor(intensity: 'low' | 'medium' | 'high'): string {
-  if (intensity === 'high') return '#ef4444'
-  if (intensity === 'medium') return '#f97316'
+function getFireColor(spot: FireSpot): string {
+  if (spot.intensity === 'high') return '#ef4444'
+  if (spot.intensity === 'medium') return '#ff9f4a'
   return '#facc15'
 }
 
-export const FireMap = ({ showFires = true, showDeforestation = true, showStations = false, stateFilter }: FireMapProps) => {
+function getFireRadius(spot: FireSpot): number {
+  if (spot.intensity === 'high') return 9
+  if (spot.intensity === 'medium') return 7
+  return 5
+}
+
+export const FireMap = ({ showFires, showDeforestation, showStations, stateFilter, periodDays }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const fireLayerRef = useRef<L.LayerGroup>(L.layerGroup())
   const deforestLayerRef = useRef<L.LayerGroup>(L.layerGroup())
   const stationsLayerRef = useRef<L.LayerGroup>(L.layerGroup())
 
+  // Initialise map once
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return
 
@@ -34,68 +43,70 @@ export const FireMap = ({ showFires = true, showDeforestation = true, showStatio
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 18,
     }).addTo(map)
 
-    const cities = stateFilter ? CITIES_DATA.filter(c => c.state === stateFilter) : CITIES_DATA
-
-    cities.forEach(city => {
-      city.nearbyFires.forEach(spot => {
-        const color = getFireColor(spot.intensity)
-        const radius = spot.intensity === 'high' ? 8 : spot.intensity === 'medium' ? 6 : 4
-        L.circleMarker([spot.lat, spot.lng], {
-          radius,
-          fillColor: color,
-          fillOpacity: 0.8,
-          color,
-          weight: 1.5,
-          opacity: 0.6,
-        })
-          .bindPopup(
-            `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-              <strong>🔥 Foco de queimada</strong><br/>
-              <span style="font-size:11px">Intensidade: <b>${spot.intensity === 'high' ? 'Alta' : spot.intensity === 'medium' ? 'Média' : 'Baixa'}</b></span><br/>
-              <span style="font-size:11px">Próximo a: ${city.name}, ${city.state}</span>
-            </div>`
-          )
-          .addTo(fireLayerRef.current)
+    // Populate fire spots layer
+    GLOBAL_FIRE_SPOTS.forEach(spot => {
+      const color = getFireColor(spot)
+      const radius = getFireRadius(spot)
+      L.circleMarker([spot.lat, spot.lng], {
+        radius,
+        fillColor: color,
+        fillOpacity: 0.85,
+        color: '#fff',
+        weight: 0.5,
+        opacity: 0.6,
       })
-
-      city.deforestationAreas.forEach(area => {
-        L.circle([area.lat, area.lng], {
-          radius: area.radius,
-          fillColor: '#22c55e',
-          fillOpacity: 0.12,
-          color: '#22c55e',
-          weight: 1,
-          opacity: 0.3,
-          dashArray: '4 4',
-        })
-          .bindPopup(
-            `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-              <strong>🌳 Área de desmatamento detectado</strong><br/>
-              <span style="font-size:11px">Região de ${city.name}, ${city.state}</span>
-            </div>`
-          )
-          .addTo(deforestLayerRef.current)
-      })
+        .bindPopup(
+          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e;min-width:140px">
+            <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.05em">
+              🔥 Foco de Queimada
+            </strong><br/>
+            <span style="font-size:12px">Intensidade: <b>${spot.intensity === 'high' ? 'Alta' : spot.intensity === 'medium' ? 'Média' : 'Baixa'}</b></span><br/>
+            <span style="font-size:11px;color:#666">Fonte: INPE/BDQueimadas</span>
+          </div>`,
+        )
+        .addTo(fireLayerRef.current)
     })
 
-    // Mock official monitoring stations
+    // Populate deforestation layer
+    GLOBAL_DEFORESTATION_AREAS.forEach(area => {
+      L.circle([area.lat, area.lng], {
+        radius: area.radius,
+        fillColor: '#22c55e',
+        fillOpacity: 0.12,
+        color: '#22c55e',
+        weight: 1.5,
+        opacity: 0.4,
+        dashArray: '5 5',
+      })
+        .bindPopup(
+          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
+            <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">🌳 Área Desmatada</strong><br/>
+            <span style="font-size:11px">Fonte: PRODES/INPE</span>
+          </div>`,
+        )
+        .addTo(deforestLayerRef.current)
+    })
+
+    // Populate monitoring stations (city markers)
     CITIES_DATA.forEach(city => {
+      const color = getAQIColor(city.aqi)
       L.circleMarker([city.lat, city.lng], {
         radius: 5,
-        fillColor: '#818cf8',
-        fillOpacity: 0.7,
-        color: '#818cf8',
-        weight: 1.5,
+        fillColor: color,
+        fillOpacity: 0.8,
+        color: '#fff',
+        weight: 1,
         opacity: 0.5,
       })
         .bindPopup(
           `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            <strong>📡 Estação oficial</strong><br/>
-            <span style="font-size:12px">${city.name}, ${city.state}</span><br/>
-            <span style="font-size:11px;font-family:'DM Mono',monospace">AQI ${city.aqi}</span>
-          </div>`
+            <strong style="font-family:'Bebas Neue',sans-serif;font-size:15px">${city.name}, ${city.state}</strong><br/>
+            <span style="font-family:'DM Mono',monospace;font-size:18px;color:${color}">AQI ${city.aqi}</span><br/>
+            <span style="font-size:11px">Estação oficial · CETESB/IBAMA</span>
+          </div>`,
         )
         .addTo(stationsLayerRef.current)
     })
@@ -106,8 +117,9 @@ export const FireMap = ({ showFires = true, showDeforestation = true, showStatio
       map.remove()
       mapInstanceRef.current = null
     }
-  }, [stateFilter])
+  }, [])
 
+  // Toggle fire layer
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
@@ -115,6 +127,7 @@ export const FireMap = ({ showFires = true, showDeforestation = true, showStatio
     else fireLayerRef.current.remove()
   }, [showFires])
 
+  // Toggle deforestation layer
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
@@ -122,6 +135,7 @@ export const FireMap = ({ showFires = true, showDeforestation = true, showStatio
     else deforestLayerRef.current.remove()
   }, [showDeforestation])
 
+  // Toggle stations layer
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
@@ -129,39 +143,19 @@ export const FireMap = ({ showFires = true, showDeforestation = true, showStatio
     else stationsLayerRef.current.remove()
   }, [showStations])
 
+  // Fly to state when filter changes
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map || !stateFilter) return
+    const city = CITIES_DATA.find(c => c.state === stateFilter)
+    if (city) {
+      map.flyTo([city.lat, city.lng], 7, { duration: 1.2 })
+    } else {
+      map.flyTo([-14.24, -51.93], 4, { duration: 1.2 })
+    }
+  }, [stateFilter])
+
   return (
-    <div className="w-full h-full rounded border border-border overflow-hidden relative">
-      <div ref={mapRef} className="w-full h-full" style={{ minHeight: 400 }} />
-      <div className="absolute bottom-4 left-4 z-[400] bg-card/90 backdrop-blur border border-border rounded p-2.5 flex flex-col gap-1.5">
-        {showFires && (
-          <>
-            <div className="flex items-center gap-2 text-[10px] font-mono text-foreground">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
-              Alta intensidade
-            </div>
-            <div className="flex items-center gap-2 text-[10px] font-mono text-foreground">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#f97316]" />
-              Média intensidade
-            </div>
-            <div className="flex items-center gap-2 text-[10px] font-mono text-foreground">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#facc15]" />
-              Baixa intensidade
-            </div>
-          </>
-        )}
-        {showDeforestation && (
-          <div className="flex items-center gap-2 text-[10px] font-mono text-foreground">
-            <span className="inline-block w-3 h-3 rounded border border-green-500/60 bg-green-500/20" />
-            Desmatamento
-          </div>
-        )}
-        {showStations && (
-          <div className="flex items-center gap-2 text-[10px] font-mono text-foreground">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-indigo-400" />
-            Estação oficial
-          </div>
-        )}
-      </div>
-    </div>
+    <div ref={mapRef} className="w-full h-full" />
   )
 }

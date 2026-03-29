@@ -90,36 +90,36 @@ Conectar ao banco real e trazer os primeiros dados externos. O Agente A prepara 
 
 Automatizar a ingestão de dados e expor os primeiros endpoints REST. É o ponto central de geração de valor do produto.
 
+> **Nota:** Grande parte desta fase foi adiantada durante a Fase 1. O delta implementado nesta fase está marcado abaixo.
+
 ### Agente B — Scheduler de Jobs
 
-- Instalar `node-cron` e criar `JobScheduler` com registro de coletores em `apps/backend/src/jobs/`
-- Configurar schedules:
-  - AQI: a cada **1h**
-  - Queimadas INPE: a cada **3h**
-  - UV/clima: a cada **1h**
-  - Limpeza de dados obsoletos: a cada **24h**
-- Criar modelo `JobLog` no banco: status, duração, registros inseridos, erros
-- Implementar rate limiting interno para respeitar limites das APIs gratuitas (ex: 1.000 req/dia do OWM)
-- Implementar retry com exponential backoff para falhas de rede
-- Adicionar `GET /api/v1/admin/jobs` para status dos jobs
+- ✅ Instalar `node-cron` e criar `JobScheduler` com registro de coletores em `apps/backend/src/jobs/` (adiantado na Fase 1)
+- ✅ Configurar schedules: AQI a cada **1h**, Queimadas INPE a cada **3h**, UV/clima a cada **1h**, limpeza a cada **24h** (adiantado na Fase 1)
+- ✅ Criar modelo `JobLog` no banco: status, duração, registros inseridos, erros (adiantado na Fase 1)
+- ✅ Implementar rate limiting interno (`RateLimiter.ts`) para respeitar limites das APIs gratuitas (adiantado na Fase 1)
+- ✅ Implementar retry com exponential backoff para falhas de rede (`retry.ts`) (adiantado na Fase 1)
+- ✅ Adicionar `GET /api/v1/admin/jobs` para status dos jobs — `AdminController`, `IJobLogRepository`, `PrismaJobLogRepository`
 
 ### Agente A — Endpoints REST Core
 
-- Adicionar **Redis 7** ao `docker-compose.yml`
-- Instalar `ioredis` e criar `apps/backend/src/infrastructure/cache/RedisCache.ts`
-- Migrar `CacheService` do NodeCache para Redis; manter fallback gracioso (sem Redis = sem cache, sem erro)
+> **Redis diferido para v2 (Fase 7).** Cache implementado com `NodeCacheService` (in-process). A interface `ICacheService` garante a migração transparente para Redis quando chegar a Fase 7.
 
-Todos com cache Redis (TTL conforme frequência de atualização):
+Todos com cache NodeCache (TTL conforme frequência de atualização):
 
-- `GET /api/v1/cities` — lista com AQI atual, lat/lng e fonte; cache 15 min
-- `GET /api/v1/cities/:id` — dados completos: AQI, PM2.5, PM10, O₃, NO₂, CO, UV, pólen, alertas de saúde, fonte
-- `GET /api/v1/cities/:id/history?period=7d|30d|1y` — histórico por período
-- `GET /api/v1/fires` — focos ativos com filtros por estado e bioma
-- `GET /api/v1/ranking` — top 10 mais e menos poluídas, filtros por região/estado
-- `GET /api/v1/search?q=` — autocomplete por nome de cidade com estado e AQI atual
-- `GET /api/v1/nearby?lat=&lng=` — cidades monitoradas próximas a uma coordenada
+- ✅ `GET /api/v1/cities` — lista com AQI atual, lat/lng e fonte; cache 15 min (adiantado na Fase 1)
+- ✅ `GET /api/v1/cities/:id` — dados completos: AQI, PM2.5, PM10, O₃, NO₂, CO, UV, pólen; cache 15 min (adiantado na Fase 1)
+- ✅ `GET /api/v1/cities/:id/history?period=24h|7d|30d|1y` — histórico por período; cache 15 min (24h) ou 1h (demais) (adiantado na Fase 1)
+- ✅ `GET /api/v1/fires` — focos ativos com filtros por estado e bioma; cache 3h (adiantado na Fase 1)
+- ✅ `GET /api/v1/cities/ranking` — top 10 mais e menos poluídas, filtros por região/estado; cache 15 min (adiantado na Fase 1)
+- ✅ `GET /api/v1/cities/search?q=` — autocomplete por nome de cidade com estado e AQI atual; cache 15 min (adiantado na Fase 1)
+- ✅ `GET /api/v1/cities/nearby?lat=&lng=` — cidades monitoradas próximas a uma coordenada; cache 15 min (adiantado na Fase 1)
+- ✅ Cache injetado em `CityService`, `AqiService` e `FireService` via `ICacheService`
+- ✅ `Normalizer` invalida prefixos de cache (`cities:` e `fires:`) após jobs bem-sucedidos
 
-**Entregas:** Scheduler com node-cron, JobLog no banco, todos os 7 endpoints core funcionando, Redis como cache distribuído.
+**Entregas:** Scheduler com node-cron ✅, JobLog no banco ✅, todos os 7 endpoints core com cache NodeCache ✅, `GET /api/v1/admin/jobs` ✅.
+
+> **Fase 2 concluída integralmente.**
 
 ---
 
@@ -291,8 +291,9 @@ Features de crescimento orgânico e abertura do ecossistema. Iniciar apenas apó
 - Job de moderação automática: cruzar relatos com dados de satélite para validação
 - Camada de relatos no mapa com ícones distintos por tipo de reporte
 
-### Agente A — API Pública Aberta
+### Agente A — Cache Distribuído + API Pública Aberta
 
+- Migrar `NodeCacheService` → `RedisCache` (`ioredis`): criar `apps/backend/src/infrastructure/cache/RedisCache.ts` implementando `ICacheService`; adicionar serviço **Redis 7** ao `docker-compose.yml`; manter fallback gracioso (sem Redis = sem cache, sem erro)
 - Expor versão pública da API (subdomínio `api.airbr.com.br`) com documentação **Swagger / OpenAPI**
 - Sistema de **API Keys** para desenvolvedores externos com dashboard de uso
 - Rate limiting diferenciado por tier — free: 100 req/h, pro: 10.000 req/h

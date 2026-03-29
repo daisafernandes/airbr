@@ -1,26 +1,7 @@
+import { CityData } from '@app-types/city.types'
+import { CITIES_DATA } from '@data/mockCities'
 import { TrendingUp, TrendingDown } from 'lucide-react'
-
-interface CityAQI {
-  city: string
-  state: string
-  aqi: number
-}
-
-const mostPolluted: CityAQI[] = [
-  { city: 'Cubatão', state: 'SP', aqi: 156 },
-  { city: 'Manaus', state: 'AM', aqi: 142 },
-  { city: 'São Paulo', state: 'SP', aqi: 128 },
-  { city: 'Porto Velho', state: 'RO', aqi: 119 },
-  { city: 'Rio Branco', state: 'AC', aqi: 108 },
-]
-
-const cleanest: CityAQI[] = [
-  { city: 'Florianópolis', state: 'SC', aqi: 18 },
-  { city: 'Campos do Jordão', state: 'SP', aqi: 22 },
-  { city: 'Gramado', state: 'RS', aqi: 25 },
-  { city: 'Bonito', state: 'MS', aqi: 28 },
-  { city: 'Chapada dos Veadeiros', state: 'GO', aqi: 31 },
-]
+import { Link } from 'react-router-dom'
 
 function getAQIColor(aqi: number): string {
   if (aqi <= 50) return 'text-primary'
@@ -38,23 +19,25 @@ function getAQIBg(aqi: number): string {
   return 'bg-purple-500/10'
 }
 
-const RankingCard = ({ title, icon, data }: { title: string; icon: React.ReactNode; data: CityAQI[] }) => (
+const RankingCard = ({ title, icon, data }: { title: string; icon: React.ReactNode; data: CityData[] }) => (
   <div className="bg-card border border-border rounded p-4">
-    <div className="flex items-center gap-2 mb-3">
-      {icon}
-      <h3 className="font-heading text-lg tracking-wide text-foreground">{title}</h3>
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <h3 className="font-heading text-lg tracking-wide text-foreground">{title}</h3>
+      </div>
     </div>
     <div className="space-y-2">
       {data.map((item, i) => (
         <div
-          key={item.city}
+          key={item.name}
           className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50 transition-colors"
           style={{ animationDelay: `${i * 80}ms` }}
         >
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs text-muted-foreground w-4">{i + 1}</span>
             <div>
-              <span className="text-sm text-foreground">{item.city}</span>
+              <span className="text-sm text-foreground">{item.name}</span>
               <span className="text-xs text-muted-foreground ml-1">{item.state}</span>
             </div>
           </div>
@@ -66,6 +49,11 @@ const RankingCard = ({ title, icon, data }: { title: string; icon: React.ReactNo
     </div>
   </div>
 )
+
+// Pre-sorted slices from centralized data
+const sorted = [...CITIES_DATA].sort((a, b) => b.aqi - a.aqi)
+const mostPolluted = sorted.slice(0, 5)
+const cleanest = sorted.slice(-5).reverse()
 
 export const AQISidebar = () => {
   return (
@@ -81,6 +69,7 @@ export const AQISidebar = () => {
         data={cleanest}
       />
 
+      {/* AQI legend */}
       <div className="bg-card border border-border rounded p-4">
         <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">ÍNDICE AQI</h3>
         <div className="space-y-1.5 text-xs">
@@ -99,6 +88,12 @@ export const AQISidebar = () => {
             </div>
           ))}
         </div>
+        <Link
+          to="/ranking"
+          className="mt-3 flex items-center justify-center w-full px-3 py-2 text-xs font-body border border-border rounded hover:bg-muted hover:text-foreground text-muted-foreground transition-colors"
+        >
+          Ver ranking completo →
+        </Link>
       </div>
     </div>
   )

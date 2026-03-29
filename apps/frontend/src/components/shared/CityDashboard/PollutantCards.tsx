@@ -1,3 +1,5 @@
+import { Info } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Pollutant } from '@app-types/city.types'
 
 interface PollutantCardsProps {
@@ -28,12 +30,26 @@ export const PollutantCards = ({ pollutants }: PollutantCardsProps) => {
               key={p.key}
               className="bg-muted/40 border border-border/50 rounded p-2.5 space-y-1.5"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-body font-semibold text-muted-foreground uppercase tracking-wider">
-                  {p.label}
-                </span>
+              <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-body font-semibold text-muted-foreground uppercase tracking-wider">
+                    {p.label}
+                  </span>
+                  {p.description && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+                          <Info className="w-3 h-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[220px] text-xs">
+                        {p.description}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
                 {overLimit && (
-                  <span className="text-[9px] font-mono px-1 py-0.5 rounded" style={{ background: `${color}20`, color }}>
+                  <span className="text-[9px] font-mono px-1 py-0.5 rounded shrink-0" style={{ background: `${color}20`, color }}>
                     acima OMS
                   </span>
                 )}

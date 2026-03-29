@@ -6,6 +6,8 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 
 import { AuthProvider } from '@contexts/AuthContext'
 import { DashboardPage } from '@pages/DashboardPage'
+import { RankingPage } from '@pages/RankingPage'
+import { FireMapPage } from '@pages/FireMapPage'
 import { NotFoundPage } from '@pages/NotFoundPage'
 
 const queryClient = new QueryClient({
@@ -27,6 +29,8 @@ export const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<DashboardPage />} />
+              <Route path="/ranking" element={<RankingPage />} />
+              <Route path="/mapa-queimadas" element={<FireMapPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </BrowserRouter>

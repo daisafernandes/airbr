@@ -1,3 +1,4 @@
+import type { ICacheService } from '@domain/cache/ICacheService'
 import type { IAqiRepository } from '@domain/repositories/IAqiRepository'
 import type { IFireRepository } from '@domain/repositories/IFireRepository'
 import { prisma } from '@infrastructure/database/prisma'
@@ -15,6 +16,7 @@ const RETRY_BASE_DELAY_MS = 1_000
  *   2. Call collector.collect() with up to MAX_ATTEMPTS retries (exponential backoff)
  *   3. Persist normalised readings
  *   4. Update the JobLog to SUCCESS or ERROR
+ *   5. On SUCCESS, invalidate related cache prefixes
  *
  * AQI collectors produce city-linked readings; fire collectors produce geographic foci.
  */
@@ -24,11 +26,12 @@ export class Normalizer {
     private readonly fireCollectors: ICollector[],
     private readonly aqiRepository: IAqiRepository,
     private readonly fireRepository: IFireRepository,
+    private readonly cache: ICacheService,
   ) {}
 
   async runAqi(): Promise<void> {
     for (const collector of this.aqiCollectors) {
-      await this.runWithLog(collector, async () => {
+      await this.runWithLog(collector, 'cities:', async () => {
         const readings = await withRetry(() => collector.collect(), MAX_ATTEMPTS, RETRY_BASE_DELAY_MS)
         let count = 0
 
@@ -60,7 +63,7 @@ export class Normalizer {
 
   async runFire(): Promise<void> {
     for (const collector of this.fireCollectors) {
-      await this.runWithLog(collector, async () => {
+      await this.runWithLog(collector, 'fires:', async () => {
         const readings = await withRetry(() => collector.collect(), MAX_ATTEMPTS, RETRY_BASE_DELAY_MS)
         let count = 0
 
@@ -86,10 +89,12 @@ export class Normalizer {
 
   /**
    * Creates a RUNNING JobLog, executes `work`, then updates the log to SUCCESS or ERROR.
+   * On SUCCESS, invalidates the given cache prefix so stale data is not served.
    * The `work` callback returns the number of records inserted.
    */
   private async runWithLog(
     collector: ICollector,
+    cachePrefix: string,
     work: () => Promise<number>,
   ): Promise<void> {
     const startedAt = new Date()
@@ -109,6 +114,7 @@ export class Normalizer {
 
     try {
       recordsInserted = await work()
+      this.cache.invalidateByPrefix(cachePrefix)
     } catch (err) {
       status = 'ERROR'
       errorMessage = err instanceof Error ? err.message : String(err)

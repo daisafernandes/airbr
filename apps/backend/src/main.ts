@@ -11,6 +11,8 @@ import { prisma } from '@infrastructure/database/prisma'
 import { PrismaAqiRepository } from '@infrastructure/database/repositories/PrismaAqiRepository'
 import { PrismaCityRepository } from '@infrastructure/database/repositories/PrismaCityRepository'
 import { PrismaFireRepository } from '@infrastructure/database/repositories/PrismaFireRepository'
+import { PrismaJobLogRepository } from '@infrastructure/database/repositories/PrismaJobLogRepository'
+import { AdminController } from '@infrastructure/http/controllers/AdminController'
 import { CityController } from '@infrastructure/http/controllers/CityController'
 import { FireController } from '@infrastructure/http/controllers/FireController'
 import { errorHandler } from '@infrastructure/http/middlewares/errorHandler'
@@ -32,15 +34,17 @@ export const cacheService = new NodeCacheService()
 const cityRepository = new PrismaCityRepository()
 const aqiRepository = new PrismaAqiRepository()
 const fireRepository = new PrismaFireRepository()
+const jobLogRepository = new PrismaJobLogRepository()
 
 // Services
-const cityService = new CityService(cityRepository, aqiRepository)
-const aqiService = new AqiService(aqiRepository)
-const fireService = new FireService(fireRepository)
+const cityService = new CityService(cityRepository, aqiRepository, cacheService)
+const aqiService = new AqiService(aqiRepository, cacheService)
+const fireService = new FireService(fireRepository, cacheService)
 
 // Controllers
 const cityController = new CityController(cityService, aqiService)
 const fireController = new FireController(fireService)
+const adminController = new AdminController(jobLogRepository)
 
 // Health check (registered before main router to ensure priority)
 app.get('/api/v1/health', async (_req, res) => {
@@ -53,7 +57,7 @@ app.get('/api/v1/health', async (_req, res) => {
 })
 
 // API routes
-app.use('/api/v1', buildRoutes({ cityController, fireController }))
+app.use('/api/v1', buildRoutes({ cityController, fireController, adminController }))
 
 app.use(errorHandler)
 
@@ -64,7 +68,7 @@ const aqiCollectors = [
   new OpenMeteoCollector(cityRepository),
 ]
 const fireCollectors = [new INPEFiresCollector()]
-const normalizer = new Normalizer(aqiCollectors, fireCollectors, aqiRepository, fireRepository)
+const normalizer = new Normalizer(aqiCollectors, fireCollectors, aqiRepository, fireRepository, cacheService)
 const scheduler = new JobScheduler(normalizer)
 scheduler.start()
 

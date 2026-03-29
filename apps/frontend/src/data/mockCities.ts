@@ -1,28 +1,51 @@
 import type {
   CityData,
   Region,
-  DayForecast,
   ForecastIcon,
   HealthAlert,
   Pollutant,
+  AQIHistoryPoint,
+  DayForecast,
   FireSpot,
   DeforestationArea,
 } from '@app-types/city.types'
 
-// Simple pseudo-random seeded on a number for deterministic mock data
+// ---------------------------------------------------------------------------
+// Deterministic seeded pseudo-random helpers
+// ---------------------------------------------------------------------------
+
 function seeded(seed: number, min: number, max: number): number {
   const x = Math.sin(seed * 9301 + 49297) * 233280
   const r = x - Math.floor(x)
   return Math.round(min + r * (max - min))
 }
 
-function getAQILabel(aqi: number): string {
+function seededFloat(seed: number, min: number, max: number, decimals = 1): number {
+  const x = Math.sin(seed * 9301 + 49297) * 233280
+  const r = x - Math.floor(x)
+  return parseFloat((min + r * (max - min)).toFixed(decimals))
+}
+
+// ---------------------------------------------------------------------------
+// Domain helpers
+// ---------------------------------------------------------------------------
+
+export function getAQILabel(aqi: number): string {
   if (aqi <= 50) return 'Bom'
   if (aqi <= 100) return 'Moderado'
   if (aqi <= 150) return 'Ruim p/ sensíveis'
   if (aqi <= 200) return 'Ruim'
   if (aqi <= 300) return 'Muito Ruim'
   return 'Perigoso'
+}
+
+export function getAQIColor(aqi: number): string {
+  if (aqi <= 50) return '#4af0c4'
+  if (aqi <= 100) return '#facc15'
+  if (aqi <= 150) return '#ff9f4a'
+  if (aqi <= 200) return '#ef4444'
+  if (aqi <= 300) return '#a855f7'
+  return '#7c3aed'
 }
 
 function getHealthAlerts(aqi: number): HealthAlert[] {
@@ -42,10 +65,7 @@ function getHealthAlerts(aqi: number): HealthAlert[] {
           'Grupos sensíveis (crianças, idosos e pessoas com doenças respiratórias) devem evitar atividades intensas ao ar livre.',
         severity: 'warning',
       },
-      {
-        message: 'Use máscara se precisar permanecer por longos períodos em áreas abertas.',
-        severity: 'info',
-      },
+      { message: 'Use máscara se precisar permanecer por longos períodos em áreas abertas.', severity: 'info' },
     ]
   if (aqi <= 200)
     return [
@@ -72,147 +92,283 @@ function getHealthAlerts(aqi: number): HealthAlert[] {
   ]
 }
 
-function getFireIntensity(aqi: number, region: Region): 'low' | 'medium' | 'high' {
-  if (region === 'Norte' && aqi > 100) return 'high'
-  if ((region === 'Norte' || region === 'Centro-Oeste') && aqi > 60) return 'medium'
-  if (aqi > 100) return 'medium'
-  return 'low'
-}
+// ---------------------------------------------------------------------------
+// Base city definitions (coordinates, region, realistic base AQI)
+// ---------------------------------------------------------------------------
 
-type CityBase = {
+interface CityBase {
   name: string
   state: string
+  region: Region
   lat: number
   lng: number
-  aqi: number
-  region: Region
+  baseAqi: number
+  /** Density of nearby fires (0-3) — higher for Norte/Centro-Oeste */
+  fireRisk: number
+  /** Whether city is near PRODES deforestation zones */
+  hasDeforestation: boolean
 }
+
+const CITY_BASES: CityBase[] = [
+  // ─── Norte ───────────────────────────────────────────────────────────────
+  { name: 'Manaus', state: 'AM', region: 'Norte', lat: -3.12, lng: -60.02, baseAqi: 142, fireRisk: 3, hasDeforestation: true },
+  { name: 'Belém', state: 'PA', region: 'Norte', lat: -1.46, lng: -48.5, baseAqi: 95, fireRisk: 2, hasDeforestation: true },
+  { name: 'Porto Velho', state: 'RO', region: 'Norte', lat: -8.76, lng: -63.9, baseAqi: 119, fireRisk: 3, hasDeforestation: true },
+  { name: 'Rio Branco', state: 'AC', region: 'Norte', lat: -9.97, lng: -67.81, baseAqi: 108, fireRisk: 3, hasDeforestation: true },
+  { name: 'Macapá', state: 'AP', region: 'Norte', lat: 0.03, lng: -51.07, baseAqi: 63, fireRisk: 1, hasDeforestation: false },
+  { name: 'Boa Vista', state: 'RR', region: 'Norte', lat: 2.82, lng: -60.67, baseAqi: 37, fireRisk: 1, hasDeforestation: false },
+  { name: 'Palmas', state: 'TO', region: 'Norte', lat: -10.18, lng: -48.33, baseAqi: 91, fireRisk: 2, hasDeforestation: true },
+  // ─── Nordeste ────────────────────────────────────────────────────────────
+  { name: 'Salvador', state: 'BA', region: 'Nordeste', lat: -12.97, lng: -38.51, baseAqi: 52, fireRisk: 1, hasDeforestation: false },
+  { name: 'Fortaleza', state: 'CE', region: 'Nordeste', lat: -3.72, lng: -38.53, baseAqi: 61, fireRisk: 0, hasDeforestation: false },
+  { name: 'Recife', state: 'PE', region: 'Nordeste', lat: -8.05, lng: -34.87, baseAqi: 67, fireRisk: 0, hasDeforestation: false },
+  { name: 'São Luís', state: 'MA', region: 'Nordeste', lat: -2.53, lng: -44.28, baseAqi: 76, fireRisk: 1, hasDeforestation: false },
+  { name: 'Maceió', state: 'AL', region: 'Nordeste', lat: -9.67, lng: -35.74, baseAqi: 55, fireRisk: 0, hasDeforestation: false },
+  { name: 'Teresina', state: 'PI', region: 'Nordeste', lat: -5.09, lng: -42.8, baseAqi: 82, fireRisk: 1, hasDeforestation: false },
+  { name: 'Natal', state: 'RN', region: 'Nordeste', lat: -5.79, lng: -35.21, baseAqi: 44, fireRisk: 0, hasDeforestation: false },
+  { name: 'João Pessoa', state: 'PB', region: 'Nordeste', lat: -7.12, lng: -34.86, baseAqi: 41, fireRisk: 0, hasDeforestation: false },
+  { name: 'Aracaju', state: 'SE', region: 'Nordeste', lat: -10.91, lng: -37.04, baseAqi: 48, fireRisk: 0, hasDeforestation: false },
+  // ─── Centro-Oeste ────────────────────────────────────────────────────────
+  { name: 'Brasília', state: 'DF', region: 'Centro-Oeste', lat: -15.79, lng: -47.88, baseAqi: 45, fireRisk: 1, hasDeforestation: false },
+  { name: 'Goiânia', state: 'GO', region: 'Centro-Oeste', lat: -16.68, lng: -49.25, baseAqi: 58, fireRisk: 1, hasDeforestation: false },
+  { name: 'Cuiabá', state: 'MT', region: 'Centro-Oeste', lat: -15.6, lng: -56.1, baseAqi: 89, fireRisk: 2, hasDeforestation: true },
+  { name: 'Campo Grande', state: 'MS', region: 'Centro-Oeste', lat: -20.44, lng: -54.65, baseAqi: 48, fireRisk: 1, hasDeforestation: false },
+  // ─── Sudeste ─────────────────────────────────────────────────────────────
+  { name: 'São Paulo', state: 'SP', region: 'Sudeste', lat: -23.55, lng: -46.63, baseAqi: 128, fireRisk: 0, hasDeforestation: false },
+  { name: 'Rio de Janeiro', state: 'RJ', region: 'Sudeste', lat: -22.91, lng: -43.17, baseAqi: 85, fireRisk: 0, hasDeforestation: false },
+  { name: 'Belo Horizonte', state: 'MG', region: 'Sudeste', lat: -19.92, lng: -43.94, baseAqi: 72, fireRisk: 0, hasDeforestation: false },
+  { name: 'Vitória', state: 'ES', region: 'Sudeste', lat: -20.32, lng: -40.34, baseAqi: 54, fireRisk: 0, hasDeforestation: false },
+  { name: 'Cubatão', state: 'SP', region: 'Sudeste', lat: -23.88, lng: -46.42, baseAqi: 162, fireRisk: 0, hasDeforestation: false },
+  { name: 'Campinas', state: 'SP', region: 'Sudeste', lat: -22.91, lng: -47.06, baseAqi: 98, fireRisk: 0, hasDeforestation: false },
+  // ─── Sul ─────────────────────────────────────────────────────────────────
+  { name: 'Curitiba', state: 'PR', region: 'Sul', lat: -25.43, lng: -49.27, baseAqi: 38, fireRisk: 0, hasDeforestation: false },
+  { name: 'Porto Alegre', state: 'RS', region: 'Sul', lat: -30.03, lng: -51.23, baseAqi: 42, fireRisk: 0, hasDeforestation: false },
+  { name: 'Florianópolis', state: 'SC', region: 'Sul', lat: -27.59, lng: -48.55, baseAqi: 18, fireRisk: 0, hasDeforestation: false },
+]
+
+// ---------------------------------------------------------------------------
+// Global fire spots (source: INPE/BDQueimadas mock)
+// ---------------------------------------------------------------------------
+
+export const GLOBAL_FIRE_SPOTS: FireSpot[] = [
+  // Amazônia / Rondônia — alta intensidade
+  { lat: -8.5, lng: -63.0, intensity: 'high' },
+  { lat: -9.2, lng: -64.1, intensity: 'high' },
+  { lat: -10.0, lng: -62.5, intensity: 'high' },
+  { lat: -7.8, lng: -60.3, intensity: 'medium' },
+  { lat: -3.5, lng: -55.0, intensity: 'medium' },
+  { lat: -4.2, lng: -56.8, intensity: 'medium' },
+  // Tocantins / Maranhão — média intensidade
+  { lat: -10.2, lng: -48.5, intensity: 'medium' },
+  { lat: -7.0, lng: -49.0, intensity: 'medium' },
+  { lat: -6.5, lng: -47.2, intensity: 'low' },
+  // Mato Grosso — alta intensidade (seca)
+  { lat: -12.5, lng: -55.0, intensity: 'high' },
+  { lat: -13.0, lng: -57.5, intensity: 'high' },
+  { lat: -14.2, lng: -53.0, intensity: 'medium' },
+  { lat: -11.8, lng: -59.2, intensity: 'medium' },
+  // Acre / Amazonas
+  { lat: -9.0, lng: -67.5, intensity: 'high' },
+  { lat: -8.2, lng: -69.0, intensity: 'medium' },
+  // Pará centro
+  { lat: -5.0, lng: -52.0, intensity: 'medium' },
+  { lat: -6.3, lng: -50.5, intensity: 'low' },
+  // Cerrado — Goiás/Bahia
+  { lat: -15.5, lng: -47.0, intensity: 'low' },
+  { lat: -13.0, lng: -50.0, intensity: 'low' },
+  { lat: -12.0, lng: -46.5, intensity: 'low' },
+]
+
+// ---------------------------------------------------------------------------
+// Global deforestation areas (source: PRODES/INPE mock)
+// ---------------------------------------------------------------------------
+
+export const GLOBAL_DEFORESTATION_AREAS: DeforestationArea[] = [
+  { lat: -3.0, lng: -59.0, radius: 55000 },
+  { lat: -5.5, lng: -55.0, radius: 42000 },
+  { lat: -8.0, lng: -63.5, radius: 38000 },
+  { lat: -4.0, lng: -49.5, radius: 32000 },
+  { lat: -10.0, lng: -56.0, radius: 40000 },
+  { lat: -12.5, lng: -54.0, radius: 35000 },
+  { lat: -9.5, lng: -65.0, radius: 28000 },
+  { lat: -11.0, lng: -51.0, radius: 22000 },
+]
+
+// ---------------------------------------------------------------------------
+// Build full CityData from base
+// ---------------------------------------------------------------------------
 
 const FORECAST_ICONS: ForecastIcon[] = ['sun', 'cloud-sun', 'cloud', 'haze', 'storm']
 const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-const HISTORY_DAYS = ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'D-1', 'Hoje']
+const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
-function buildCityData(base: CityBase, index: number): CityData {
-  const s = index + 1
+const POLLUTANT_DESCRIPTIONS: Record<string, string> = {
+  pm25:
+    'Partículas finas (diâmetro < 2,5µm) originadas de combustão, indústria e tráfego. Penetram fundo nos pulmões e causam doenças cardiovasculares e respiratórias.',
+  pm10:
+    'Partículas inaláveis (diâmetro < 10µm) de poeira, pólens e fumaça. Irritam vias aéreas e agravam asma e bronquite.',
+  co: 'Monóxido de carbono, gás inodoro produzido pela combustão incompleta. Em altas concentrações reduz oxigenação do sangue.',
+  no2: 'Dióxido de nitrogênio emitido por veículos e indústrias. Provoca inflamação das vias respiratórias e contribui para chuva ácida.',
+  o3: 'Ozônio troposférico formado pela reação de NOx e COVs com luz solar. Irrita olhos e pulmões, especialmente no verão.',
+}
 
-  const pm25 = seeded(s * 1, 8, Math.min(Math.floor(base.aqi * 0.6), 250))
-  const pm10 = seeded(s * 2, pm25, Math.min(Math.floor(base.aqi * 0.9), 350))
-  const co = parseFloat((seeded(s * 3, 1, 12) * 0.1 + 0.2).toFixed(1))
-  const no2 = seeded(s * 4, 10, 120)
-  const o3 = seeded(s * 5, 20, 180)
+function buildCityData(base: CityBase, idx: number): CityData {
+  const s = idx + 1
+
+  // Pollutants with realistic regional adjustments
+  const pm25 = seeded(s * 1, 8, Math.min(base.baseAqi * 0.65, 250))
+  const pm10 = seeded(s * 2, pm25 + 2, Math.min(base.baseAqi * 0.9, 350))
+  const co = seededFloat(s * 3, 0.3, 8.0)
+  const no2 = seeded(s * 4, 10, 110)
+  const o3 = seeded(s * 5, 20, 175)
 
   const pollutants: Pollutant[] = [
-    { key: 'pm25', label: 'PM2.5', value: pm25, unit: 'µg/m³', whoLimit: 15 },
-    { key: 'pm10', label: 'PM10', value: pm10, unit: 'µg/m³', whoLimit: 45 },
-    { key: 'co', label: 'CO', value: co, unit: 'mg/m³', whoLimit: 4 },
-    { key: 'no2', label: 'NO₂', value: no2, unit: 'µg/m³', whoLimit: 25 },
-    { key: 'o3', label: 'O₃', value: o3, unit: 'µg/m³', whoLimit: 100 },
+    { key: 'pm25', label: 'PM2.5', value: pm25, unit: 'µg/m³', whoLimit: 15, description: POLLUTANT_DESCRIPTIONS['pm25']! },
+    { key: 'pm10', label: 'PM10', value: pm10, unit: 'µg/m³', whoLimit: 45, description: POLLUTANT_DESCRIPTIONS['pm10']! },
+    { key: 'co', label: 'CO', value: co, unit: 'mg/m³', whoLimit: 4, description: POLLUTANT_DESCRIPTIONS['co']! },
+    { key: 'no2', label: 'NO₂', value: no2, unit: 'µg/m³', whoLimit: 25, description: POLLUTANT_DESCRIPTIONS['no2']! },
+    { key: 'o3', label: 'O₃', value: o3, unit: 'µg/m³', whoLimit: 100, description: POLLUTANT_DESCRIPTIONS['o3']! },
   ]
 
-  const history = HISTORY_DAYS.map((day, i) => ({
+  const omsCompliant = pollutants.every(p => p.value <= p.whoLimit)
+
+  // 7-day history
+  const history: AQIHistoryPoint[] = ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'D-1', 'Hoje'].map((day, i) => ({
     day,
-    aqi: Math.max(10, base.aqi + seeded(s * (10 + i), -30, 30)),
+    aqi: Math.max(10, base.baseAqi + seeded(s * (10 + i), -30, 30)),
   }))
 
+  // 30-day history
+  const today = new Date()
+  const history30d: AQIHistoryPoint[] = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(today)
+    d.setDate(d.getDate() - (29 - i))
+    const label = `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`
+    return {
+      day: label,
+      aqi: Math.max(10, base.baseAqi + seeded(s * (100 + i), -40, 40)),
+    }
+  })
+
+  // 3-day forecast
   const todayDow = new Date().getDay()
   const forecast: DayForecast[] = [1, 2, 3].map(offset => {
-    const fAqi = Math.max(10, base.aqi + seeded(s * (20 + offset), -40, 40))
+    const fAqi = Math.max(10, base.baseAqi + seeded(s * (20 + offset), -40, 40))
     const iconIdx = seeded(s * (30 + offset), 0, 4)
     return {
       date: DAY_NAMES[(todayDow + offset) % 7]!,
       aqi: fAqi,
       condition:
-        fAqi <= 50 ? 'good' : fAqi <= 100 ? 'moderate' : fAqi <= 150 ? 'sensitive' : fAqi <= 200 ? 'bad' : ('very-bad' as const),
+        fAqi <= 50
+          ? 'good'
+          : fAqi <= 100
+            ? 'moderate'
+            : fAqi <= 150
+              ? 'sensitive'
+              : fAqi <= 200
+                ? 'bad'
+                : 'very-bad',
       icon: FORECAST_ICONS[iconIdx]!,
     }
   })
 
-  const fireCount = seeded(s, 2, 6)
-  const nearbyFires: FireSpot[] = Array.from({ length: fireCount }, (_, i) => ({
-    lat: base.lat + seeded(s * (40 + i), -20, 20) * 0.08,
-    lng: base.lng + seeded(s * (50 + i), -20, 20) * 0.08,
-    intensity: getFireIntensity(base.aqi, base.region),
-  }))
+  // Nearby fire spots — more for Norte/Centro-Oeste cities with fire risk
+  const fireCount = base.fireRisk === 3 ? seeded(s, 4, 7) : base.fireRisk === 2 ? seeded(s, 2, 4) : base.fireRisk === 1 ? seeded(s, 0, 2) : 0
+  const nearbyFires: FireSpot[] = Array.from({ length: fireCount }, (_, i) => {
+    const intensitySeed = seeded(s * (40 + i), 0, 2)
+    return {
+      lat: base.lat + seeded(s * (40 + i), -20, 20) * 0.1,
+      lng: base.lng + seeded(s * (50 + i), -20, 20) * 0.1,
+      intensity: (['low', 'medium', 'high'] as const)[intensitySeed]!,
+    }
+  })
 
-  const deforestationCount =
-    base.region === 'Norte' ? 3 : base.region === 'Centro-Oeste' ? 2 : base.region === 'Nordeste' ? 1 : 0
-  const deforestationAreas: DeforestationArea[] = Array.from({ length: deforestationCount }, (_, i) => ({
-    lat: base.lat + seeded(s * (70 + i), -30, 30) * 0.1,
-    lng: base.lng + seeded(s * (80 + i), -30, 30) * 0.1,
-    radius: seeded(s * (90 + i), 10000, 60000),
-  }))
+  // Deforestation areas near city
+  const deforestationAreas: DeforestationArea[] = base.hasDeforestation
+    ? Array.from({ length: seeded(s * 60, 1, 3) }, (_, i) => ({
+        lat: base.lat + seeded(s * (70 + i), -15, 15) * 0.15,
+        lng: base.lng + seeded(s * (80 + i), -15, 15) * 0.15,
+        radius: seeded(s * (90 + i), 20000, 60000),
+      }))
+    : []
 
+  const windDir = seeded(s * 6, 0, 359)
+  const windSpeed = seeded(s * 7, 5, 42)
   const uvIndex = seeded(s * 8, 1, 11)
   const pollenLevel = seeded(s * 9, 0, 10)
-  const aqiScore = Math.max(0, 10 - base.aqi / 50)
+
+  const aqiScore = Math.max(0, 10 - base.baseAqi / 50)
   const uvScore = Math.max(0, 10 - uvIndex)
   const pollenScore = 10 - pollenLevel
-  const outdoorSafetyScore = parseFloat(
-    Math.min(10, aqiScore * 0.6 + uvScore * 0.25 + pollenScore * 0.15).toFixed(1)
-  )
+  const outdoorSafetyScore = parseFloat(Math.min(10, aqiScore * 0.6 + uvScore * 0.25 + pollenScore * 0.15).toFixed(1))
 
   const hospitalizationBase = seeded(s * 11, 80, 600)
   const hospitalizationHistory = Array.from({ length: 12 }, (_, i) =>
-    Math.max(20, hospitalizationBase + seeded(s * (60 + i), -80, 80))
+    Math.max(20, hospitalizationBase + seeded(s * (60 + i), -80, 80)),
   )
   hospitalizationHistory[11] = hospitalizationBase
 
   return {
     name: base.name,
     state: base.state,
+    region: base.region,
     lat: base.lat,
     lng: base.lng,
-    aqi: base.aqi,
-    aqiLabel: getAQILabel(base.aqi),
-    region: base.region,
-    omsCompliant: base.aqi <= 50,
+    aqi: base.baseAqi,
+    aqiLabel: getAQILabel(base.baseAqi),
     pollutants,
     history,
+    history30d,
     forecast,
-    windDirection: seeded(s * 6, 0, 359),
-    windSpeed: seeded(s * 7, 5, 45),
+    windDirection: windDir,
+    windSpeed,
     nearbyFires,
     deforestationAreas,
     outdoorSafetyScore,
     uvIndex,
     pollenLevel,
-    healthAlerts: getHealthAlerts(base.aqi),
+    healthAlerts: getHealthAlerts(base.baseAqi),
     hospitalizations: hospitalizationBase,
     hospitalizationHistory,
+    omsCompliant,
   }
 }
 
-// All 26 Brazilian state capitals + Cubatão + Campinas (28 cities)
-const CITIES_BASE: CityBase[] = [
-  { name: 'São Paulo', state: 'SP', lat: -23.55, lng: -46.63, aqi: 128, region: 'Sudeste' },
-  { name: 'Rio de Janeiro', state: 'RJ', lat: -22.91, lng: -43.17, aqi: 85, region: 'Sudeste' },
-  { name: 'Belo Horizonte', state: 'MG', lat: -19.92, lng: -43.94, aqi: 72, region: 'Sudeste' },
-  { name: 'Brasília', state: 'DF', lat: -15.79, lng: -47.88, aqi: 45, region: 'Centro-Oeste' },
-  { name: 'Salvador', state: 'BA', lat: -12.97, lng: -38.51, aqi: 52, region: 'Nordeste' },
-  { name: 'Fortaleza', state: 'CE', lat: -3.72, lng: -38.53, aqi: 61, region: 'Nordeste' },
-  { name: 'Curitiba', state: 'PR', lat: -25.43, lng: -49.27, aqi: 38, region: 'Sul' },
-  { name: 'Manaus', state: 'AM', lat: -3.12, lng: -60.02, aqi: 142, region: 'Norte' },
-  { name: 'Recife', state: 'PE', lat: -8.05, lng: -34.87, aqi: 67, region: 'Nordeste' },
-  { name: 'Porto Alegre', state: 'RS', lat: -30.03, lng: -51.23, aqi: 42, region: 'Sul' },
-  { name: 'Belém', state: 'PA', lat: -1.46, lng: -48.5, aqi: 95, region: 'Norte' },
-  { name: 'Goiânia', state: 'GO', lat: -16.68, lng: -49.25, aqi: 58, region: 'Centro-Oeste' },
-  { name: 'Cubatão', state: 'SP', lat: -23.88, lng: -46.42, aqi: 156, region: 'Sudeste' },
-  { name: 'Porto Velho', state: 'RO', lat: -8.76, lng: -63.9, aqi: 119, region: 'Norte' },
-  { name: 'Rio Branco', state: 'AC', lat: -9.97, lng: -67.81, aqi: 108, region: 'Norte' },
-  { name: 'Florianópolis', state: 'SC', lat: -27.59, lng: -48.55, aqi: 18, region: 'Sul' },
-  { name: 'Campo Grande', state: 'MS', lat: -20.44, lng: -54.65, aqi: 48, region: 'Centro-Oeste' },
-  { name: 'Cuiabá', state: 'MT', lat: -15.6, lng: -56.1, aqi: 89, region: 'Centro-Oeste' },
-  { name: 'Natal', state: 'RN', lat: -5.79, lng: -35.21, aqi: 44, region: 'Nordeste' },
-  { name: 'São Luís', state: 'MA', lat: -2.53, lng: -44.28, aqi: 76, region: 'Nordeste' },
-  { name: 'Maceió', state: 'AL', lat: -9.67, lng: -35.74, aqi: 55, region: 'Nordeste' },
-  { name: 'Teresina', state: 'PI', lat: -5.09, lng: -42.8, aqi: 82, region: 'Nordeste' },
-  { name: 'Palmas', state: 'TO', lat: -10.18, lng: -48.33, aqi: 91, region: 'Norte' },
-  { name: 'Macapá', state: 'AP', lat: 0.03, lng: -51.07, aqi: 63, region: 'Norte' },
-  { name: 'Boa Vista', state: 'RR', lat: 2.82, lng: -60.67, aqi: 37, region: 'Norte' },
-  { name: 'Vitória', state: 'ES', lat: -20.32, lng: -40.34, aqi: 65, region: 'Sudeste' },
-  { name: 'João Pessoa', state: 'PB', lat: -7.12, lng: -34.86, aqi: 47, region: 'Nordeste' },
-  { name: 'Aracaju', state: 'SE', lat: -10.91, lng: -37.07, aqi: 59, region: 'Nordeste' },
-  { name: 'Campinas', state: 'SP', lat: -22.91, lng: -47.06, aqi: 98, region: 'Sudeste' },
-]
+// ---------------------------------------------------------------------------
+// Exported data
+// ---------------------------------------------------------------------------
 
-export const CITIES_DATA: CityData[] = CITIES_BASE.map((base, i) => buildCityData(base, i))
+export const CITIES_DATA: CityData[] = CITY_BASES.map((base, idx) => buildCityData(base, idx))
+
+// ---------------------------------------------------------------------------
+// Helper functions
+// ---------------------------------------------------------------------------
+
+export function getCityByName(name: string): CityData | undefined {
+  return CITIES_DATA.find(c => c.name === name)
+}
+
+export function getCitiesByRegion(region: Region): CityData[] {
+  return CITIES_DATA.filter(c => c.region === region)
+}
+
+export function getCitiesByState(state: string): CityData[] {
+  return CITIES_DATA.filter(c => c.state === state)
+}
+
+export function getUniqueStates(): string[] {
+  return [...new Set(CITIES_DATA.map(c => c.state))].sort()
+}
+
+export function getUniqueRegions(): Region[] {
+  return ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul']
+}
+
+/** Returns the nearest city to a given lat/lng coordinate */
+export function getNearestCity(lat: number, lng: number): CityData {
+  return CITIES_DATA.reduce((closest, city) => {
+    const dist = Math.hypot(city.lat - lat, city.lng - lng)
+    const closestDist = Math.hypot(closest.lat - lat, closest.lng - lng)
+    return dist < closestDist ? city : closest
+  })
+}

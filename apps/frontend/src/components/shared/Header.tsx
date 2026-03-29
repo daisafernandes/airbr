@@ -1,90 +1,84 @@
-import { Search, MapPin, Wind } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import { getNearestCity } from '@data/mockCities'
+import { Wind, MapPin } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
 
-const CITIES = [
-  'São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Brasília', 'Salvador',
-  'Fortaleza', 'Curitiba', 'Manaus', 'Recife', 'Porto Alegre',
-  'Belém', 'Goiânia', 'Campinas', 'Guarulhos', 'São Luís',
-  'Maceió', 'Campo Grande', 'Cuiabá', 'Natal', 'Florianópolis',
-]
+import { CitySearchBar } from './CitySearchBar'
+import { LiveIndicator } from './LiveIndicator'
 
 interface HeaderProps {
   onCitySelect: (city: string) => void
 }
 
 export const Header = ({ onCitySelect }: HeaderProps) => {
-  const [query, setQuery] = useState('')
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const filtered = query.length > 0
-    ? CITIES.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, 5)
-    : []
-
-  const handleSelect = (city: string) => {
-    setQuery(city)
-    setShowSuggestions(false)
-    onCitySelect(city)
-  }
+  const location = useLocation()
 
   const handleLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(() => {
-        onCitySelect('Minha Localização')
-      })
-    }
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const city = getNearestCity(pos.coords.latitude, pos.coords.longitude)
+        onCitySelect(city.name)
+      },
+      () => {
+        // Fallback: São Paulo
+        onCitySelect('São Paulo')
+      },
+    )
   }
 
-  useEffect(() => {
-    const handleClickOutside = () => setShowSuggestions(false)
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [])
+  const navLinks = [
+    { to: '/', label: 'Dashboard' },
+    { to: '/ranking', label: 'Ranking' },
+    { to: '/mapa-queimadas', label: 'Mapa Queimadas' },
+  ]
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border">
-      <div className="flex items-center justify-between px-6 py-3 max-w-[1800px] mx-auto">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between px-6 py-3 max-w-[1800px] mx-auto gap-4">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 shrink-0">
           <Wind className="w-6 h-6 text-primary" />
           <span className="font-heading text-2xl tracking-wider text-foreground">
             Respir<span className="text-primary">A</span>
           </span>
           <span className="text-xs font-mono text-muted-foreground ml-2 hidden sm:block">AirBR</span>
-        </div>
+        </Link>
 
-        <div className="relative flex items-center gap-2" onClick={e => e.stopPropagation()}>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={e => { setQuery(e.target.value); setShowSuggestions(true) }}
-              onFocus={() => setShowSuggestions(true)}
-              placeholder="Buscar cidade..."
-              className="bg-muted border border-border rounded pl-9 pr-4 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-48 sm:w-64"
-            />
-            {showSuggestions && filtered.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-xl overflow-hidden">
-                {filtered.map(city => (
-                  <button
-                    key={city}
-                    onClick={() => handleSelect(city)}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors text-foreground"
-                  >
-                    {city}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Nav links — desktop */}
+        <nav className="hidden md:flex items-center gap-0.5">
+          {navLinks.map(link => {
+            const active = location.pathname === link.to
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`px-3 py-1.5 text-xs font-body rounded transition-colors ${
+                  active
+                    ? 'text-primary border-b border-primary font-semibold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                {link.label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Search + geolocate + live */}
+        <div className="flex items-center gap-2 flex-1 md:flex-none justify-end">
+          <CitySearchBar
+            onSelect={onCitySelect}
+            className="w-48 sm:w-64 md:w-56 lg:w-72"
+          />
           <button
             onClick={handleLocation}
-            className="flex items-center gap-1 px-3 py-2 text-xs font-body bg-muted border border-border rounded hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary"
+            title="Detectar minha localização"
+            className="flex items-center gap-1 px-3 py-2 text-xs font-body bg-muted border border-border rounded hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary shrink-0"
           >
             <MapPin className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Localização</span>
           </button>
+          <LiveIndicator />
         </div>
       </div>
     </header>

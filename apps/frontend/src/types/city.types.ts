@@ -1,9 +1,12 @@
+export type Region = 'Norte' | 'Nordeste' | 'Centro-Oeste' | 'Sudeste' | 'Sul'
+
 export interface Pollutant {
   key: 'pm25' | 'pm10' | 'co' | 'no2' | 'o3'
   label: string
   value: number
   unit: string
   whoLimit: number
+  description: string
 }
 
 export interface AQIHistoryPoint {
@@ -28,8 +31,6 @@ export interface HealthAlert {
   severity: AlertSeverity
 }
 
-export type Region = 'Norte' | 'Nordeste' | 'Centro-Oeste' | 'Sudeste' | 'Sul'
-
 export interface FireSpot {
   lat: number
   lng: number
@@ -45,14 +46,14 @@ export interface DeforestationArea {
 export interface CityData {
   name: string
   state: string
+  region: Region
   lat: number
   lng: number
   aqi: number
   aqiLabel: string
-  region: Region
-  omsCompliant: boolean
   pollutants: Pollutant[]
   history: AQIHistoryPoint[]
+  history30d: AQIHistoryPoint[]
   forecast: DayForecast[]
   windDirection: number
   windSpeed: number
@@ -64,4 +65,5 @@ export interface CityData {
   healthAlerts: HealthAlert[]
   hospitalizations: number
   hospitalizationHistory: number[]
+  omsCompliant: boolean
 }

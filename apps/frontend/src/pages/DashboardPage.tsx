@@ -1,15 +1,22 @@
 import { useState } from 'react'
-import { Flame, Trees } from 'lucide-react'
+import { Flame, Trees, Radio, GitCompare } from 'lucide-react'
 
 import { Header } from '@components/shared/Header'
 import { BrazilMap } from '@components/shared/BrazilMap'
 import { AQISidebar } from '@components/shared/AQISidebar'
 import { CityDashboard } from '@components/shared/CityDashboard'
+import { ComparisonPanel } from '@components/shared/ComparisonPanel'
+
+type ViewMode = 'city' | 'compare' | 'sidebar'
 
 export const DashboardPage = () => {
   const [selectedCity, setSelectedCity] = useState<string | null>(null)
+  const [compareCityA, setCompareCityA] = useState<string | null>(null)
+  const [compareCityB, setCompareCityB] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>('sidebar')
   const [showFires, setShowFires] = useState(false)
   const [showDeforestation, setShowDeforestation] = useState(false)
+  const [showStations, setShowStations] = useState(false)
 
   const lastUpdate = new Date().toLocaleString('pt-BR', {
     day: '2-digit',
@@ -19,16 +26,46 @@ export const DashboardPage = () => {
     minute: '2-digit',
   })
 
+  const handleCitySelect = (city: string) => {
+    setSelectedCity(city)
+    if (viewMode === 'compare') {
+      if (!compareCityA) {
+        setCompareCityA(city)
+      } else {
+        setCompareCityB(city)
+      }
+    } else {
+      setViewMode('city')
+    }
+  }
+
+  const handleCloseCity = () => {
+    setSelectedCity(null)
+    setViewMode('sidebar')
+  }
+
+  const handleEnterCompare = () => {
+    setViewMode('compare')
+    setSelectedCity(null)
+  }
+
+  const handleCloseCompare = () => {
+    setViewMode('sidebar')
+    setCompareCityA(null)
+    setCompareCityB(null)
+    setSelectedCity(null)
+  }
+
   return (
     <div className="grain-overlay min-h-screen bg-background relative overflow-hidden">
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
       <div className="ambient-blob blob-blue" style={{ bottom: '-150px', right: '-100px' }} />
       <div className="ambient-blob blob-orange" style={{ top: '40%', right: '20%' }} />
 
-      <Header onCitySelect={setSelectedCity} />
+      <Header onCitySelect={handleCitySelect} />
 
       <main className="pt-16 px-4 pb-4 max-w-[1800px] mx-auto relative z-10">
-        <div className="flex items-center gap-3 py-3">
+        <div className="flex items-center gap-3 py-3 flex-wrap">
           <span className="text-xs text-muted-foreground font-body uppercase tracking-wider">Camadas:</span>
           <button
             onClick={() => setShowFires(!showFires)}
@@ -52,6 +89,31 @@ export const DashboardPage = () => {
             <Trees className="w-3.5 h-3.5" />
             Desmatamento
           </button>
+          <button
+            onClick={() => setShowStations(!showStations)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-body rounded border transition-all ${
+              showStations
+                ? 'bg-blue-500/15 border-blue-500/40 text-blue-400'
+                : 'bg-muted border-border text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Radio className="w-3.5 h-3.5" />
+            Estações
+          </button>
+
+          <div className="ml-auto">
+            <button
+              onClick={viewMode === 'compare' ? handleCloseCompare : handleEnterCompare}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-body rounded border transition-all ${
+                viewMode === 'compare'
+                  ? 'bg-primary/15 border-primary/40 text-primary'
+                  : 'bg-muted border-border text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <GitCompare className="w-3.5 h-3.5" />
+              {viewMode === 'compare' ? 'Sair da comparação' : 'Comparar cidades'}
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-4">
@@ -59,21 +121,28 @@ export const DashboardPage = () => {
             selectedCity={selectedCity}
             showFires={showFires}
             showDeforestation={showDeforestation}
+            showStations={showStations}
           />
           <div className="hidden lg:block">
-            {selectedCity
-              ? <CityDashboard cityName={selectedCity} onClose={() => setSelectedCity(null)} />
-              : <AQISidebar />}
+            {viewMode === 'compare' ? (
+              <ComparisonPanel
+                cityA={compareCityA}
+                cityB={compareCityB}
+                onChangeCityA={setCompareCityA}
+                onChangeCityB={setCompareCityB}
+                onClose={handleCloseCompare}
+              />
+            ) : viewMode === 'city' && selectedCity ? (
+              <CityDashboard cityName={selectedCity} onClose={handleCloseCity} />
+            ) : (
+              <AQISidebar />
+            )}
           </div>
         </div>
 
         <footer className="mt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground py-3 border-t border-border">
-          <span className="font-mono">
-            Última atualização: {lastUpdate}
-          </span>
-          <span>
-            Fontes: CETESB · INPE · IBAMA · OpenAQ
-          </span>
+          <span className="font-mono">Última atualização: {lastUpdate}</span>
+          <span>Fontes: CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo</span>
         </footer>
       </main>
     </div>

@@ -11,6 +11,7 @@ import { AQIHistoryPoint } from '@app-types/city.types'
 
 interface AQIHistoryChartProps {
   history: AQIHistoryPoint[]
+  hideTitleBar?: boolean
 }
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) => {
@@ -25,10 +26,10 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   return null
 }
 
-export const AQIHistoryChart = ({ history }: AQIHistoryChartProps) => {
+export const AQIHistoryChart = ({ history, hideTitleBar = false }: AQIHistoryChartProps) => {
   return (
-    <div className="bg-card border border-border rounded p-4">
-      <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">HISTÓRICO 7 DIAS</h3>
+    <div className={hideTitleBar ? '' : 'bg-card border border-border rounded p-4'}>
+      {!hideTitleBar && <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">HISTÓRICO 7 DIAS</h3>}
       <ResponsiveContainer width="100%" height={100}>
         <AreaChart data={history} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
           <defs>
