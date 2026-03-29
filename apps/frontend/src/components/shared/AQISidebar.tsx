@@ -1,7 +1,8 @@
-import { CityData } from '@app-types/city.types'
-import { CITIES_DATA } from '@data/mockCities'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
+
+import { useRanking } from '@hooks/useRanking'
+import type { RankedCityApi } from '@app-types/airQuality.types'
 
 function getAQIColor(aqi: number): string {
   if (aqi <= 50) return 'text-primary'
@@ -19,7 +20,17 @@ function getAQIBg(aqi: number): string {
   return 'bg-purple-500/10'
 }
 
-const RankingCard = ({ title, icon, data }: { title: string; icon: React.ReactNode; data: CityData[] }) => (
+const RankingCard = ({
+  title,
+  icon,
+  data,
+  loading,
+}: {
+  title: string
+  icon: React.ReactNode
+  data: RankedCityApi[]
+  loading: boolean
+}) => (
   <div className="bg-card border border-border rounded p-4">
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2">
@@ -28,45 +39,53 @@ const RankingCard = ({ title, icon, data }: { title: string; icon: React.ReactNo
       </div>
     </div>
     <div className="space-y-2">
-      {data.map((item, i) => (
-        <div
-          key={item.name}
-          className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50 transition-colors"
-          style={{ animationDelay: `${i * 80}ms` }}
-        >
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-muted-foreground w-4">{i + 1}</span>
-            <div>
-              <span className="text-sm text-foreground">{item.name}</span>
-              <span className="text-xs text-muted-foreground ml-1">{item.state}</span>
+      {loading
+        ? Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded">
+              <div className="h-4 bg-muted animate-pulse rounded w-32" />
+              <div className="h-4 bg-muted animate-pulse rounded w-10" />
             </div>
-          </div>
-          <span className={`font-mono text-sm font-medium px-2 py-0.5 rounded ${getAQIColor(item.aqi)} ${getAQIBg(item.aqi)}`}>
-            {item.aqi}
-          </span>
-        </div>
-      ))}
+          ))
+        : data.map((item, i) => (
+            <div
+              key={item.cityId}
+              className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs text-muted-foreground w-4">{i + 1}</span>
+                <div>
+                  <span className="text-sm text-foreground">{item.cityName}</span>
+                  <span className="text-xs text-muted-foreground ml-1">{item.state}</span>
+                </div>
+              </div>
+              <span className={`font-mono text-sm font-medium px-2 py-0.5 rounded ${getAQIColor(item.aqi)} ${getAQIBg(item.aqi)}`}>
+                {item.aqi}
+              </span>
+            </div>
+          ))}
     </div>
   </div>
 )
 
-// Pre-sorted slices from centralized data
-const sorted = [...CITIES_DATA].sort((a, b) => b.aqi - a.aqi)
-const mostPolluted = sorted.slice(0, 5)
-const cleanest = sorted.slice(-5).reverse()
-
 export const AQISidebar = () => {
+  const { data, isLoading } = useRanking()
+
+  const mostPolluted = data?.mostPolluted.slice(0, 5) ?? []
+  const leastPolluted = data?.leastPolluted.slice(0, 5) ?? []
+
   return (
     <div className="w-80 flex-shrink-0 space-y-4 overflow-y-auto max-h-[calc(100vh-140px)] pr-1">
       <RankingCard
         title="MAIS POLUÍDAS"
         icon={<TrendingUp className="w-4 h-4 text-accent" />}
         data={mostPolluted}
+        loading={isLoading}
       />
       <RankingCard
         title="AR MAIS LIMPO"
         icon={<TrendingDown className="w-4 h-4 text-primary" />}
-        data={cleanest}
+        data={leastPolluted}
+        loading={isLoading}
       />
 
       {/* AQI legend */}

@@ -128,47 +128,42 @@ Todos com cache NodeCache (TTL conforme frequência de atualização):
 **Duração estimada:** 4–6 dias  
 **Agente:** C (pode ser subdividido em C1 e C2)
 
-Construir as telas principais que definem a identidade visual do produto. Esta fase pode ser dividida entre dois sub-agentes: um focado no mapa e outro nas páginas de conteúdo.
+Construir as telas principais que definem a identidade visual do produto.
 
-### Agente C1 — Mapa Interativo
+### Agente C1 — Mapa Interativo ✅ CONCLUÍDO
 
 > **Decisão arquitetural:** Em vez de `MapPage.tsx` isolado, o mapa foi integrado como tela principal em `DashboardPage.tsx`, que combina mapa + sidebar de ranking numa única rota `/`. Essa abordagem reflete melhor o produto como dashboard ambiental.
 
-- ✅ Instalar `leaflet`, `react-leaflet` e `@types/leaflet`
-- ✅ `apps/frontend/src/components/shared/BrazilMap.tsx` com mapa do Brasil centralizado (tiles CARTO dark)
+- ✅ `apps/frontend/src/components/shared/BrazilMap.tsx` com mapa do Brasil centralizado (tiles CARTO dark), dados via `useCities` hook
 - ✅ Marcadores coloridos por faixa de AQI (escala 0–500: verde → amarelo → laranja → vermelho → marrom)
-- ✅ Camada de focos de queimada INPE sobrepostos (toggle `showFires`)
-- ✅ Camada de desmatamento sobrepostos (toggle `showDeforestation`)
-- ✅ Toggle de camadas: Queimadas | Desmatamento — controles em `DashboardPage`
-- ✅ Botão de geolocalização no `Header` (chama `onCitySelect`)
-- ⚠️ Clique em marcador abre popup com AQI e cidade — **falta link funcional para `CityPage`** (pendente até `CityPage.tsx` existir)
-- ⚠️ `flyTo` ao selecionar cidade via busca funciona, mas geolocalização passa string `'Minha Localização'` sem coordenadas reais — **binding incompleto**
-- ⚠️ Dados de cidades e AQI **ainda são estáticos/hardcoded** em `BrazilMap.tsx` — substituir por `airQualityService.ts` quando disponível
+- ✅ Popup de marcador com AQI e link `→ Ver página completa` apontando para `/cidade/:id`
+- ✅ Camada de focos de queimada INPE sobrepostos (toggle `showFires`) — dados via `useFires` hook
+- ✅ Camada de desmatamento (toggle `showDeforestation`) — dados mock PRODES (substituir na Fase 4)
+- ✅ Toggle de camadas: Queimadas | Desmatamento | Estações — controles em `DashboardPage`
+- ✅ Botão de geolocalização no `Header` — usa `airQualityService.getNearbyCities` para identificar cidade mais próxima
+- ✅ `flyTo` funcional ao selecionar cidade por ID via busca ou geolocalização
 
-### Agente C2 — Páginas de Conteúdo
+### Agente C2 — Páginas de Conteúdo ✅ CONCLUÍDO
 
-> **Pré-requisito crítico:** `apps/frontend/src/services/airQualityService.ts` deve ser criado primeiro — todas as páginas abaixo dependem dele para substituir os dados estáticos atuais. Aguarda os endpoints da Fase 2 estarem disponíveis.
+- ✅ `apps/frontend/src/services/airQualityService.ts` — 7 métodos mapeados para todos os endpoints da Fase 2
+- ✅ Hooks TanStack Query: `useCities`, `useCity`, `useCityHistory`, `useFires`, `useRanking`, `useSearchCities`
+- ✅ `apps/frontend/src/pages/CityPage.tsx` — página dedicada `/cidade/:id`: gauge AQI, poluentes, histórico (7d/30d/1y), segurança ao ar livre, alertas de saúde, metadados
+- ✅ `apps/frontend/src/pages/RankingPage.tsx` — ranking completo com filtros por região/estado, dados via `useCities` com sort client-side
+- ✅ `apps/frontend/src/components/shared/CitySearchBar.tsx` — autocomplete com debounce 300ms, integrado ao `GET /cities/search`
+- ✅ `apps/frontend/src/components/shared/CityDashboard/AQIGauge.tsx` — gauge reutilizável com escala colorida e nível textual
+- ✅ `apps/frontend/src/components/shared/CityDashboard/HealthAlertsCard.tsx` — alertas dinâmicos por faixa de AQI
+- ✅ `Header` com navegação (Dashboard, Ranking, Mapa Queimadas) e geolocalização real via API
+- ✅ `AQISidebar` e `ComparisonPanel` migrados para API real via `useRanking` e `useCity`
+- ✅ `FireMapPage` + `FireMap` migrados para `useFires` hook
+- ✅ Arquivos órfãos removidos: `HomePage.tsx`, `RootLayout.tsx`, todos os `.js` compilados do `src/`
 
-> **Nota:** O ranking de cidades existe atualmente como dados **estáticos** em `apps/frontend/src/components/shared/AQISidebar.tsx` (cards "MAIS POLUÍDAS" / "AR MAIS LIMPO"). Quando `RankingPage.tsx` for criado, migrar esses dados para o serviço real.
+> **Design system:** tokens de cor e tipografia (DM Sans, Bebas Neue, DM Mono em `global.css`). Componentes shadcn/ui. Mapa com esquema escuro alinhado ao brand.
+>
+> **Campos diferidos para Fase 4:** `windDirection`/`windSpeed` (vento real Open-Meteo), `nearbyFires` cross-referenciado por proximidade, `forecast` de AQI, dados DATASUS (internações respiratórias), camada PRODES (desmatamento real).
 
-- ❌ Criar `apps/frontend/src/services/airQualityService.ts` com todos os métodos mapeados para os endpoints da Fase 2 — **pré-requisito de tudo abaixo**
-- ❌ Criar `apps/frontend/src/pages/CityPage.tsx`: gauge de AQI, cards de poluentes individuais, gráfico histórico com **Recharts**, alerta de saúde dinâmico por faixa, fonte dos dados
-- ❌ Criar `apps/frontend/src/pages/RankingPage.tsx`: cidades mais e menos poluídas com filtros por região e estado
-- ❌ Criar `apps/frontend/src/components/ui/SearchBar.tsx` com autocomplete (debounce 300ms), integrado ao `GET /search` — busca atual em `Header` usa lista estática
-- ❌ Criar `apps/frontend/src/components/ui/AqiGauge.tsx` — gauge reutilizável com escala colorida e nível textual (Bom / Moderado / Prejudicial...)
-- ❌ Criar `apps/frontend/src/components/ui/HealthAlert.tsx` — recomendações por faixa de AQI para grupos sensíveis (crianças, idosos, asmáticos)
-- ❌ Atualizar `Header` com navegação: Mapa, Ranking, Busca (atualmente sem links de navegação)
+**Entregas:** `airQualityService.ts` ✅, 6 hooks TanStack Query ✅, `CityPage` full-page ✅, `CityDashboard` panel ✅, `CitySearchBar` com debounce ✅, `RankingPage` ✅, `FireMapPage` com dados reais ✅, `Header` navegação + geolocalização ✅, limpeza de artefatos ✅.
 
-> **Design system:** tokens de cor e tipografia já disponíveis (DM Sans, Bebas Neue, DM Mono em `global.css`). Componentes shadcn/ui prontos para uso. Mapa com esquema escuro alinhado ao brand.
-
-**Entregas:** `airQualityService.ts`, `CityPage` + `AqiGauge` + histórico com Recharts, `SearchBar` autocomplete integrado à API, `RankingPage`, `HealthAlert`, Header com navegação.
-
-### Arquivos órfãos — limpar antes de avançar
-
-Os arquivos abaixo existem no repositório mas não estão em uso. Devem ser resolvidos durante esta fase:
-
-- `apps/frontend/src/pages/HomePage.tsx` — existe mas **sem rota** em `App.tsx`. Remover (conteúdo é placeholder de scaffold) ou converter em página de marketing/landing futura.
-- `apps/frontend/src/components/layout/RootLayout.tsx` — existe mas **não é referenciado** nas rotas. Ativar quando houver rotas aninhadas (ex: área autenticada com sidebar persistente) ou remover.
+> **Fase 3 concluída integralmente.**
 
 ---
 

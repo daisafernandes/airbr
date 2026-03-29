@@ -6,17 +6,20 @@ import { BrazilMap } from '@components/shared/BrazilMap'
 import { AQISidebar } from '@components/shared/AQISidebar'
 import { CityDashboard } from '@components/shared/CityDashboard'
 import { ComparisonPanel } from '@components/shared/ComparisonPanel'
+import { useFires } from '@hooks/useFires'
 
 type ViewMode = 'city' | 'compare' | 'sidebar'
 
 export const DashboardPage = () => {
-  const [selectedCity, setSelectedCity] = useState<string | null>(null)
+  const [selectedCityId, setSelectedCityId] = useState<string | null>(null)
   const [compareCityA, setCompareCityA] = useState<string | null>(null)
   const [compareCityB, setCompareCityB] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('sidebar')
   const [showFires, setShowFires] = useState(false)
   const [showDeforestation, setShowDeforestation] = useState(false)
   const [showStations, setShowStations] = useState(false)
+
+  const { data: fires = [] } = useFires()
 
   const lastUpdate = new Date().toLocaleString('pt-BR', {
     day: '2-digit',
@@ -26,13 +29,13 @@ export const DashboardPage = () => {
     minute: '2-digit',
   })
 
-  const handleCitySelect = (city: string) => {
-    setSelectedCity(city)
+  const handleCitySelect = (cityId: string) => {
+    setSelectedCityId(cityId)
     if (viewMode === 'compare') {
       if (!compareCityA) {
-        setCompareCityA(city)
+        setCompareCityA(cityId)
       } else {
-        setCompareCityB(city)
+        setCompareCityB(cityId)
       }
     } else {
       setViewMode('city')
@@ -40,20 +43,20 @@ export const DashboardPage = () => {
   }
 
   const handleCloseCity = () => {
-    setSelectedCity(null)
+    setSelectedCityId(null)
     setViewMode('sidebar')
   }
 
   const handleEnterCompare = () => {
     setViewMode('compare')
-    setSelectedCity(null)
+    setSelectedCityId(null)
   }
 
   const handleCloseCompare = () => {
     setViewMode('sidebar')
     setCompareCityA(null)
     setCompareCityB(null)
-    setSelectedCity(null)
+    setSelectedCityId(null)
   }
 
   return (
@@ -118,10 +121,11 @@ export const DashboardPage = () => {
 
         <div className="flex gap-4">
           <BrazilMap
-            selectedCity={selectedCity}
+            selectedCityId={selectedCityId}
             showFires={showFires}
             showDeforestation={showDeforestation}
             showStations={showStations}
+            fires={fires.map(f => ({ lat: f.lat, lng: f.lng, intensity: f.intensity, state: f.state }))}
           />
           <div className="hidden lg:block">
             {viewMode === 'compare' ? (
@@ -132,8 +136,8 @@ export const DashboardPage = () => {
                 onChangeCityB={setCompareCityB}
                 onClose={handleCloseCompare}
               />
-            ) : viewMode === 'city' && selectedCity ? (
-              <CityDashboard cityName={selectedCity} onClose={handleCloseCity} />
+            ) : viewMode === 'city' && selectedCityId ? (
+              <CityDashboard cityId={selectedCityId} onClose={handleCloseCity} />
             ) : (
               <AQISidebar />
             )}

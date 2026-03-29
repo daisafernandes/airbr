@@ -1,3 +1,6 @@
+import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { Flame, Trees, Radio, SlidersHorizontal, Wind } from 'lucide-react'
 
 import { FireMap } from '@components/shared/FireMap'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
@@ -8,11 +11,9 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@components/ui/drawer'
-import { GLOBAL_FIRE_SPOTS, CITIES_DATA, getUniqueStates } from '@data/mockCities'
+import { useFires } from '@hooks/useFires'
+import { useCities } from '@hooks/useCities'
 import { useIsMobile } from '@hooks/use-mobile'
-import { Flame, Trees, Radio, SlidersHorizontal, Wind } from 'lucide-react'
-import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 
 type Period = 'hoje' | '7d' | '30d'
 
@@ -25,19 +26,25 @@ const PERIOD_LABELS: Record<Period, string> = {
 function ImpactCard({
   fireCount,
   affectedCities,
+  loading,
 }: {
   fireCount: number
   affectedCities: number
+  loading: boolean
 }) {
   return (
     <div className="bg-card/90 backdrop-blur-md border border-border rounded-lg p-3 shadow-xl">
       <div className="flex items-start gap-2">
         <Flame className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-        <p className="text-xs font-body text-foreground leading-snug">
-          <span className="font-mono font-bold text-accent">{fireCount}</span> focos ativos estão afetando a
-          qualidade do ar em{' '}
-          <span className="font-mono font-bold text-foreground">{affectedCities}</span> cidades
-        </p>
+        {loading ? (
+          <div className="h-4 bg-muted animate-pulse rounded w-48" />
+        ) : (
+          <p className="text-xs font-body text-foreground leading-snug">
+            <span className="font-mono font-bold text-accent">{fireCount}</span> focos ativos estão afetando a
+            qualidade do ar em{' '}
+            <span className="font-mono font-bold text-foreground">{affectedCities}</span> cidades
+          </p>
+        )}
       </div>
     </div>
   )
@@ -54,6 +61,7 @@ function FilterControls({
   onToggleDeforestation,
   showStations,
   onToggleStations,
+  states,
 }: {
   stateFilter: string
   onStateChange: (v: string) => void
@@ -65,9 +73,8 @@ function FilterControls({
   onToggleDeforestation: () => void
   showStations: boolean
   onToggleStations: () => void
+  states: string[]
 }) {
-  const states = getUniqueStates()
-
   return (
     <div className="space-y-4">
       {/* Period */}
@@ -100,9 +107,7 @@ function FilterControls({
         >
           <option value="">Todo o Brasil</option>
           {states.map(s => (
-            <option key={s} value={s}>
-              {s}
-            </option>
+            <option key={s} value={s}>{s}</option>
           ))}
         </select>
       </div>
@@ -178,18 +183,24 @@ export const FireMapPage = () => {
   const [stateFilter, setStateFilter] = useState('')
   const [period, setPeriod] = useState<Period>('hoje')
 
+  const { data: fires = [], isLoading: firesLoading } = useFires(
+    stateFilter ? { state: stateFilter } : undefined,
+  )
+  const { data: cities = [] } = useCities()
+
+  const states = useMemo(() => {
+    const set = new Set(cities.map(c => c.state))
+    return Array.from(set).sort()
+  }, [cities])
+
   const impactStats = useMemo(() => {
-    const filtered = stateFilter
-      ? GLOBAL_FIRE_SPOTS.filter(() => true) // all spots; in real app would filter by state geo
-      : GLOBAL_FIRE_SPOTS
-    const fireCount = filtered.length
-    // Estimate affected cities: those with nearbyFires.length > 0
-    const affectedCities = CITIES_DATA.filter(c => {
-      if (stateFilter && c.state !== stateFilter) return false
-      return c.nearbyFires.length > 0
-    }).length
+    const fireCount = fires.length
+    const affectedStates = new Set(fires.filter(f => f.state).map(f => f.state!))
+    const affectedCities = cities.filter(c =>
+      stateFilter ? c.state === stateFilter : affectedStates.has(c.state),
+    ).length
     return { fireCount, affectedCities }
-  }, [stateFilter])
+  }, [fires, cities, stateFilter])
 
   const filterControls = (
     <FilterControls
@@ -203,6 +214,7 @@ export const FireMapPage = () => {
       onToggleDeforestation={() => setShowDeforestation(v => !v)}
       showStations={showStations}
       onToggleStations={() => setShowStations(v => !v)}
+      states={states}
     />
   )
 
@@ -245,7 +257,11 @@ export const FireMapPage = () => {
               <p className="text-xs text-muted-foreground font-body mt-0.5">Focos ativos · INPE/BDQueimadas</p>
             </div>
 
-            <ImpactCard fireCount={impactStats.fireCount} affectedCities={impactStats.affectedCities} />
+            <ImpactCard
+              fireCount={impactStats.fireCount}
+              affectedCities={impactStats.affectedCities}
+              loading={firesLoading}
+            />
 
             <div className="mt-4">
               {filterControls}
@@ -261,12 +277,17 @@ export const FireMapPage = () => {
             showStations={showStations}
             stateFilter={stateFilter}
             periodDays={period === 'hoje' ? 1 : period === '7d' ? 7 : 30}
+            fires={fires}
           />
 
           {/* Mobile: floating impact card */}
           {isMobile && (
             <div className="absolute top-4 left-4 right-4 z-20">
-              <ImpactCard fireCount={impactStats.fireCount} affectedCities={impactStats.affectedCities} />
+              <ImpactCard
+                fireCount={impactStats.fireCount}
+                affectedCities={impactStats.affectedCities}
+                loading={firesLoading}
+              />
             </div>
           )}
 

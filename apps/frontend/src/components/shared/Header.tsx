@@ -1,30 +1,35 @@
-import { getNearestCity } from '@data/mockCities'
 import { Wind, MapPin } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { airQualityService } from '@services/airQualityService'
+import { useCallback } from 'react'
 
 import { CitySearchBar } from './CitySearchBar'
 import { LiveIndicator } from './LiveIndicator'
 
 interface HeaderProps {
-  onCitySelect: (city: string) => void
+  onCitySelect: (cityId: string) => void
 }
 
 export const Header = ({ onCitySelect }: HeaderProps) => {
   const location = useLocation()
 
-  const handleLocation = () => {
+  const handleLocation = useCallback(() => {
     if (!navigator.geolocation) return
     navigator.geolocation.getCurrentPosition(
-      pos => {
-        const city = getNearestCity(pos.coords.latitude, pos.coords.longitude)
-        onCitySelect(city.name)
-      },
-      () => {
-        // Fallback: São Paulo
-        onCitySelect('São Paulo')
+      async pos => {
+        try {
+          const nearby = await airQualityService.getNearbyCities(
+            pos.coords.latitude,
+            pos.coords.longitude,
+            100,
+          )
+          if (nearby[0]) onCitySelect(nearby[0].id)
+        } catch {
+          // silently ignore if geolocation lookup fails
+        }
       },
     )
-  }
+  }, [onCitySelect])
 
   const navLinks = [
     { to: '/', label: 'Dashboard' },
@@ -67,7 +72,7 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
         {/* Search + geolocate + live */}
         <div className="flex items-center gap-2 flex-1 md:flex-none justify-end">
           <CitySearchBar
-            onSelect={onCitySelect}
+            onSelect={(cityId) => onCitySelect(cityId)}
             className="w-48 sm:w-64 md:w-56 lg:w-72"
           />
           <button

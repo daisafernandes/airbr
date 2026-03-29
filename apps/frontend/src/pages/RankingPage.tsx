@@ -1,54 +1,58 @@
-
-import { Region } from '@app-types/city.types'
-import { LiveIndicator } from '@components/shared/LiveIndicator'
-import { RankingTable } from '@components/shared/RankingTable'
-import { CITIES_DATA, getUniqueStates, getUniqueRegions } from '@data/mockCities'
-import { useIsMobile } from '@hooks/use-mobile'
-import { ArrowDownUp, Wind } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { ArrowDownUp, Wind } from 'lucide-react'
+
+import { useCities } from '@hooks/useCities'
+import { useIsMobile } from '@hooks/use-mobile'
+import { LiveIndicator } from '@components/shared/LiveIndicator'
+import { RankingTable } from '@components/shared/RankingTable'
 
 type SortMode = 'polluted' | 'clean'
 
-const REGION_LABELS: Record<Region, string> = {
-  Norte: 'Norte',
-  Nordeste: 'Nordeste',
-  'Centro-Oeste': 'Centro-Oeste',
-  Sudeste: 'Sudeste',
-  Sul: 'Sul',
-}
+const REGIONS = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'] as const
 
 export const RankingPage = () => {
   const isMobile = useIsMobile()
   const [sortMode, setSortMode] = useState<SortMode>('polluted')
-  const [regionFilter, setRegionFilter] = useState<Region | 'all'>('all')
+  const [regionFilter, setRegionFilter] = useState<string>('all')
   const [stateFilter, setStateFilter] = useState<string>('all')
 
-  const regions = getUniqueRegions()
-  const states = getUniqueStates()
+  const { data: cities = [], isLoading } = useCities()
+
+  const states = useMemo(() => {
+    const set = new Set(cities.map(c => c.state))
+    return Array.from(set).sort()
+  }, [cities])
 
   const filteredAndSorted = useMemo(() => {
-    let cities = [...CITIES_DATA]
+    let list = [...cities]
 
     if (regionFilter !== 'all') {
-      cities = cities.filter(c => c.region === regionFilter)
+      list = list.filter(c => c.region === regionFilter)
     }
-
     if (stateFilter !== 'all') {
-      cities = cities.filter(c => c.state === stateFilter)
+      list = list.filter(c => c.state === stateFilter)
     }
 
-    cities.sort((a, b) => sortMode === 'polluted' ? b.aqi - a.aqi : a.aqi - b.aqi)
+    list.sort((a, b) => {
+      const aAqi = a.latestAqi?.aqi ?? 0
+      const bAqi = b.latestAqi?.aqi ?? 0
+      return sortMode === 'polluted' ? bAqi - aAqi : aAqi - bAqi
+    })
 
-    return cities
-  }, [regionFilter, stateFilter, sortMode])
+    return list
+  }, [cities, regionFilter, stateFilter, sortMode])
 
   const stats = useMemo(() => {
-    const compliant = CITIES_DATA.filter(c => c.omsCompliant).length
-    const avg = Math.round(CITIES_DATA.reduce((s, c) => s + c.aqi, 0) / CITIES_DATA.length)
-    const worst = [...CITIES_DATA].sort((a, b) => b.aqi - a.aqi)[0]!
-    return { compliant, avg, worst }
-  }, [])
+    if (!cities.length) return null
+    const withAqi = cities.filter(c => c.latestAqi)
+    const avg = withAqi.length
+      ? Math.round(withAqi.reduce((s, c) => s + (c.latestAqi?.aqi ?? 0), 0) / withAqi.length)
+      : 0
+    const compliant = withAqi.filter(c => (c.latestAqi?.pm25 ?? 9999) <= 5).length
+    const worst = [...withAqi].sort((a, b) => (b.latestAqi?.aqi ?? 0) - (a.latestAqi?.aqi ?? 0))[0]
+    return { avg, compliant, total: cities.length, worst }
+  }, [cities])
 
   return (
     <div className="grain-overlay min-h-screen bg-background relative overflow-hidden">
@@ -66,7 +70,7 @@ export const RankingPage = () => {
             <span className="text-xs font-mono text-muted-foreground ml-2 hidden sm:block">AirBR</span>
           </Link>
 
-          <nav className="flex items-center gap-1 hidden sm:flex">
+          <nav className="hidden sm:flex items-center gap-1">
             <Link to="/" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
               Dashboard
             </Link>
@@ -87,7 +91,8 @@ export const RankingPage = () => {
         <div className="mb-6">
           <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">RANKING NACIONAL</h1>
           <p className="text-sm text-muted-foreground font-body mt-1">
-            Qualidade do ar em todas as cidades monitoradas · {CITIES_DATA.length} cidades
+            Qualidade do ar em todas as cidades monitoradas
+            {stats && ` · ${stats.total} cidades`}
           </p>
         </div>
 
@@ -95,21 +100,35 @@ export const RankingPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
           <div className="bg-card border border-border rounded p-3">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">AQI Médio Nacional</p>
-            <p className="font-mono font-bold text-2xl text-foreground">{stats.avg}</p>
+            {isLoading ? (
+              <div className="h-8 bg-muted animate-pulse rounded w-16" />
+            ) : (
+              <p className="font-mono font-bold text-2xl text-foreground">{stats?.avg ?? '—'}</p>
+            )}
           </div>
           <div className="bg-card border border-border rounded p-3">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Conformes OMS</p>
-            <p className="font-mono font-bold text-2xl text-green-400">
-              {stats.compliant}
-              <span className="text-sm text-muted-foreground font-normal">/{CITIES_DATA.length}</span>
-            </p>
+            {isLoading ? (
+              <div className="h-8 bg-muted animate-pulse rounded w-20" />
+            ) : (
+              <p className="font-mono font-bold text-2xl text-green-400">
+                {stats?.compliant ?? '—'}
+                <span className="text-sm text-muted-foreground font-normal">/{stats?.total ?? '—'}</span>
+              </p>
+            )}
           </div>
           <div className="bg-card border border-border rounded p-3 col-span-2 sm:col-span-1">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Mais Poluída</p>
-            <p className="font-body font-semibold text-foreground">
-              {stats.worst.name}
-              <span className="text-sm text-muted-foreground font-normal ml-1.5">AQI {stats.worst.aqi}</span>
-            </p>
+            {isLoading ? (
+              <div className="h-6 bg-muted animate-pulse rounded w-32" />
+            ) : (
+              <p className="font-body font-semibold text-foreground">
+                {stats?.worst?.name ?? '—'}
+                {stats?.worst && (
+                  <span className="text-sm text-muted-foreground font-normal ml-1.5">AQI {stats.worst.latestAqi?.aqi}</span>
+                )}
+              </p>
+            )}
           </div>
         </div>
 
@@ -149,7 +168,7 @@ export const RankingPage = () => {
             >
               Todas
             </button>
-            {regions.map(r => (
+            {REGIONS.map(r => (
               <button
                 key={r}
                 onClick={() => { setRegionFilter(r); setStateFilter('all') }}
@@ -159,7 +178,7 @@ export const RankingPage = () => {
                     : 'bg-muted border-border text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {REGION_LABELS[r]}
+                {r}
               </button>
             ))}
           </div>
@@ -185,7 +204,13 @@ export const RankingPage = () => {
         </div>
 
         {/* Table / List */}
-        {filteredAndSorted.length > 0 ? (
+        {isLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded p-3 h-14 animate-pulse" />
+            ))}
+          </div>
+        ) : filteredAndSorted.length > 0 ? (
           <RankingTable cities={filteredAndSorted} isMobile={isMobile} />
         ) : (
           <div className="bg-card border border-border rounded p-8 text-center">

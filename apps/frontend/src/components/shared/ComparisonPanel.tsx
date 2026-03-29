@@ -1,19 +1,39 @@
-import { getCityByName, getAQIColor } from '@data/mockCities'
 import { X } from 'lucide-react'
 
+import { useCity } from '@hooks/useCity'
+import type { CityApiData } from '@app-types/airQuality.types'
 import { CitySearchBar } from './CitySearchBar'
 import { OmsComplianceBadge } from './OmsComplianceBadge'
 
 interface ComparisonPanelProps {
   cityA: string | null
   cityB: string | null
-  onChangeCityA: (name: string) => void
-  onChangeCityB: (name: string) => void
+  onChangeCityA: (cityId: string) => void
+  onChangeCityB: (cityId: string) => void
   onClose: () => void
 }
 
-function MiniGauge({ aqi, label }: { aqi: number; label: string }) {
+function getAQIColor(aqi: number): string {
+  if (aqi <= 50) return '#22c55e'
+  if (aqi <= 100) return '#eab308'
+  if (aqi <= 150) return '#f97316'
+  if (aqi <= 200) return '#ef4444'
+  if (aqi <= 300) return '#a855f7'
+  return '#7f1d1d'
+}
+
+function getAQILabel(aqi: number): string {
+  if (aqi <= 50) return 'Bom'
+  if (aqi <= 100) return 'Moderado'
+  if (aqi <= 150) return 'Sensíveis'
+  if (aqi <= 200) return 'Ruim'
+  if (aqi <= 300) return 'Muito ruim'
+  return 'Perigoso'
+}
+
+function MiniGauge({ aqi }: { aqi: number }) {
   const color = getAQIColor(aqi)
+  const label = getAQILabel(aqi)
   const size = 120
   const cx = size / 2
   const cy = size / 2 + 8
@@ -63,10 +83,12 @@ function MiniGauge({ aqi, label }: { aqi: number; label: string }) {
   )
 }
 
-function PollutantBar({ label, valueA, valueB, unit, limit }: { label: string; valueA: number; valueB: number; unit: string; limit: number }) {
-  const max = Math.max(valueA, valueB, limit) * 1.2
-  const colorA = valueA > limit ? '#ef4444' : '#4af0c4'
-  const colorB = valueB > limit ? '#ef4444' : '#facc15'
+function PollutantBar({ label, valueA, valueB, unit, limit }: { label: string; valueA: number | null; valueB: number | null; unit: string; limit: number }) {
+  const vA = valueA ?? 0
+  const vB = valueB ?? 0
+  const max = Math.max(vA, vB, limit) * 1.2
+  const colorA = vA > limit ? '#ef4444' : '#4af0c4'
+  const colorB = vB > limit ? '#ef4444' : '#facc15'
 
   return (
     <div className="space-y-1">
@@ -75,24 +97,42 @@ function PollutantBar({ label, valueA, valueB, unit, limit }: { label: string; v
         <span className="text-[9px]">OMS: {limit} {unit}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="w-10 text-right font-mono text-xs" style={{ color: colorA }}>{valueA}</span>
+        <span className="w-10 text-right font-mono text-xs" style={{ color: colorA }}>{vA > 0 ? vA.toFixed(1) : '—'}</span>
         <div className="flex-1 h-2 bg-border rounded-full overflow-hidden relative">
-          <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${(valueA / max) * 100}%`, background: colorA, opacity: 0.7 }} />
+          <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${(vA / max) * 100}%`, background: colorA, opacity: 0.7 }} />
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <span className="w-10 text-right font-mono text-xs" style={{ color: colorB }}>{valueB}</span>
+        <span className="w-10 text-right font-mono text-xs" style={{ color: colorB }}>{vB > 0 ? vB.toFixed(1) : '—'}</span>
         <div className="flex-1 h-2 bg-border rounded-full overflow-hidden relative">
-          <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${(valueB / max) * 100}%`, background: colorB, opacity: 0.7 }} />
+          <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${(vB / max) * 100}%`, background: colorB, opacity: 0.7 }} />
         </div>
       </div>
     </div>
   )
 }
 
+function CityColumn({ city }: { city: CityApiData }) {
+  const aqi = city.latestAqi?.aqi ?? 0
+  const pm25 = city.latestAqi?.pm25 ?? null
+  const omsCompliant = pm25 !== null ? pm25 <= 5 : false
+  return { city, aqi, pm25, omsCompliant }
+}
+
 export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, onClose }: ComparisonPanelProps) => {
-  const dataA = cityA ? getCityByName(cityA) : null
-  const dataB = cityB ? getCityByName(cityB) : null
+  const { data: dataA, isLoading: loadingA } = useCity(cityA)
+  const { data: dataB, isLoading: loadingB } = useCity(cityB)
+
+  const colA = dataA ? CityColumn({ city: dataA }) : null
+  const colB = dataB ? CityColumn({ city: dataB }) : null
+
+  const pollutants = [
+    { key: 'pm25' as const, label: 'PM2.5', unit: 'µg/m³', limit: 5 },
+    { key: 'pm10' as const, label: 'PM10', unit: 'µg/m³', limit: 15 },
+    { key: 'no2' as const, label: 'NO₂', unit: 'µg/m³', limit: 10 },
+    { key: 'o3' as const, label: 'O₃', unit: 'µg/m³', limit: 60 },
+    { key: 'co' as const, label: 'CO', unit: 'mg/m³', limit: 4 },
+  ]
 
   return (
     <div className="w-[360px] flex-shrink-0 flex flex-col overflow-y-auto max-h-[calc(100vh-140px)] space-y-3 animate-fade-in">
@@ -107,26 +147,30 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
         <div className="grid grid-cols-2 gap-2">
           <div>
             <p className="text-[10px] font-mono text-primary uppercase tracking-wider mb-1.5">Cidade A</p>
-            <CitySearchBar onSelect={onChangeCityA} placeholder="Selecionar..." />
+            <CitySearchBar onSelect={(id) => onChangeCityA(id)} placeholder="Selecionar..." />
           </div>
           <div>
             <p className="text-[10px] font-mono text-yellow-400 uppercase tracking-wider mb-1.5">Cidade B</p>
-            <CitySearchBar onSelect={onChangeCityB} placeholder="Selecionar..." />
+            <CitySearchBar onSelect={(id) => onChangeCityB(id)} placeholder="Selecionar..." />
           </div>
         </div>
       </div>
 
       {/* AQI gauges side by side */}
-      {(dataA || dataB) && (
+      {(colA || colB || loadingA || loadingB) && (
         <div className="bg-card border border-border rounded p-4">
           <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">ÍNDICE DE QUALIDADE DO AR</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col items-center gap-2">
-              {dataA ? (
+              {loadingA ? (
+                <div className="h-32 flex items-center justify-center">
+                  <span className="text-xs text-muted-foreground font-mono animate-pulse">Carregando...</span>
+                </div>
+              ) : colA ? (
                 <>
-                  <p className="text-xs font-body font-semibold text-foreground text-center truncate w-full">{dataA.name}</p>
-                  <MiniGauge aqi={dataA.aqi} label={dataA.aqiLabel} />
-                  <OmsComplianceBadge compliant={dataA.omsCompliant} size="md" />
+                  <p className="text-xs font-body font-semibold text-foreground text-center truncate w-full">{colA.city.name}</p>
+                  <MiniGauge aqi={colA.aqi} />
+                  <OmsComplianceBadge compliant={colA.omsCompliant} size="md" />
                 </>
               ) : (
                 <div className="h-32 flex items-center justify-center">
@@ -135,11 +179,15 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
               )}
             </div>
             <div className="flex flex-col items-center gap-2">
-              {dataB ? (
+              {loadingB ? (
+                <div className="h-32 flex items-center justify-center">
+                  <span className="text-xs text-muted-foreground font-mono animate-pulse">Carregando...</span>
+                </div>
+              ) : colB ? (
                 <>
-                  <p className="text-xs font-body font-semibold text-foreground text-center truncate w-full">{dataB.name}</p>
-                  <MiniGauge aqi={dataB.aqi} label={dataB.aqiLabel} />
-                  <OmsComplianceBadge compliant={dataB.omsCompliant} size="md" />
+                  <p className="text-xs font-body font-semibold text-foreground text-center truncate w-full">{colB.city.name}</p>
+                  <MiniGauge aqi={colB.aqi} />
+                  <OmsComplianceBadge compliant={colB.omsCompliant} size="md" />
                 </>
               ) : (
                 <div className="h-32 flex items-center justify-center">
@@ -152,52 +200,23 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
       )}
 
       {/* Pollutants comparison */}
-      {dataA && dataB && (
+      {colA && colB && (
         <div className="bg-card border border-border rounded p-4 space-y-3">
           <h3 className="font-heading text-lg tracking-wide text-foreground">POLUENTES</h3>
           <div className="flex items-center gap-4 text-[10px] font-mono">
-            <span className="flex items-center gap-1"><span className="w-3 h-1.5 rounded-full bg-primary inline-block" />{dataA.name}</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-1.5 rounded-full bg-yellow-400 inline-block" />{dataB.name}</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-1.5 rounded-full bg-primary inline-block" />{colA.city.name}</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-1.5 rounded-full bg-yellow-400 inline-block" />{colB.city.name}</span>
           </div>
-          {dataA.pollutants.map(pA => {
-            const pB = dataB.pollutants.find(p => p.key === pA.key)
-            if (!pB) return null
-            return (
-              <PollutantBar
-                key={pA.key}
-                label={pA.label}
-                valueA={pA.value}
-                valueB={pB.value}
-                unit={pA.unit}
-                limit={pA.whoLimit}
-              />
-            )
-          })}
-        </div>
-      )}
-
-      {/* Outdoor safety comparison */}
-      {dataA && dataB && (
-        <div className="bg-card border border-border rounded p-4">
-          <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">SEGURANÇA AO AR LIVRE</h3>
-          <div className="grid grid-cols-2 gap-4">
-            {[dataA, dataB].map((city, i) => {
-              const scoreColor = city.outdoorSafetyScore >= 7 ? '#4af0c4' : city.outdoorSafetyScore >= 4 ? '#facc15' : '#ef4444'
-              return (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  <p className="text-[10px] font-mono text-muted-foreground text-center truncate w-full">{city.name}</p>
-                  <span className="font-mono font-bold text-3xl" style={{ color: scoreColor }}>
-                    {city.outdoorSafetyScore}
-                    <span className="text-sm text-muted-foreground">/10</span>
-                  </span>
-                  <div className="text-xs text-muted-foreground text-center space-y-0.5">
-                    <p>UV: {city.uvIndex}</p>
-                    <p>Pólen: {city.pollenLevel}/10</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          {pollutants.map(p => (
+            <PollutantBar
+              key={p.key}
+              label={p.label}
+              valueA={colA.city.latestAqi?.[p.key] ?? null}
+              valueB={colB.city.latestAqi?.[p.key] ?? null}
+              unit={p.unit}
+              limit={p.limit}
+            />
+          ))}
         </div>
       )}
     </div>

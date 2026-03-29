@@ -1,35 +1,35 @@
-import { CITIES_DATA } from '@data/mockCities'
 import { Search } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useSearchCities } from '@hooks/useSearchCities'
 
 interface CitySearchBarProps {
-  onSelect: (cityName: string) => void
+  onSelect: (cityId: string, cityName: string) => void
   placeholder?: string
   className?: string
 }
 
 export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', className = '' }: CitySearchBarProps) => {
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [activeIdx, setActiveIdx] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const filtered =
-    query.length > 0
-      ? CITIES_DATA.filter(
-          c =>
-            c.name.toLowerCase().includes(query.toLowerCase()) ||
-            c.state.toLowerCase().includes(query.toLowerCase()),
-        ).slice(0, 6)
-      : []
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300)
+    return () => clearTimeout(t)
+  }, [query])
+
+  const { data: results = [] } = useSearchCities(debouncedQuery)
+  const filtered = results.slice(0, 6)
 
   const handleSelect = useCallback(
-    (name: string) => {
+    (id: string, name: string) => {
       setQuery(name)
       setOpen(false)
       setActiveIdx(-1)
-      onSelect(name)
+      onSelect(id, name)
     },
     [onSelect],
   )
@@ -45,7 +45,7 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
     } else if (e.key === 'Enter' && activeIdx >= 0) {
       e.preventDefault()
       const city = filtered[activeIdx]
-      if (city) handleSelect(city.name)
+      if (city) handleSelect(city.id, city.name)
     } else if (e.key === 'Escape') {
       setOpen(false)
     }
@@ -83,8 +83,8 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
         <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-2xl overflow-hidden z-50">
           {filtered.map((city, i) => (
             <button
-              key={city.name}
-              onMouseDown={() => handleSelect(city.name)}
+              key={city.id}
+              onMouseDown={() => handleSelect(city.id, city.name)}
               className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between gap-2 ${
                 i === activeIdx ? 'bg-primary/10 text-foreground' : 'hover:bg-muted text-foreground'
               }`}
@@ -92,6 +92,9 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
               <span className="font-body">{city.name}</span>
               <span className="text-xs font-mono text-muted-foreground shrink-0">
                 {city.state} · {city.region}
+                {city.latestAqi && (
+                  <span className="ml-2 font-semibold">AQI {city.latestAqi.aqi}</span>
+                )}
               </span>
             </button>
           ))}

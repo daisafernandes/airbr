@@ -1,12 +1,30 @@
-import { CityData } from '@app-types/city.types'
-import { getAQIColor } from '@data/mockCities'
 import { MapPin } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
+import type { CityApiData } from '@app-types/airQuality.types'
 import { OmsComplianceBadge } from './OmsComplianceBadge'
 
+function getAQIColor(aqi: number): string {
+  if (aqi <= 50) return '#22c55e'
+  if (aqi <= 100) return '#eab308'
+  if (aqi <= 150) return '#f97316'
+  if (aqi <= 200) return '#ef4444'
+  if (aqi <= 300) return '#a855f7'
+  return '#7f1d1d'
+}
+
+function getAQILabel(aqi: number): string {
+  if (aqi <= 50) return 'Bom'
+  if (aqi <= 100) return 'Moderado'
+  if (aqi <= 150) return 'Sensíveis'
+  if (aqi <= 200) return 'Ruim'
+  if (aqi <= 300) return 'Muito ruim'
+  return 'Perigoso'
+}
+
 interface RankingTableProps {
-  cities: CityData[]
-  onCityClick?: (name: string) => void
+  cities: CityApiData[]
+  onCityClick?: (cityId: string) => void
   isMobile?: boolean
 }
 
@@ -15,12 +33,14 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
     return (
       <div className="space-y-2">
         {cities.map((city, idx) => {
-          const color = getAQIColor(city.aqi)
-          const pm25 = city.pollutants.find(p => p.key === 'pm25')
+          const aqi = city.latestAqi?.aqi ?? 0
+          const color = getAQIColor(aqi)
+          const pm25 = city.latestAqi?.pm25 ?? null
+          const omsCompliant = pm25 !== null ? pm25 <= 5 : false
           return (
             <button
-              key={city.name}
-              onClick={() => onCityClick?.(city.name)}
+              key={city.id}
+              onClick={() => onCityClick?.(city.id)}
               className="w-full bg-card border border-border rounded p-3 flex items-center gap-3 hover:border-primary/30 transition-colors text-left"
             >
               <span className="w-7 text-center font-mono text-sm text-muted-foreground shrink-0">
@@ -34,9 +54,9 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <span className="font-mono font-bold text-base" style={{ color }}>
-                  {city.aqi}
+                  {aqi}
                 </span>
-                <OmsComplianceBadge compliant={city.omsCompliant} />
+                <OmsComplianceBadge compliant={omsCompliant} />
               </div>
             </button>
           )
@@ -61,19 +81,27 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
         </thead>
         <tbody>
           {cities.map((city, idx) => {
-            const color = getAQIColor(city.aqi)
-            const pm25 = city.pollutants.find(p => p.key === 'pm25')
+            const aqi = city.latestAqi?.aqi ?? 0
+            const color = getAQIColor(aqi)
+            const pm25 = city.latestAqi?.pm25 ?? null
+            const omsCompliant = pm25 !== null ? pm25 <= 5 : false
             return (
               <tr
-                key={city.name}
-                onClick={() => onCityClick?.(city.name)}
+                key={city.id}
+                onClick={() => onCityClick?.(city.id)}
                 className={`border-b border-border/50 transition-colors ${onCityClick ? 'cursor-pointer hover:bg-muted/40' : ''}`}
               >
                 <td className="px-4 py-3 font-mono text-muted-foreground">{idx + 1}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-                    <span className="font-body font-medium text-foreground">{city.name}</span>
+                    <Link
+                      to={`/cidade/${city.id}`}
+                      className="font-body font-medium text-foreground hover:text-primary transition-colors"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {city.name}
+                    </Link>
                   </div>
                 </td>
                 <td className="px-4 py-3 font-mono text-sm text-muted-foreground">{city.state}</td>
@@ -82,15 +110,15 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="font-mono font-bold text-base" style={{ color }}>
-                    {city.aqi}
+                    {aqi}
                   </span>
-                  <span className="text-xs text-muted-foreground ml-1 hidden xl:inline">{city.aqiLabel}</span>
+                  <span className="text-xs text-muted-foreground ml-1 hidden xl:inline">{getAQILabel(aqi)}</span>
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-sm text-foreground">
-                  {pm25 ? `${pm25.value} µg/m³` : '—'}
+                  {pm25 !== null ? `${pm25.toFixed(1)} µg/m³` : '—'}
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <OmsComplianceBadge compliant={city.omsCompliant} />
+                  <OmsComplianceBadge compliant={omsCompliant} />
                 </td>
               </tr>
             )
