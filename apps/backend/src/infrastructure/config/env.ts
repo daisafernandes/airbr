@@ -3,7 +3,10 @@ import { z } from 'zod'
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3333),
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z
+    .string()
+    .url()
+    .default('postgresql://postgres:postgres@localhost:5432/airbr'),
   OWM_API_KEY: z.string().optional(),
   AQICN_TOKEN: z.string().optional(),
 })

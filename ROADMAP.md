@@ -24,9 +24,9 @@ Cada fase é projetada para múltiplos agentes trabalhando em paralelo. Os agent
 
 Corrigir inconsistências do scaffold atual antes de qualquer desenvolvimento novo. Sem isso, os agentes seguintes vão encontrar erros silenciosos.
 
-### Agente A — Corrigir Backend
+### Agente A — Corrigir Backend ✅ CONCLUÍDO
 
-- Garantir que o boot não quebra quando `DATABASE_URL` aponta para um banco inacessível (modo dev sem Docker)
+- ✅ `DATABASE_URL` agora tem valor padrão (`postgresql://postgres:postgres@localhost:5432/airbr`) em `apps/backend/src/infrastructure/config/env.ts` — app sobe sem banco rodando; `GET /api/v1/health` retorna `503` controlado quando a conexão falha
 
 ### Agente C — Corrigir Frontend ✅ CONCLUÍDO
 
@@ -34,15 +34,17 @@ Corrigir inconsistências do scaffold atual antes de qualquer desenvolvimento no
 - ✅ Tokens de cor e tipografia (DM Sans, Bebas Neue, DM Mono) configurados em `apps/frontend/src/styles/global.css`
 - ✅ Biblioteca de componentes **shadcn/ui** completa instalada (~40 componentes em `components/ui/`)
 
-### Agente D — Configuração Base
+### Agente D — Configuração Base ✅ CONCLUÍDO
 
-- Criar `docker-compose.yml` na raiz com serviços: **PostgreSQL 16 + PostGIS**
-- Criar `apps/backend/jest.config.ts` (Jest + ts-jest — arquivo de config ausente no scaffold)
-- Criar `apps/frontend/vitest.config.ts` (Vitest — arquivo de config ausente)
-- Configurar **GitHub Actions** básico (`.github/workflows/ci.yml`): lint + type-check em cada PR
-- Atualizar `apps/backend/.env.example` com comentários explicativos por variável
+- ✅ Criar `docker-compose.yml` na raiz com serviços: **PostgreSQL 16 + PostGIS** (`postgis/postgis:16-3.4`), healthcheck via `pg_isready`, volume persistente
+- ✅ Criar `apps/backend/jest.config.ts` (Jest + ts-jest — migrado de `.js` para `.ts` com tipagem `Config`)
+- ✅ Criar `apps/frontend/vitest.config.ts` (Vitest — ambiente `jsdom`, `globals: true`, aliases herdados do `vite.config.ts`)
+- ✅ Configurar **GitHub Actions** básico (`.github/workflows/ci.yml`): jobs paralelos de lint + type-check (`tsc --noEmit`) em cada push/PR, Node 20
+- ✅ Atualizar `apps/backend/.env.example` com comentários explicativos por variável e `DATABASE_URL` apontando para o Docker Compose local
 
-**Entregas:** Tailwind funcionando ✅, Docker Compose (Postgres), CI básico.
+**Entregas:** Tailwind ✅, shadcn/ui ✅, Docker Compose (Postgres + PostGIS) ✅, Jest config TS ✅, Vitest config ✅, CI básico ✅, .env.example documentado ✅
+
+> **Fase 0 concluída integralmente.**
 
 ---
 
