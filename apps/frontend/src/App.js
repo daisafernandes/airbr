@@ -6,6 +6,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@contexts/AuthContext';
 import { DashboardPage } from '@pages/DashboardPage';
+import { RankingPage } from '@pages/RankingPage';
+import { FireMapPage } from '@pages/FireMapPage';
 import { NotFoundPage } from '@pages/NotFoundPage';
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -16,5 +18,5 @@ const queryClient = new QueryClient({
     },
 });
 export const App = () => {
-    return (_jsx(QueryClientProvider, { client: queryClient, children: _jsxs(TooltipProvider, { children: [_jsx(Toaster, {}), _jsx(Sonner, {}), _jsx(AuthProvider, { children: _jsx(BrowserRouter, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(DashboardPage, {}) }), _jsx(Route, { path: "*", element: _jsx(NotFoundPage, {}) })] }) }) })] }) }));
+    return (_jsx(QueryClientProvider, { client: queryClient, children: _jsxs(TooltipProvider, { children: [_jsx(Toaster, {}), _jsx(Sonner, {}), _jsx(AuthProvider, { children: _jsx(BrowserRouter, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(DashboardPage, {}) }), _jsx(Route, { path: "/ranking", element: _jsx(RankingPage, {}) }), _jsx(Route, { path: "/mapa-queimadas", element: _jsx(FireMapPage, {}) }), _jsx(Route, { path: "*", element: _jsx(NotFoundPage, {}) })] }) }) })] }) }));
 };

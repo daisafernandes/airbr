@@ -1,35 +1,31 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { Search, MapPin, Wind } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
-const CITIES = [
-    'São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Brasília', 'Salvador',
-    'Fortaleza', 'Curitiba', 'Manaus', 'Recife', 'Porto Alegre',
-    'Belém', 'Goiânia', 'Campinas', 'Guarulhos', 'São Luís',
-    'Maceió', 'Campo Grande', 'Cuiabá', 'Natal', 'Florianópolis',
-];
+import { getNearestCity } from '@data/mockCities';
+import { Wind, MapPin } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { CitySearchBar } from './CitySearchBar';
+import { LiveIndicator } from './LiveIndicator';
 export const Header = ({ onCitySelect }) => {
-    const [query, setQuery] = useState('');
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const inputRef = useRef(null);
-    const filtered = query.length > 0
-        ? CITIES.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, 5)
-        : [];
-    const handleSelect = (city) => {
-        setQuery(city);
-        setShowSuggestions(false);
-        onCitySelect(city);
-    };
+    const location = useLocation();
     const handleLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(() => {
-                onCitySelect('Minha Localização');
-            });
-        }
+        if (!navigator.geolocation)
+            return;
+        navigator.geolocation.getCurrentPosition(pos => {
+            const city = getNearestCity(pos.coords.latitude, pos.coords.longitude);
+            onCitySelect(city.name);
+        }, () => {
+            // Fallback: São Paulo
+            onCitySelect('São Paulo');
+        });
     };
-    useEffect(() => {
-        const handleClickOutside = () => setShowSuggestions(false);
-        document.addEventListener('click', handleClickOutside);
-        return () => document.removeEventListener('click', handleClickOutside);
-    }, []);
-    return (_jsx("header", { className: "fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border", children: _jsxs("div", { className: "flex items-center justify-between px-6 py-3 max-w-[1800px] mx-auto", children: [_jsxs("div", { className: "flex items-center gap-2", children: [_jsx(Wind, { className: "w-6 h-6 text-primary" }), _jsxs("span", { className: "font-heading text-2xl tracking-wider text-foreground", children: ["Respir", _jsx("span", { className: "text-primary", children: "A" })] }), _jsx("span", { className: "text-xs font-mono text-muted-foreground ml-2 hidden sm:block", children: "AirBR" })] }), _jsxs("div", { className: "relative flex items-center gap-2", onClick: e => e.stopPropagation(), children: [_jsxs("div", { className: "relative", children: [_jsx(Search, { className: "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" }), _jsx("input", { ref: inputRef, type: "text", value: query, onChange: e => { setQuery(e.target.value); setShowSuggestions(true); }, onFocus: () => setShowSuggestions(true), placeholder: "Buscar cidade...", className: "bg-muted border border-border rounded pl-9 pr-4 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-48 sm:w-64" }), showSuggestions && filtered.length > 0 && (_jsx("div", { className: "absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-xl overflow-hidden", children: filtered.map(city => (_jsx("button", { onClick: () => handleSelect(city), className: "w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors text-foreground", children: city }, city))) }))] }), _jsxs("button", { onClick: handleLocation, className: "flex items-center gap-1 px-3 py-2 text-xs font-body bg-muted border border-border rounded hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary", children: [_jsx(MapPin, { className: "w-3.5 h-3.5" }), _jsx("span", { className: "hidden sm:inline", children: "Localiza\u00E7\u00E3o" })] })] })] }) }));
+    const navLinks = [
+        { to: '/', label: 'Dashboard' },
+        { to: '/ranking', label: 'Ranking' },
+        { to: '/mapa-queimadas', label: 'Mapa Queimadas' },
+    ];
+    return (_jsx("header", { className: "fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border", children: _jsxs("div", { className: "flex items-center justify-between px-6 py-3 max-w-[1800px] mx-auto gap-4", children: [_jsxs(Link, { to: "/", className: "flex items-center gap-2 shrink-0", children: [_jsx(Wind, { className: "w-6 h-6 text-primary" }), _jsxs("span", { className: "font-heading text-2xl tracking-wider text-foreground", children: ["Respir", _jsx("span", { className: "text-primary", children: "A" })] }), _jsx("span", { className: "text-xs font-mono text-muted-foreground ml-2 hidden sm:block", children: "AirBR" })] }), _jsx("nav", { className: "hidden md:flex items-center gap-0.5", children: navLinks.map(link => {
+                        const active = location.pathname === link.to;
+                        return (_jsx(Link, { to: link.to, className: `px-3 py-1.5 text-xs font-body rounded transition-colors ${active
+                                ? 'text-primary border-b border-primary font-semibold'
+                                : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`, children: link.label }, link.to));
+                    }) }), _jsxs("div", { className: "flex items-center gap-2 flex-1 md:flex-none justify-end", children: [_jsx(CitySearchBar, { onSelect: onCitySelect, className: "w-48 sm:w-64 md:w-56 lg:w-72" }), _jsxs("button", { onClick: handleLocation, title: "Detectar minha localiza\u00E7\u00E3o", className: "flex items-center gap-1 px-3 py-2 text-xs font-body bg-muted border border-border rounded hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary shrink-0", children: [_jsx(MapPin, { className: "w-3.5 h-3.5" }), _jsx("span", { className: "hidden sm:inline", children: "Localiza\u00E7\u00E3o" })] }), _jsx(LiveIndicator, {})] })] }) }));
 };
