@@ -4,7 +4,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3333),
   DATABASE_URL: z.string().url(),
-  JWT_SECRET: z.string().min(32),
+  OWM_API_KEY: z.string().optional(),
+  AQICN_TOKEN: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>

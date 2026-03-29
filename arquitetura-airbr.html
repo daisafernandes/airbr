@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AirBR — Arquitetura do Sistema</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05080f;
+  --s1: #0a0f1e;
+  --s2: #0f1628;
+  --border: rgba(120,160,255,0.12);
+  --border2: rgba(120,160,255,0.25);
+  --accent: #4af0c4;
+  --accent2: #4a9fff;
+  --accent3: #ff9f4a;
+  --accent4: #c44aff;
+  --text: #dce8ff;
+  --muted: #5a6a8a;
+  --muted2: #8898bb;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 2rem 1.5rem 4rem;
+}
+
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:9999;
+}
+
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(130px);
+  pointer-events: none;
+}
+.blob-1 { width:600px;height:600px;background:#0d3d6e;top:-200px;left:-200px;opacity:.4; }
+.blob-2 { width:500px;height:500px;background:#0a4a2e;bottom:-150px;right:-150px;opacity:.35; }
+
+/* ── HEADER ── */
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: fadeUp .6s ease both;
+}
+.page-header .tag {
+  font-family: 'DM Mono', monospace;
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid rgba(74,240,196,.25);
+  padding: .3rem .8rem;
+  border-radius: 100px;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+.page-header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  letter-spacing: .05em;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 60%, var(--accent4) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: .75rem;
+}
+.page-header p {
+  color: var(--muted2);
+  font-size: 1rem;
+  font-weight: 300;
+}
+
+/* ── WRAPPER ── */
+.arch-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── LAYER ── */
+.layer {
+  position: relative;
+  animation: fadeUp .6s ease both;
+}
+.layer:nth-child(1) { animation-delay: .1s; }
+.layer:nth-child(2) { animation-delay: .2s; }
+.layer:nth-child(3) { animation-delay: .3s; }
+.layer:nth-child(4) { animation-delay: .4s; }
+.layer:nth-child(5) { animation-delay: .5s; }
+.layer:nth-child(6) { animation-delay: .6s; }
+
+.layer-label {
+  font-family: 'DM Mono', monospace;
+  font-size: .65rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: .6rem;
+  padding-left: .25rem;
+}
+
+.layer-body {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 16px);
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.layer-body::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 16px 16px 0 0;
+}
+
+.layer--sources .layer-body::before { background: linear-gradient(90deg, #4af0c4, #4a9fff); }
+.layer--ingest .layer-body::before  { background: linear-gradient(90deg, #4a9fff, #c44aff); }
+.layer--cache .layer-body::before   { background: linear-gradient(90deg, #c44aff, #ff9f4a); }
+.layer--backend .layer-body::before { background: linear-gradient(90deg, #ff9f4a, #f44336); }
+.layer--api .layer-body::before     { background: linear-gradient(90deg, #f44336, #4af0c4); }
+.layer--frontend .layer-body::before{ background: linear-gradient(90deg, #4af0c4, #4a9fff, #c44aff); }
+
+/* ── CARDS GRID ── */
+.cards {
+  display: grid;
+  gap: .75rem;
+}
+.cards-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.cards-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.cards-2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.cards-5 { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+
+.card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  transition: border-color .2s, transform .2s;
+  cursor: default;
+}
+.card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+
+.card-icon { font-size: 1.4rem; margin-bottom: .4rem; }
+
+.card-name {
+  font-weight: 600;
+  font-size: .9rem;
+  margin-bottom: .25rem;
+}
+
+.card-desc {
+  font-size: .75rem;
+  color: var(--muted2);
+  line-height: 1.4;
+}
+
+.badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: .6rem;
+  padding: .15rem .45rem;
+  border-radius: 100px;
+  margin-top: .4rem;
+  letter-spacing: .05em;
+}
+.badge-free    { background: rgba(74,240,196,.12); color: var(--accent); border: 1px solid rgba(74,240,196,.25); }
+.badge-paid    { background: rgba(255,159,74,.12); color: var(--accent3); border: 1px solid rgba(255,159,74,.25); }
+.badge-hybrid  { background: rgba(74,159,255,.12); color: var(--accent2); border: 1px solid rgba(74,159,255,.25); }
+.badge-v2      { background: rgba(255,80,80,.1); color: #ff6b6b; border: 1px solid rgba(255,80,80,.25); }
+.badge-oms     { background: rgba(255,230,50,.1); color: #ffe032; border: 1px solid rgba(255,230,50,.25); }
+
+/* ── ARROW CONNECTOR ── */
+.connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .2rem 0;
+  color: var(--muted);
+  font-size: .75rem;
+  font-family: 'DM Mono', monospace;
+  animation: fadeUp .4s ease both;
+}
+.connector svg { opacity: .5; }
+.connector span { opacity: .6; font-size: .65rem; letter-spacing: .1em; }
+
+/* ── INLINE ROW (cache + backend side by side) ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+@media (max-width: 640px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+
+/* ── SECTION TITLE INSIDE LAYER ── */
+.section-title {
+  font-size: .72rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: .6rem;
+  margin-top: .9rem;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ── FLOW LINE inside backend ── */
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: .5rem;
+}
+.flow-pill {
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: .4rem .8rem;
+  font-size: .78rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.flow-arrow {
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+/* ── FRONTEND CARDS ── */
+.fe-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  transition: border-color .2s, transform .2s;
+}
+.fe-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+.fe-card .card-icon { font-size: 1.3rem; }
+.fe-card .card-name { font-size: .85rem; font-weight: 600; }
+.fe-card .card-desc { font-size: .72rem; color: var(--muted2); margin-top: .2rem; }
+
+/* ── LEGEND ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem 1.2rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  justify-content: center;
+  animation: fadeUp .6s .7s ease both;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .75rem;
+  color: var(--muted2);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+/* ── HIGHLIGHT BOX ── */
+.highlight-box {
+  background: rgba(74,240,196,.05);
+  border: 1px solid rgba(74,240,196,.2);
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  margin-top: .75rem;
+  font-size: .8rem;
+  color: var(--accent);
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+}
+.highlight-box .hi-icon { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="page-header">
+  <div class="tag">Diagrama de Arquitetura</div>
+  <h1>AirBR — Sistema</h1>
+  <p>Visão completa das integrações, camadas e fluxo de dados</p>
+</div>
+
+<div class="arch-wrapper">
+
+  <!-- ── LAYER 1: DATA SOURCES ── -->
+  <div class="layer layer--sources">
+    <div class="layer-label">① Fontes de Dados</div>
+    <div class="layer-body">
+
+      <div class="section-title">🇧🇷 APIs Brasileiras Oficiais</div>
+      <div class="cards cards-4">
+
+        <div class="card">
+          <div class="card-icon">🔥</div>
+          <div class="card-name">INPE / BDQueimadas</div>
+          <div class="card-desc">Focos de incêndio via satélite, atualização a cada 3h. Cobre todo o Brasil e América Latina.</div>
+          <span class="badge badge-free">gratuito</span>
+          <span class="badge badge-br">BR oficial</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🏭</div>
+          <div class="card-name">CETESB</div>
+          <div class="card-desc">Rede de estações em São Paulo. AQI hora a hora, PM2.5, PM10, O₃, NO₂. Sistema QUALAR.</div>
+          <span class="badge badge-free">gratuito</span>
+          <span class="badge badge-br">BR oficial</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <div class="card-name">IEMA Nacional</div>
+          <div class="card-desc">Plataforma com dados históricos de 11 estados. Usado pela OMS. 478 registros, 82 localidades.</div>
+          <span class="badge badge-free">gratuito</span>
+          <span class="badge badge-br">BR oficial</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🌿</div>
+          <div class="card-name">IAT / Paraná</div>
+          <div class="card-desc">Monitoramento oficial da Região Metropolitana de Curitiba. Índice IQA diário e boletins.</div>
+          <span class="badge badge-free">gratuito</span>
+          <span class="badge badge-br">BR oficial</span>
+        </div>
+
+      </div>
+
+      <div class="section-title" style="margin-top:1.1rem">🌍 APIs Globais (cobertura via satélite)</div>
+      <div class="cards cards-4">
+
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <div class="card-name">IQAir API</div>
+          <div class="card-desc">AQI em tempo real, PM2.5, previsão de 3 dias. Melhor cobertura de cidades brasileiras.</div>
+          <span class="badge badge-hybrid">free + pago</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📡</div>
+          <div class="card-name">AQICN API</div>
+          <div class="card-desc">+500 estações no Brasil. Dados de estações locais em tempo real. Token gratuito.</div>
+          <span class="badge badge-free">gratuito</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">☁️</div>
+          <div class="card-name">OpenWeatherMap</div>
+          <div class="card-desc">Air Pollution API cobre todo o Brasil por coordenadas. 1.000 requisições/dia grátis.</div>
+          <span class="badge badge-free">gratuito</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🛰️</div>
+          <div class="card-name">NASA FIRMS</div>
+          <div class="card-desc">Dados de queimadas e incêndios por satélite MODIS e VIIRS. Complementa o INPE.</div>
+          <span class="badge badge-free">gratuito</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🇪🇺</div>
+          <div class="card-name">Copernicus / CAMS</div>
+          <div class="card-desc">Modelo atmosférico europeu. Previsão de qualidade do ar para toda a América do Sul.</div>
+          <span class="badge badge-free">gratuito</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🌡️</div>
+          <div class="card-name">Open-Meteo</div>
+          <div class="card-desc">Clima + qualidade do ar + índice UV combinados. API aberta, sem necessidade de chave de acesso.</div>
+          <span class="badge badge-free">gratuito</span>
+        </div>
+
+      </div>
+
+      <div class="section-title" style="margin-top:1.1rem">🌿 Dados Ambientais Complementares</div>
+      <div class="cards cards-4">
+
+        <div class="card">
+          <div class="card-icon">🌳</div>
+          <div class="card-name">PRODES / INPE</div>
+          <div class="card-desc">Monitoramento de desmatamento em tempo real. Correlacionar áreas desmatadas com qualidade do ar e focos de queimada.</div>
+          <span class="badge badge-free">gratuito</span>
+          <span class="badge badge-br">BR oficial</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🌼</div>
+          <div class="card-name">Ambee Pollen API</div>
+          <div class="card-desc">Índice de pólen e alérgenos por cidade. Essencial para usuários asmáticos e com rinite. Cobre o Brasil.</div>
+          <span class="badge badge-hybrid">free + pago</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">☀️</div>
+          <div class="card-name">Índice UV (Open-Meteo)</div>
+          <div class="card-desc">Combinado com AQI forma um "índice de segurança ao ar livre". Alta exposição UV + poluição = risco duplicado.</div>
+          <span class="badge badge-free">gratuito</span>
+        </div>
+
+      </div>
+
+      <div class="section-title" style="margin-top:1.1rem">🏥 Saúde Pública e Contexto Social</div>
+      <div class="cards cards-4">
+
+        <div class="card">
+          <div class="card-icon">🏥</div>
+          <div class="card-name">DATASUS / SUS</div>
+          <div class="card-desc">Internações por doenças respiratórias por município. Cruzar com picos de poluição para mostrar impacto real na saúde.</div>
+          <span class="badge badge-free">gratuito</span>
+          <span class="badge badge-br">BR oficial</span>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">👥</div>
+          <div class="card-name">IBGE API</div>
+          <div class="card-desc">Dados populacionais por município: idosos, crianças, densidade. Mostrar quantas pessoas vivem em risco em cada cidade.</div>
+          <span class="badge badge-free">gratuito</span>
+          <span class="badge badge-br">BR oficial</span>
+        </div>
+
+      </div>
+
+      <div class="highlight-box">
+        <span class="hi-icon">💡</span>
+        <span><strong>Estratégia de cobertura:</strong> Onde há estação oficial (11 estados) → usar CETESB/IEMA. Onde não há → satélite via IQAir + OpenWeatherMap. Queimadas + desmatamento → INPE/PRODES sempre. Saúde pública → DATASUS + IBGE.</span>
+      </div>
+      <div class="highlight-box" style="background:rgba(74,159,255,.05);border-color:rgba(74,159,255,.2);color:var(--accent2);margin-top:.6rem">
+        <span class="hi-icon">🏆</span>
+        <span><strong>Diferencial único no Brasil:</strong> Cruzar focos de queimada (INPE) + direção do vento (Open-Meteo) + AQI (satélite) + internações (DATASUS) = "A fumaça do Mato Grosso está afetando a qualidade do ar em São Paulo hoje e causou X internações na semana passada."</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="connector">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    <span>INGESTÃO DE DADOS</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+
+  <!-- ── LAYER 2: INGESTION ── -->
+  <div class="layer layer--ingest">
+    <div class="layer-label">② Camada de Ingestão (Backend — Node.js ou Python)</div>
+    <div class="layer-body">
+      <div class="cards cards-3">
+
+        <div class="card">
+          <div class="card-icon">⏱️</div>
+          <div class="card-name">Scheduler / Cron</div>
+          <div class="card-desc">Jobs agendados que buscam dados nas APIs externas em intervalos definidos: a cada 1h para AQI, a cada 3h para queimadas.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <div class="card-name">Normalização</div>
+          <div class="card-desc">Converte os diferentes formatos (JSON, CSV, XML) de cada API para um esquema único e padronizado antes de salvar.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🗝️</div>
+          <div class="card-name">Gerenciador de Chaves</div>
+          <div class="card-desc">Armazena todas as API keys com segurança em variáveis de ambiente. Nunca expostas ao frontend.</div>
+        </div>
+
+      </div>
+
+      <div class="section-title">Fluxo de normalização</div>
+      <div class="flow-row">
+        <div class="flow-pill">IQAir JSON</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-pill">CETESB XML</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-pill">INPE CSV</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-pill">DATASUS JSON</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-pill">IBGE JSON</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-pill" style="border-color:rgba(74,240,196,.4);color:var(--accent)">{ city, aqi, pm25, pm10, uv, pollen, fires, hospitalizations, pop_risk, lat, lng, timestamp, source }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="connector">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    <span>ARMAZENAMENTO E CACHE</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+
+  <!-- ── LAYER 3: STORAGE + CACHE (two-col) ── -->
+  <div class="layer layer--cache">
+    <div class="layer-label">③ Armazenamento e Cache</div>
+    <div class="layer-body">
+      <div class="two-col">
+
+        <div>
+          <div class="section-title">💾 Banco de Dados</div>
+          <div class="cards cards-2" style="grid-template-columns:1fr">
+
+            <div class="card">
+              <div class="card-icon">🐘</div>
+              <div class="card-name">PostgreSQL + PostGIS</div>
+              <div class="card-desc">Dados históricos de AQI por cidade. PostGIS permite consultas geoespaciais (focos próximos, raio de poluição).</div>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">🍃</div>
+              <div class="card-name">MongoDB (alternativa)</div>
+              <div class="card-desc">Mais simples de escalar. Ideal para protótipos. Armazena documentos JSON diretamente.</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div>
+          <div class="section-title">⚡ Cache em Memória</div>
+          <div class="cards cards-2" style="grid-template-columns:1fr">
+
+            <div class="card">
+              <div class="card-icon">🔴</div>
+              <div class="card-name">Redis</div>
+              <div class="card-desc">Cache dos dados mais recentes por cidade. TTL de 1h para AQI. Evita exceder limites das APIs gratuitas.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">📁</div>
+              <div class="card-name">JSON em disco (protótipo)</div>
+              <div class="card-desc">Para começar rápido: salvar snapshots JSON localmente. Simples e sem dependências extras.</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="connector">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    <span>API INTERNA</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+
+  <!-- ── LAYER 4: INTERNAL API ── -->
+  <div class="layer layer--api">
+    <div class="layer-label">④ API REST Interna (o que o frontend consome)</div>
+    <div class="layer-body">
+      <div class="cards cards-4">
+
+        <div class="card">
+          <div class="card-icon">🗺️</div>
+          <div class="card-name">GET /cities</div>
+          <div class="card-desc">Lista todas as cidades monitoradas com AQI atual, coordenadas e fonte dos dados.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📍</div>
+          <div class="card-name">GET /city/:id</div>
+          <div class="card-desc">Dados completos de uma cidade: AQI, PM2.5, PM10, CO, NO₂, O₃, histórico 7 dias, alertas.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔥</div>
+          <div class="card-name">GET /fires</div>
+          <div class="card-desc">Focos de queimada ativos por região/estado. Retorna coordenadas, intensidade e satélite de origem.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🏆</div>
+          <div class="card-name">GET /ranking</div>
+          <div class="card-desc">Ranking das cidades mais e menos poluídas do dia/semana. Filtrável por região e estado.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <div class="card-name">GET /history/:city</div>
+          <div class="card-desc">Histórico de AQI por período (7d, 30d, 1 ano). Base para gráficos e tendências.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📍</div>
+          <div class="card-name">GET /nearby</div>
+          <div class="card-desc">Cidades monitoradas próximas a uma coordenada (geolocalização do usuário).</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔔</div>
+          <div class="card-name">POST /alerts</div>
+          <div class="card-desc">Cadastro de alertas: usuário escolhe cidade e nível de AQI para receber notificação.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <div class="card-name">GET /search</div>
+          <div class="card-desc">Busca por nome de cidade com autocomplete. Retorna lista com estado, região e AQI atual.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🏥</div>
+          <div class="card-name">GET /health/:city</div>
+          <div class="card-desc">Dados de saúde pública: internações respiratórias, grupos de risco por faixa etária e correlação com AQI histórico.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🌳</div>
+          <div class="card-name">GET /deforestation</div>
+          <div class="card-desc">Áreas desmatadas recentes do PRODES/INPE por estado. Correlacionadas com focos de queimada e AQI regional.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">💨</div>
+          <div class="card-name">GET /wind-smoke/:city</div>
+          <div class="card-desc">Cruza direção do vento (Open-Meteo) + focos do INPE para indicar de onde vem a fumaça que afeta a cidade.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">☀️</div>
+          <div class="card-name">GET /outdoor-safety/:city</div>
+          <div class="card-desc">Índice composto: AQI + UV + pólen + temperatura. Retorna nível de segurança para atividades ao ar livre.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🌍</div>
+          <div class="card-name">GET /oms-compliance</div>
+          <div class="card-desc">Cidades acima/abaixo do limite de PM2.5 recomendado pela OMS (5 µg/m³). Ranking de conformidade.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="connector">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    <span>FRONTEND</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+
+  <!-- ── LAYER 5: FRONTEND ── -->
+  <div class="layer layer--frontend">
+    <div class="layer-label">⑤ Frontend (o que o usuário vê)</div>
+    <div class="layer-body">
+      <div class="cards cards-4">
+
+        <div class="fe-card">
+          <div class="card-icon">🗺️</div>
+          <div class="card-name">Mapa Interativo do Brasil</div>
+          <div class="card-desc">Cidades coloridas por nível de AQI. Clicável por estado ou cidade. Camada de queimadas sobrepostas.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">🔍</div>
+          <div class="card-name">Busca com Autocomplete</div>
+          <div class="card-desc">Campo de busca com sugestões em tempo real. Resultado instantâneo ao selecionar cidade.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">📍</div>
+          <div class="card-name">Geolocalização</div>
+          <div class="card-desc">Botão "usar minha localização". Detecta cidade mais próxima e carrega dados automaticamente.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">📊</div>
+          <div class="card-name">Dashboard da Cidade</div>
+          <div class="card-desc">AQI atual com gauge, poluentes individuais, gráfico histórico 7 dias, previsão e fonte dos dados.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">⚠️</div>
+          <div class="card-name">Alertas de Saúde</div>
+          <div class="card-desc">Recomendações dinâmicas por faixa de AQI: grupos sensíveis, crianças, idosos, atividade física.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">🏆</div>
+          <div class="card-name">Ranking Nacional</div>
+          <div class="card-desc">As 10 cidades mais poluídas e mais limpas do dia. Atualizável por região ou estado.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">🔥</div>
+          <div class="card-name">Mapa de Queimadas</div>
+          <div class="card-desc">Focos ativos do INPE sobrepostos no mapa. Indicador de risco para qualidade do ar nas regiões afetadas.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">🔔</div>
+          <div class="card-name">Notificações</div>
+          <div class="card-desc">Push notification ou e-mail quando o AQI da cidade favorita ultrapassa limite definido pelo usuário.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">🏥</div>
+          <div class="card-name">Painel de Saúde Pública</div>
+          <div class="card-desc">Internações respiratórias por município cruzadas com histórico de AQI. Mostra o impacto real da poluição em números.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">💨</div>
+          <div class="card-name">De onde vem a fumaça?</div>
+          <div class="card-desc">Visualização do trajeto da fumaça: direção do vento + focos INPE. Ex: "fumaça do MT está afetando SP hoje".</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">☀️</div>
+          <div class="card-name">Índice "Seguro ao Ar Livre"</div>
+          <div class="card-desc">Score combinado de AQI + UV + pólen + temperatura. Verde = sair é seguro. Vermelho = fique em casa.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">🌍</div>
+          <div class="card-name">Compliance com OMS</div>
+          <div class="card-desc">Quais cidades atendem (ou não) os limites de PM2.5 da OMS. Ranking de conformidade nacional e comparativo global.</div>
+        </div>
+
+        <div class="fe-card">
+          <div class="card-icon">🌳</div>
+          <div class="card-name">Mapa de Desmatamento</div>
+          <div class="card-desc">Camada do PRODES sobreposta ao mapa. Correlaciona áreas desmatadas com aumento de queimadas e piora do AQI.</div>
+        </div>
+
+      </div>
+
+      <!-- V2 FUTURE SECTION -->
+      <div class="section-title" style="margin-top:1.25rem">🚀 Versão Futura — Engajamento da Comunidade (v2)</div>
+      <div class="cards cards-4">
+
+        <div class="card" style="opacity:.55;border-style:dashed">
+          <div class="card-icon">📣</div>
+          <div class="card-name">Relatos da Comunidade</div>
+          <div class="card-desc">Usuários reportam fumaça, cheiro e visibilidade. Cobre regiões sem estação oficial, como o Waze faz para trânsito.</div>
+          <span class="badge badge-v2">v2</span>
+        </div>
+
+        <div class="card" style="opacity:.55;border-style:dashed">
+          <div class="card-icon">🔗</div>
+          <div class="card-name">API Pública Aberta</div>
+          <div class="card-desc">Disponibilizar os dados agregados para outros devs e pesquisadores. Gera credibilidade e adoção orgânica.</div>
+          <span class="badge badge-v2">v2</span>
+        </div>
+
+        <div class="card" style="opacity:.55;border-style:dashed">
+          <div class="card-icon">📦</div>
+          <div class="card-name">Widget Embeddable</div>
+          <div class="card-desc">Caixinha com AQI da cidade que prefeituras, portais e jornais podem incorporar no próprio site.</div>
+          <span class="badge badge-v2">v2</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LEGEND ── -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--accent)"></div>
+      Gratuito / Open Source
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--accent3)"></div>
+      Freemium (free + pago)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--accent4)"></div>
+      Fonte oficial brasileira
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--accent2)"></div>
+      API interna / própria
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#ff6b6b"></div>
+      Planejado para v2
+    </div>
+    <div class="legend-item" style="margin-left:1rem; color:var(--muted)">
+      AirBR — v0.2 Arquitetura
+    </div>
+  </div>
+
+</div><!-- /arch-wrapper -->
+</body>
+</html>

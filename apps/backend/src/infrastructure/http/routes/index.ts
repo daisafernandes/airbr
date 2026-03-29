@@ -1,13 +1,20 @@
 import { Router } from 'express'
 
-import { UserController } from '@infrastructure/http/controllers/UserController'
+import type { CityController } from '@infrastructure/http/controllers/CityController'
+import type { FireController } from '@infrastructure/http/controllers/FireController'
+import { buildCityRoutes } from './city.routes'
+import { buildFireRoutes } from './fire.routes'
 
-import { buildUserRoutes } from './user.routes'
+interface Controllers {
+  cityController: CityController
+  fireController: FireController
+}
 
-export const buildRoutes = (controllers: { userController: UserController }): Router => {
+export const buildRoutes = (controllers: Controllers): Router => {
   const router = Router()
 
-  router.use('/users', buildUserRoutes(controllers.userController))
+  router.use('/cities', buildCityRoutes(controllers.cityController))
+  router.use('/fires', buildFireRoutes(controllers.fireController))
 
   return router
 }

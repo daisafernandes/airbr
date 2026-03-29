@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model City {
+  id          String       @id @default(cuid())
+  name        String
+  state       String
+  region      String
+  lat         Float
+  lng         Float
+  source      String       @default("seed")
+  createdAt   DateTime     @default(now())
+  aqiReadings AqiReading[]
+
+  @@unique([name, state])
+  @@map("cities")
+}
+
+model AqiReading {
+  id        String   @id @default(cuid())
+  cityId    String
+  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  aqi       Int
+  pm25      Float?
+  pm10      Float?
+  o3        Float?
+  no2       Float?
+  co        Float?
+  uv        Float?
+  pollen    Float?
+  timestamp DateTime @default(now())
+  source    String
+
+  @@index([cityId, timestamp(sort: Desc)])
+  @@map("aqi_readings")
+}
+
+model FireFocus {
+  id         String   @id @default(cuid())
+  lat        Float
+  lng        Float
+  intensity  Float?
+  satellite  String?
+  biome      String?
+  state      String?
+  detectedAt DateTime @default(now())
+
+  @@unique([lat, lng, detectedAt])
+  @@index([detectedAt])
+  @@map("fire_focuses")
+}
+
+model JobLog {
+  id              String   @id @default(cuid())
+  collectorName   String
+  status          JobStatus
+  recordsInserted Int?
+  errorMessage    String?
+  durationMs      Int?
+  startedAt       DateTime @default(now())
+
+  @@map("job_logs")
+}
+
+enum JobStatus {
+  RUNNING
+  SUCCESS
+  ERROR
+}

@@ -1,0 +1,77 @@
+import type { Request, Response } from 'express'
+
+import type { AqiService } from '@application/services/AqiService'
+import type { CityService } from '@application/services/CityService'
+import type { HistoryPeriod } from '@domain/repositories/IAqiRepository'
+import { AppError } from '@shared/errors/AppError'
+
+const VALID_PERIODS: HistoryPeriod[] = ['24h', '7d', '30d', '1y']
+
+export class CityController {
+  constructor(
+    private readonly cityService: CityService,
+    private readonly aqiService: AqiService,
+  ) {}
+
+  listCities = async (_req: Request, res: Response): Promise<void> => {
+    const cities = await this.cityService.listCities()
+    res.json(cities)
+  }
+
+  getCity = async (req: Request, res: Response): Promise<void> => {
+    const id = req.params['id'] ?? ''
+    const city = await this.cityService.getCityById(id)
+    if (!city) throw new AppError('City not found', 404)
+    res.json(city)
+  }
+
+  getCityHistory = async (req: Request, res: Response): Promise<void> => {
+    const { period = '24h' } = req.query
+    const id = req.params['id'] ?? ''
+
+    if (!VALID_PERIODS.includes(period as HistoryPeriod)) {
+      throw new AppError(`Invalid period. Allowed values: ${VALID_PERIODS.join(', ')}`, 400)
+    }
+
+    const history = await this.aqiService.getHistory(id, period as HistoryPeriod)
+    res.json(history)
+  }
+
+  searchCities = async (req: Request, res: Response): Promise<void> => {
+    const { q } = req.query
+    if (!q || typeof q !== 'string' || q.trim().length === 0) {
+      throw new AppError('Query parameter "q" is required', 400)
+    }
+
+    const cities = await this.cityService.searchCities(q.trim())
+    res.json(cities)
+  }
+
+  findNearby = async (req: Request, res: Response): Promise<void> => {
+    const { lat, lng, radius } = req.query
+
+    if (!lat || !lng) throw new AppError('"lat" and "lng" query parameters are required', 400)
+
+    const latNum = parseFloat(lat as string)
+    const lngNum = parseFloat(lng as string)
+    const radiusKm = radius ? parseFloat(radius as string) : 100
+
+    if (isNaN(latNum) || isNaN(lngNum)) {
+      throw new AppError('"lat" and "lng" must be valid numbers', 400)
+    }
+
+    const cities = await this.cityService.findNearby(latNum, lngNum, radiusKm)
+    res.json(cities)
+  }
+
+  getRanking = async (req: Request, res: Response): Promise<void> => {
+    const { region, state } = req.query
+
+    const ranking = await this.aqiService.getRanking({
+      region: typeof region === 'string' ? region : undefined,
+      state: typeof state === 'string' ? state : undefined,
+    })
+
+    res.json(ranking)
+  }
+}

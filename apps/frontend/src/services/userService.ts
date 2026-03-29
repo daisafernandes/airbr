@@ -1,4 +1,4 @@
-import { CreateUserPayload, User } from '@types/user.types'
+import { CreateUserPayload, User } from '@app-types/user.types'
 
 import { api } from './api'
 

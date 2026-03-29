@@ -1,7 +1,8 @@
 {
-  "extends": "@airbr/typescript-config/react.json",
+  "extends": "../../packages/typescript-config/react.json",
   "compilerOptions": {
     "baseUrl": "./src",
+    "types": ["vite/client"],
     "paths": {
       "@components/*": ["components/*"],
       "@pages/*": ["pages/*"],
@@ -9,7 +10,7 @@
       "@contexts/*": ["contexts/*"],
       "@services/*": ["services/*"],
       "@utils/*": ["utils/*"],
-      "@types/*": ["types/*"],
+      "@app-types/*": ["types/*"],
       "@assets/*": ["assets/*"],
       "@styles/*": ["styles/*"]
     }

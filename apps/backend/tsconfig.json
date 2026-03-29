@@ -1,5 +1,5 @@
 {
-  "extends": "@airbr/typescript-config/node.json",
+  "extends": "../../packages/typescript-config/node.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
@@ -8,7 +8,8 @@
       "@domain/*": ["domain/*"],
       "@application/*": ["application/*"],
       "@infrastructure/*": ["infrastructure/*"],
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["shared/*"],
+      "@jobs/*": ["jobs/*"]
     }
   },
   "include": ["src/**/*"],
