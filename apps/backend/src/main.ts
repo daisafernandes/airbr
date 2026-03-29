@@ -28,7 +28,9 @@ import { buildRoutes } from '@infrastructure/http/routes'
 import { AQICNCollector } from '@jobs/collectors/AQICNCollector'
 import { CETESBCollector } from '@jobs/collectors/CETESBCollector'
 import { DATASUSCollector } from '@jobs/collectors/DATASUSCollector'
+import { IATCollector } from '@jobs/collectors/IATCollector'
 import { IBGECollector } from '@jobs/collectors/IBGECollector'
+import { IEMACollector } from '@jobs/collectors/IEMACollector'
 import { INPEFiresCollector } from '@jobs/collectors/INPEFiresCollector'
 import { OpenMeteoCollector } from '@jobs/collectors/OpenMeteoCollector'
 import { OpenWeatherMapCollector } from '@jobs/collectors/OpenWeatherMapCollector'
@@ -87,6 +89,8 @@ const aqiCollectors = [
   new AQICNCollector(cityRepository),
   new OpenMeteoCollector(cityRepository),
   new CETESBCollector(cityRepository),
+  new IEMACollector(cityRepository),
+  new IATCollector(cityRepository),
 ]
 const fireCollectors = [new INPEFiresCollector()]
 const prodesCollector = new PRODESCollector(deforestationRepository)

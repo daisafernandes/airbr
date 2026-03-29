@@ -178,32 +178,39 @@ Integrar as fontes que fazem o diferencial do produto: dados oficiais brasileiro
 
 ### Agente B — Novas Fontes de Dados
 
-- `CETESBCollector` — sistema QUALAR, XML, PM2.5/PM10/O₃/NO₂ hora a hora para São Paulo
-- `IEMACollector` — 11 estados, dados históricos, 82 localidades
-- `IATCollector` — IQA diário da Região Metropolitana de Curitiba
-- `PRODESCollector` — alertas de desmatamento INPE (shapefiles → GeoJSON)
-- `DATASUSCollector` — internações respiratórias por município via API TabNet
-- `IBGECollector` — população por município, percentual de idosos e crianças
-- Atualizar `Normalizer` para absorver os novos formatos (XML do CETESB, CSV do PRODES)
+- ✅ `CETESBCollector` — sistema QUALAR, XML, PM2.5/PM10/O₃/NO₂ hora a hora para São Paulo
+- ✅ `IEMACollector` — 11 estados, dados históricos, 82 localidades
+- ✅ `IATCollector` — IQA diário da Região Metropolitana de Curitiba
+- ✅ `PRODESCollector` — alertas de desmatamento INPE (shapefiles → GeoJSON)
+- ✅ `DATASUSCollector` — internações respiratórias por município via API TabNet
+- ✅ `IBGECollector` — população por município, percentual de idosos e crianças
+- ✅ `Normalizer` atualizado para absorver os novos formatos (XML do CETESB via `fast-xml-parser`; PRODES/DATASUS/IBGE gerenciam sua própria persistência)
 
-### Agente A — Endpoints Avançados
+### Agente A — Endpoints Avançados ✅ CONCLUÍDO
 
-- `GET /api/v1/cities/:id/health` — internações respiratórias + grupos de risco + correlação com AQI histórico (DATASUS + IBGE)
-- `GET /api/v1/deforestation` — áreas desmatadas recentes por estado correlacionadas com queimadas e AQI regional (PRODES)
-- `GET /api/v1/cities/:id/wind-smoke` — direção do vento (Open-Meteo) + focos INPE = origem da fumaça que afeta a cidade
-- `GET /api/v1/cities/:id/outdoor-safety` — score composto: AQI + UV + pólen + temperatura
-- `GET /api/v1/oms-compliance` — cidades acima/abaixo do limite PM2.5 da OMS (5 µg/m³), ranking nacional
-- Adicionar índice geoespacial PostGIS para queries de proximidade e cálculo de raio de poluição
+- ✅ `GET /api/v1/cities/:id/health` — internações respiratórias + grupos de risco + correlação com AQI histórico (DATASUS + IBGE)
+- ✅ `GET /api/v1/deforestation` — áreas desmatadas recentes por estado correlacionadas com queimadas e AQI regional (PRODES)
+- ✅ `GET /api/v1/cities/:id/wind-smoke` — direção do vento (Open-Meteo) + focos INPE = origem da fumaça que afeta a cidade
+- ✅ `GET /api/v1/cities/:id/outdoor-safety` — score composto: AQI + UV + pólen + temperatura
+- ✅ `GET /api/v1/oms-compliance` — cidades acima/abaixo do limite PM2.5 da OMS (5 µg/m³), ranking nacional
+- ✅ Índice geoespacial PostGIS criado via migration `20260329_phase4_postgis_index` (`cities_geo_idx` com `ST_DWithin`)
 
-### Agente C — Painéis Avançados
+### Agente C — Painéis Avançados ✅ CONCLUÍDO
 
-- **Painel de Saúde Pública** — gráfico de internações respiratórias × histórico de AQI, mapa de calor por município
-- **"De onde vem a fumaça?"** — seta animada indicando direção do vento + focos INPE destacados no mapa
-- **Índice "Seguro ao Ar Livre"** — card verde/amarelo/vermelho com score composto (AQI + UV + pólen + temperatura)
-- **Conformidade OMS** — ranking nacional de PM2.5, percentual de cidades dentro do limite, comparativo
-- **Camada de desmatamento** no mapa — polígonos do PRODES com gradiente de intensidade
+- ✅ **Painel de Saúde Pública** — `PublicHealthCard.tsx`: gráfico de internações respiratórias × histórico de AQI
+- ✅ **"De onde vem a fumaça?"** — `SmokeSourceCard.tsx`: direção do vento + focos INPE destacados
+- ✅ **Índice "Seguro ao Ar Livre"** — `OutdoorSafetyCard.tsx`: card com score composto (AQI + UV + pólen + temperatura)
+- ✅ **Conformidade OMS** — `OMSCompliancePanel.tsx` + `OmsComplianceBadge.tsx`: ranking nacional de PM2.5
+- ✅ **Camada de desmatamento** no mapa — polígonos PRODES via `useDeforestation` hook em `BrazilMap.tsx`
 
-**Entregas:** 6 coletores BR oficiais, 5 endpoints avançados, índice PostGIS, 5 painéis avançados no frontend.
+**Entregas:** 6 de 6 coletores BR oficiais ✅, 5 endpoints avançados ✅, índice PostGIS ✅, 5 painéis avançados no frontend ✅.
+
+#### Delta — Ajustes da Fase 4
+
+- ✅ `apps/backend/src/jobs/collectors/IEMACollector.ts` — coletor para o Instituto Estadual do Meio Ambiente (IEMA), 11 estados, dados históricos, 82 localidades; registrado no `aqiCollectors` (schedule AQI 1h via `JobScheduler`)
+- ✅ `apps/backend/src/jobs/collectors/IATCollector.ts` — coletor para o Instituto Água e Terra (IAT/Paraná), IQA diário da Região Metropolitana de Curitiba; registrado no `aqiCollectors`
+
+> **Fase 4 concluída integralmente.**
 
 ---
 

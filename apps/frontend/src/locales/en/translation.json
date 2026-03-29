@@ -254,7 +254,7 @@
   "firemap": {
     "title": "WILDFIRE MAP",
     "subtitle": "Active foci · INPE/BDQueimadas",
-    "activeFires": "{{count}} active fire foci are affecting air quality in {{cities}} cities",
+    "activeFires": "active fire foci are affecting air quality in {{cities}} cities",
     "period": "Period",
     "state": "State",
     "allBrazil": "All of Brazil",

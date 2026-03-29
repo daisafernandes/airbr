@@ -1,8 +1,9 @@
-import type { RankedCityApi } from '@app-types/airQuality.types'
-import { useRanking } from '@hooks/useRanking'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingDown, TrendingUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+
+import type { RankedCityApi } from '@app-types/airQuality.types'
+import { useRanking } from '@hooks/useRanking'
 
 
 function getAQIColor(aqi: number): string {
@@ -48,9 +49,10 @@ const RankingCard = ({
             </div>
           ))
         : data.map((item, i) => (
-            <div
+            <Link
               key={item.cityId}
-              className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50 transition-colors"
+              to={`/cidade/${item.cityId}`}
+              className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50 transition-colors no-underline"
             >
               <div className="flex items-center gap-2">
                 <span className="font-mono text-xs text-muted-foreground w-4">{i + 1}</span>
@@ -62,7 +64,7 @@ const RankingCard = ({
               <span className={`font-mono text-sm font-medium px-2 py-0.5 rounded ${getAQIColor(item.aqi)} ${getAQIBg(item.aqi)}`}>
                 {item.aqi}
               </span>
-            </div>
+            </Link>
           ))}
     </div>
   </div>

@@ -254,7 +254,7 @@
   "firemap": {
     "title": "MAPA DE INCENDIOS",
     "subtitle": "Focos activos · INPE/BDQueimadas",
-    "activeFires": "{{count}} focos activos están afectando la calidad del aire en {{cities}} ciudades",
+    "activeFires": "focos activos están afectando la calidad del aire en {{cities}} ciudades",
     "period": "Período",
     "state": "Estado",
     "allBrazil": "Todo Brasil",

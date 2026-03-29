@@ -73,7 +73,7 @@ function MiniGauge({ aqi }: { aqi: number }) {
           {aqi}
         </text>
         <text x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="middle" fontSize={9} fontFamily="'DM Sans',sans-serif" fill="rgba(255,255,255,0.4)" letterSpacing="0.08em">
-          AQI
+          IQAr
         </text>
       </svg>
       <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: `${color}20`, color }}>
@@ -147,11 +147,11 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
         <div className="grid grid-cols-2 gap-2">
           <div>
             <p className="text-[10px] font-mono text-primary uppercase tracking-wider mb-1.5">Cidade A</p>
-            <CitySearchBar onSelect={(id) => onChangeCityA(id)} placeholder="Selecionar..." />
+            <CitySearchBar onSelect={(id) => onChangeCityA(id)} placeholder="Selecionar..." useFixedDropdown />
           </div>
           <div>
             <p className="text-[10px] font-mono text-yellow-400 uppercase tracking-wider mb-1.5">Cidade B</p>
-            <CitySearchBar onSelect={(id) => onChangeCityB(id)} placeholder="Selecionar..." />
+            <CitySearchBar onSelect={(id) => onChangeCityB(id)} placeholder="Selecionar..." useFixedDropdown />
           </div>
         </div>
       </div>

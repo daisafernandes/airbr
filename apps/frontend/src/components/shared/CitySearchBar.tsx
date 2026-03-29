@@ -1,18 +1,20 @@
 import { Search } from 'lucide-react'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { useSearchCities } from '@hooks/useSearchCities'
 
 interface CitySearchBarProps {
   onSelect: (cityId: string, cityName: string) => void
   placeholder?: string
   className?: string
+  useFixedDropdown?: boolean
 }
 
-export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', className = '' }: CitySearchBarProps) => {
+export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', className = '', useFixedDropdown = false }: CitySearchBarProps) => {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [activeIdx, setActiveIdx] = useState(-1)
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -61,6 +63,12 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useLayoutEffect(() => {
+    if (!useFixedDropdown || !open || !inputRef.current) return
+    const rect = inputRef.current.getBoundingClientRect()
+    setDropdownRect({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width })
+  }, [open, useFixedDropdown])
+
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -80,7 +88,14 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
         className="bg-muted border border-border rounded pl-9 pr-4 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full"
       />
       {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-2xl overflow-hidden z-50">
+        <div
+          className="bg-card border border-border rounded shadow-2xl overflow-hidden z-[200]"
+          style={
+            useFixedDropdown && dropdownRect
+              ? { position: 'fixed', top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width }
+              : { position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px' }
+          }
+        >
           {filtered.map((city, i) => (
             <button
               key={city.id}
@@ -93,7 +108,7 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
               <span className="text-xs font-mono text-muted-foreground shrink-0">
                 {city.state} · {city.region}
                 {city.latestAqi && (
-                  <span className="ml-2 font-semibold">AQI {city.latestAqi.aqi}</span>
+                  <span className="ml-2 font-semibold">IQAr {city.latestAqi.aqi}</span>
                 )}
               </span>
             </button>

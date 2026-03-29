@@ -38,7 +38,7 @@ function ImpactCard({
         ) : (
           <p className="text-xs font-body text-foreground leading-snug">
             <span className="font-mono font-bold text-accent">{fireCount}</span>{' '}
-            {t('firemap.activeFires', { count: fireCount, cities: affectedCities })}
+            {t('firemap.activeFires', { cities: affectedCities })}
           </p>
         )}
       </div>

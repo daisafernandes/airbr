@@ -14,6 +14,11 @@ module.exports = {
   },
   settings: {
     react: { version: 'detect' },
+    'import/resolver': {
+      typescript: {
+        project: __dirname + '/tsconfig.json',
+      },
+    },
   },
   rules: {
     'react/prop-types': 'off',

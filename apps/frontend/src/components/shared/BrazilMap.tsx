@@ -6,6 +6,22 @@ import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
 import type { CityApiData, DeforestationAlertApi } from '@app-types/airQuality.types'
 
+function findNearestCity(
+  lat: number,
+  lng: number,
+  cities: Array<{ name: string; lat: number; lng: number }>,
+): string {
+  if (cities.length === 0) return '—'
+  let nearest = cities[0]!
+  let minDist = (lat - nearest.lat) ** 2 + (lng - nearest.lng) ** 2
+  for (let i = 1; i < cities.length; i++) {
+    const c = cities[i]!
+    const d = (lat - c.lat) ** 2 + (lng - c.lng) ** 2
+    if (d < minDist) { minDist = d; nearest = c }
+  }
+  return nearest.name
+}
+
 function getAQIColor(aqi: number): string {
   if (aqi <= 50) return '#22c55e'
   if (aqi <= 100) return '#eab308'
@@ -99,7 +115,7 @@ export const BrazilMap = ({
               ${city.name}, ${city.state}
             </strong><br/>
             <span style="font-family:'DM Mono',monospace;font-size:20px;color:${color}">
-              AQI ${aqi}
+              IQAr ${aqi}
             </span><br/>
             <span style="font-size:12px">${getAQILabel(aqi)}</span><br/>
             <a href="${cityPageUrl}" style="font-size:11px;color:#3b82f6;text-decoration:underline;margin-top:4px;display:inline-block">
@@ -123,7 +139,7 @@ export const BrazilMap = ({
             <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">
               📡 Estação Oficial — ${city.name}
             </strong><br/>
-            <span style="font-size:11px">${city.source} · AQI ${aqi}</span>
+            <span style="font-size:11px">${city.source} · IQAr ${aqi}</span>
           </div>`,
         )
         .addTo(stationsLayerRef.current)
@@ -177,9 +193,10 @@ export const BrazilMap = ({
         opacity: 0.5,
       })
         .bindPopup(
-          `<span style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            🔥 Foco de queimada${spot.state ? ` · ${spot.state}` : ''} · ${label}
-          </span>`,
+          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
+            🔥 Foco de queimada${spot.state ? ` · ${spot.state}` : ''} · ${label}<br/>
+            <span style="font-size:11px">📍 Cidade mais próxima: <strong>${findNearestCity(spot.lat, spot.lng, cities)}</strong></span>
+          </div>`,
         )
         .addTo(fireLayerRef.current)
     })

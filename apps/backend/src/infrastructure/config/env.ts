@@ -12,6 +12,8 @@ const envSchema = z.object({
   AQICN_TOKEN: z.string().optional(),
   CETESB_USERNAME: z.string().optional(),
   CETESB_PASSWORD: z.string().optional(),
+  IEMA_API_KEY: z.string().optional(),
+  IAT_API_KEY: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>
