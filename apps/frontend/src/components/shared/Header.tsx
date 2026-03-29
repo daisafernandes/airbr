@@ -35,6 +35,7 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
     { to: '/', label: 'Dashboard' },
     { to: '/ranking', label: 'Ranking' },
     { to: '/mapa-queimadas', label: 'Mapa Queimadas' },
+    { to: '/guia', label: 'Guia' },
   ]
 
   return (

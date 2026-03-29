@@ -1,4 +1,6 @@
-import { Sun, Wind, Flower2 } from 'lucide-react'
+import { Sun, Wind, Flower2, Info } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { UV_LEVELS, POLLEN_LEVELS } from '@utils/aqiInfo'
 
 interface OutdoorSafetyCardProps {
   score: number
@@ -37,14 +39,27 @@ interface MetricRowProps {
   sublabel: string
   barFill: number
   color: string
+  tooltip?: React.ReactNode
 }
 
-const MetricRow = ({ icon, label, value, sublabel, barFill, color }: MetricRowProps) => (
+const MetricRow = ({ icon, label, value, sublabel, barFill, color, tooltip }: MetricRowProps) => (
   <div className="space-y-1">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         {icon}
         <span>{label}</span>
+        {tooltip && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+                <Info className="w-3 h-3" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[220px] p-3">
+              {tooltip}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
       <span className="font-mono text-sm font-bold" style={{ color }}>
         {value} <span className="text-[10px] font-normal text-muted-foreground">{sublabel}</span>
@@ -52,6 +67,42 @@ const MetricRow = ({ icon, label, value, sublabel, barFill, color }: MetricRowPr
     </div>
     <div className="w-full h-1 bg-border rounded-full overflow-hidden">
       <div className="h-full rounded-full" style={{ width: `${barFill}%`, background: color }} />
+    </div>
+  </div>
+)
+
+const UVTooltip = () => (
+  <div className="space-y-1.5">
+    <p className="text-xs font-body font-semibold text-foreground">Índice UV</p>
+    <p className="text-xs font-body text-muted-foreground">
+      Mede a intensidade da radiação ultravioleta solar. Valores altos aumentam o risco de queimaduras e danos à pele.
+    </p>
+    <div className="space-y-0.5 pt-0.5">
+      {UV_LEVELS.map(level => (
+        <div key={level.label} className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: level.color }} />
+          <span className="text-[10px] font-body" style={{ color: level.color }}>{level.label}</span>
+          <span className="text-[10px] text-muted-foreground">— {level.recommendation}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+)
+
+const PollenTooltip = () => (
+  <div className="space-y-1.5">
+    <p className="text-xs font-body font-semibold text-foreground">Nível de Pólen</p>
+    <p className="text-xs font-body text-muted-foreground">
+      Concentração de grãos de pólen no ar. Pode desencadear alergias respiratórias e agravar asma.
+    </p>
+    <div className="space-y-0.5 pt-0.5">
+      {POLLEN_LEVELS.map(level => (
+        <div key={level.label} className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: level.color }} />
+          <span className="text-[10px] font-body" style={{ color: level.color }}>{level.label}</span>
+          <span className="text-[10px] text-muted-foreground">— {level.recommendation}</span>
+        </div>
+      ))}
     </div>
   </div>
 )
@@ -99,6 +150,7 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorS
           sublabel={getUVLabel(uvIndex)}
           barFill={(uvIndex / 11) * 100}
           color={uvIndex <= 2 ? '#4af0c4' : uvIndex <= 5 ? '#facc15' : uvIndex <= 7 ? '#ff9f4a' : '#ef4444'}
+          tooltip={<UVTooltip />}
         />
         <MetricRow
           icon={<Flower2 className="w-3.5 h-3.5" />}
@@ -107,6 +159,7 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorS
           sublabel={getPollenLabel(pollenLevel)}
           barFill={(pollenLevel / 10) * 100}
           color={pollenLevel <= 2 ? '#4af0c4' : pollenLevel <= 5 ? '#facc15' : '#ff9f4a'}
+          tooltip={<PollenTooltip />}
         />
       </div>
     </div>

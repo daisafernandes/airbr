@@ -241,6 +241,9 @@ export const FireMapPage = () => {
             <span className="px-3 py-1.5 text-xs font-body text-accent border-b border-accent font-semibold">
               Mapa Queimadas
             </span>
+            <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
+              Guia
+            </Link>
           </nav>
 
           <LiveIndicator />

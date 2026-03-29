@@ -1,3 +1,8 @@
+import { Info } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { AQI_BANDS } from '@utils/aqiInfo'
+
 interface AQIGaugeProps {
   aqi: number
   label: string
@@ -133,6 +138,39 @@ export const AQIGauge = ({ aqi, label }: AQIGaugeProps) => {
       >
         {label}
       </span>
+
+      {/* AQI info tooltip */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button className="mt-2 flex items-center gap-1 text-[10px] font-mono text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+            <Info className="w-3 h-3" />
+            O que é AQI?
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[260px] p-3 space-y-2">
+          <p className="text-xs font-body font-semibold text-foreground">Índice de Qualidade do Ar (AQI)</p>
+          <p className="text-xs font-body text-muted-foreground">
+            Escala de 0 a 500 que resume a concentração dos principais poluentes. Quanto maior, pior a qualidade do ar.
+          </p>
+          <div className="space-y-1 pt-1">
+            {AQI_BANDS.map(band => (
+              <div key={band.label} className="flex items-center gap-2">
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: band.color }}
+                />
+                <span className="text-[10px] font-mono" style={{ color: band.color }}>
+                  {band.min}–{band.max === 500 ? '500+' : band.max}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{band.label}</span>
+              </div>
+            ))}
+          </div>
+          <Link to="/guia" className="text-[10px] text-primary hover:underline block pt-1">
+            Ver guia completo →
+          </Link>
+        </TooltipContent>
+      </Tooltip>
     </div>
   )
 }

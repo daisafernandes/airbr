@@ -9,6 +9,7 @@ import { DashboardPage } from '@pages/DashboardPage'
 import { RankingPage } from '@pages/RankingPage'
 import { FireMapPage } from '@pages/FireMapPage'
 import { CityPage } from '@pages/CityPage'
+import { GlossaryPage } from '@pages/GlossaryPage'
 import { NotFoundPage } from '@pages/NotFoundPage'
 
 const queryClient = new QueryClient({
@@ -33,6 +34,7 @@ export const App = () => {
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/mapa-queimadas" element={<FireMapPage />} />
               <Route path="/cidade/:id" element={<CityPage />} />
+              <Route path="/guia" element={<GlossaryPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </BrowserRouter>

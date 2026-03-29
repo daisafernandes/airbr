@@ -80,6 +80,9 @@ export const RankingPage = () => {
             <Link to="/mapa-queimadas" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
               Mapa Queimadas
             </Link>
+            <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
+              Guia
+            </Link>
           </nav>
 
           <LiveIndicator />
