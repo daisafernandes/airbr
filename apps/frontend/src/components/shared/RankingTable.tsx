@@ -1,8 +1,10 @@
 import { MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import type { CityApiData } from '@app-types/airQuality.types'
 import { OmsComplianceBadge } from './OmsComplianceBadge'
+import { getAQILabel } from '@utils/aqiInfo'
 
 function getAQIColor(aqi: number): string {
   if (aqi <= 50) return '#22c55e'
@@ -13,15 +15,6 @@ function getAQIColor(aqi: number): string {
   return '#7f1d1d'
 }
 
-function getAQILabel(aqi: number): string {
-  if (aqi <= 50) return 'Bom'
-  if (aqi <= 100) return 'Moderado'
-  if (aqi <= 150) return 'Sensíveis'
-  if (aqi <= 200) return 'Ruim'
-  if (aqi <= 300) return 'Muito ruim'
-  return 'Perigoso'
-}
-
 interface RankingTableProps {
   cities: CityApiData[]
   onCityClick?: (cityId: string) => void
@@ -29,6 +22,8 @@ interface RankingTableProps {
 }
 
 export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingTableProps) => {
+  const { t } = useTranslation()
+
   if (isMobile) {
     return (
       <div className="space-y-2">
@@ -71,10 +66,10 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
         <thead>
           <tr className="bg-muted/60 border-b border-border">
             <th className="text-left px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider w-12">#</th>
-            <th className="text-left px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">Cidade</th>
-            <th className="text-left px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">Estado</th>
-            <th className="text-left px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">Região</th>
-            <th className="text-right px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">AQI</th>
+            <th className="text-left px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('ranking.city')}</th>
+            <th className="text-left px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('ranking.state')}</th>
+            <th className="text-left px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('ranking.region')}</th>
+            <th className="text-right px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('ranking.aqi')}</th>
             <th className="text-right px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">PM2.5</th>
             <th className="text-center px-4 py-3 font-mono text-xs text-muted-foreground uppercase tracking-wider">OMS</th>
           </tr>
@@ -112,7 +107,7 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
                   <span className="font-mono font-bold text-base" style={{ color }}>
                     {aqi}
                   </span>
-                  <span className="text-xs text-muted-foreground ml-1 hidden xl:inline">{getAQILabel(aqi)}</span>
+                  <span className="text-xs text-muted-foreground ml-1 hidden xl:inline">{getAQILabel(aqi, t)}</span>
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-sm text-foreground">
                   {pm25 !== null ? `${pm25.toFixed(1)} µg/m³` : '—'}

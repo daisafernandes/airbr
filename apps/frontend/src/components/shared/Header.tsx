@@ -1,10 +1,12 @@
 import { Wind, MapPin } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-import { airQualityService } from '@services/airQualityService'
+import { useTranslation } from 'react-i18next'
 import { useCallback } from 'react'
 
+import { airQualityService } from '@services/airQualityService'
 import { CitySearchBar } from './CitySearchBar'
 import { LiveIndicator } from './LiveIndicator'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
 
 interface HeaderProps {
   onCitySelect: (cityId: string) => void
@@ -12,6 +14,7 @@ interface HeaderProps {
 
 export const Header = ({ onCitySelect }: HeaderProps) => {
   const location = useLocation()
+  const { t } = useTranslation()
 
   const handleLocation = useCallback(() => {
     if (!navigator.geolocation) return
@@ -32,10 +35,10 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
   }, [onCitySelect])
 
   const navLinks = [
-    { to: '/', label: 'Dashboard' },
-    { to: '/ranking', label: 'Ranking' },
-    { to: '/mapa-queimadas', label: 'Mapa Queimadas' },
-    { to: '/guia', label: 'Guia' },
+    { to: '/', label: t('nav.dashboard') },
+    { to: '/ranking', label: t('nav.ranking') },
+    { to: '/mapa-queimadas', label: t('nav.fireMap') },
+    { to: '/guia', label: t('nav.guide') },
   ]
 
   return (
@@ -70,7 +73,7 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
           })}
         </nav>
 
-        {/* Search + geolocate + live */}
+        {/* Search + geolocate + language + live */}
         <div className="flex items-center gap-2 flex-1 md:flex-none justify-end">
           <CitySearchBar
             onSelect={(cityId) => onCitySelect(cityId)}
@@ -78,12 +81,13 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
           />
           <button
             onClick={handleLocation}
-            title="Detectar minha localização"
+            title={t('header.detectLocation')}
             className="flex items-center gap-1 px-3 py-2 text-xs font-body bg-muted border border-border rounded hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary shrink-0"
           >
             <MapPin className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Localização</span>
+            <span className="hidden sm:inline">{t('header.location')}</span>
           </button>
+          <LanguageSelector />
           <LiveIndicator />
         </div>
       </div>

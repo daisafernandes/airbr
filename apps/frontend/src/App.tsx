@@ -1,16 +1,18 @@
+import '@/lib/i18n'
+import { AuthProvider } from '@contexts/AuthContext'
+import { CityPage } from '@pages/CityPage'
+import { DashboardPage } from '@pages/DashboardPage'
+import { FireMapPage } from '@pages/FireMapPage'
+import { GlossaryPage } from '@pages/GlossaryPage'
+import { NotFoundPage } from '@pages/NotFoundPage'
+import { RankingPage } from '@pages/RankingPage'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { Toaster } from '@/components/ui/toaster'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
-import { AuthProvider } from '@contexts/AuthContext'
-import { DashboardPage } from '@pages/DashboardPage'
-import { RankingPage } from '@pages/RankingPage'
-import { FireMapPage } from '@pages/FireMapPage'
-import { CityPage } from '@pages/CityPage'
-import { GlossaryPage } from '@pages/GlossaryPage'
-import { NotFoundPage } from '@pages/NotFoundPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -1,0 +1,305 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "ranking": "Ranking",
+    "fireMap": "Fire Map",
+    "guide": "Guide"
+  },
+  "header": {
+    "detectLocation": "Detect my location",
+    "location": "Location"
+  },
+  "aqi": {
+    "bands": {
+      "good": {
+        "label": "Good",
+        "healthImpact": "Air quality is satisfactory. Air pollution poses little or no risk.",
+        "recommendation": "Enjoy outdoor activities normally."
+      },
+      "moderate": {
+        "label": "Moderate",
+        "healthImpact": "Air quality is acceptable. Pollutants may affect unusually sensitive people.",
+        "recommendation": "Unusually sensitive people should consider reducing prolonged outdoor exertion."
+      },
+      "sensitiveGroup": {
+        "label": "Unhealthy for sensitive groups",
+        "healthImpact": "Sensitive groups may experience health effects. The general public is not affected.",
+        "recommendation": "Children, elderly, pregnant women and people with cardiorespiratory diseases should limit outdoor exertion."
+      },
+      "unhealthy": {
+        "label": "Unhealthy",
+        "healthImpact": "Everyone may begin to experience health effects. Sensitive groups may experience more serious effects.",
+        "recommendation": "Avoid prolonged or intense outdoor physical activities. Sensitive groups: stay indoors."
+      },
+      "veryUnhealthy": {
+        "label": "Very Unhealthy",
+        "healthImpact": "Health alert: everyone may experience more serious health effects.",
+        "recommendation": "Avoid any outdoor activity. Wear a mask if you need to go out. Keep windows closed."
+      },
+      "hazardous": {
+        "label": "Hazardous",
+        "healthImpact": "Health emergency: everyone is affected. Serious risk of complications.",
+        "recommendation": "Stay indoors. Do not go outside. Seek medical attention if you feel symptoms."
+      }
+    },
+    "sensitiveShort": "Sensitive groups",
+    "sensitiveShortAlt": "Sensitive",
+    "sensitiveShortest": "Sensitive"
+  },
+  "pollutants": {
+    "pm25": {
+      "fullName": "Fine Particulate Matter",
+      "whoLimitPeriod": "annual mean",
+      "description": "Solid or liquid particles with aerodynamic diameter less than 2.5 micrometers (µm). So small they penetrate deep into the lungs, reaching the alveoli, and can enter the bloodstream.",
+      "sources": "Biomass burning (wildfires), diesel vehicles, industries, thermal power plants and atmospheric reactions of other pollutants.",
+      "effects": "Respiratory diseases (asthma, bronchitis), cardiovascular diseases, lung cancer and premature death. Children, elderly and pregnant women are the most vulnerable groups.",
+      "shortDesc": "Fine particles (< 2.5 µm). Penetrate deep into the lungs causing respiratory and cardiovascular diseases."
+    },
+    "pm10": {
+      "fullName": "Inhalable Particulate Matter",
+      "whoLimitPeriod": "annual mean",
+      "description": "Particles with aerodynamic diameter less than 10 µm. Retained in the upper airways (nose, pharynx, trachea) and bronchi, without reaching the alveoli like PM2.5.",
+      "sources": "Dust from unpaved roads, construction, mining, wildfires and soil resuspension.",
+      "effects": "Eye, nose and throat irritation, worsening of asthma and bronchitis, respiratory infections and decreased lung function.",
+      "shortDesc": "Inhalable particles (< 10 µm). Irritate upper airways and worsen asthma and bronchitis."
+    },
+    "no2": {
+      "fullName": "Nitrogen Dioxide",
+      "whoLimitPeriod": "annual mean",
+      "description": "Reddish-brown gas with a sharp, biting odor. An important component of photochemical smog and a precursor to tropospheric ozone and nitrate aerosols.",
+      "sources": "Combustion in vehicle engines (especially diesel), thermal power plants and industrial processes.",
+      "effects": "Airway inflammation, worsening of asthma, increased susceptibility to respiratory infections and increased risk of cardiovascular diseases.",
+      "shortDesc": "Nitrogen dioxide. Emitted by vehicles and industry. Worsens asthma and increases infection risk."
+    },
+    "o3": {
+      "fullName": "Tropospheric Ozone",
+      "whoLimitPeriod": "8-hour mean",
+      "description": "Secondary pollutant formed by the chemical reaction between NOx and Volatile Organic Compounds (VOCs) under sunlight. Unlike the \"good ozone\" in the stratosphere that protects us from UV radiation.",
+      "sources": "Not directly emitted — formed in the atmosphere from vehicle, industrial and solvent emissions under intense sunlight.",
+      "effects": "Eye, nose and throat irritation, cough, difficulty breathing, worsening of asthma and chronic lung diseases. Effects are worse on hot, sunny days.",
+      "shortDesc": "Tropospheric ozone. Formed by NOx and VOC reactions under sunlight. Irritates eyes and lungs."
+    },
+    "co": {
+      "fullName": "Carbon Monoxide",
+      "whoLimitPeriod": "24-hour mean",
+      "description": "Colorless and odorless gas produced by incomplete combustion of organic materials. Binds to hemoglobin with 200× greater affinity than oxygen, reducing the blood's oxygen-carrying capacity.",
+      "sources": "Motor vehicles (largest urban source), wildfires, furnaces, wood-burning stoves and combustion equipment without adequate ventilation.",
+      "effects": "At low concentrations: headache, dizziness, weakness and nausea. At high concentrations: loss of consciousness and death. Risk groups: heart patients and pregnant women.",
+      "shortDesc": "Carbon monoxide. Odorless, colorless gas that reduces the blood's ability to carry oxygen."
+    }
+  },
+  "uv": {
+    "low": { "label": "Low", "recommendation": "Minimal protection required." },
+    "moderate": { "label": "Moderate", "recommendation": "Wear SPF 30+ sunscreen and sunglasses." },
+    "high": { "label": "High", "recommendation": "Reduce exposure between 10am–4pm. Hat and sunscreen." },
+    "veryHigh": { "label": "Very High", "recommendation": "Avoid direct exposure. SPF 50+ sunscreen." },
+    "extreme": { "label": "Extreme", "recommendation": "Stay in shade. Risk of sunburn in minutes." }
+  },
+  "pollen": {
+    "low": { "label": "Low", "recommendation": "Minimal risk for allergy sufferers." },
+    "moderate": { "label": "Moderate", "recommendation": "Allergy sufferers may experience mild symptoms." },
+    "high": { "label": "High", "recommendation": "Moderate to severe symptoms. Take preventive medication." },
+    "veryHigh": { "label": "Very High", "recommendation": "Avoid outdoor exposure if you have allergies." }
+  },
+  "dataSources": {
+    "who": {
+      "name": "WHO – Global Air Quality Guidelines (2021)",
+      "description": "Global reference for PM2.5, PM10, NO₂, O₃ and CO limits. Updated in 2021 with stricter criteria."
+    },
+    "inpe": {
+      "name": "INPE – Fire Monitoring",
+      "description": "Heat focus and wildfire data detected by satellites over Brazilian territory."
+    },
+    "cetesb": {
+      "name": "CETESB – Air Quality in São Paulo State",
+      "description": "Environmental agency of São Paulo State. Brazilian reference in air quality monitoring."
+    },
+    "iqair": {
+      "name": "IQAir – World Air Quality Report",
+      "description": "Global platform for real-time air quality data and annual country reports."
+    },
+    "epa": {
+      "name": "EPA – AirNow (USA)",
+      "description": "US Environmental Protection Agency. Basis of the AQI index calculation used internationally."
+    },
+    "ibama": {
+      "name": "IBAMA – Air Pollution Control Program",
+      "description": "Brazilian Institute of Environment and Renewable Natural Resources — environmental enforcement."
+    }
+  },
+  "dashboard": {
+    "layers": "Layers",
+    "fires": "Wildfires",
+    "deforestation": "Deforestation",
+    "stations": "Stations",
+    "compareCities": "Compare cities",
+    "exitComparison": "Exit comparison",
+    "lastUpdate": "Last update",
+    "sources": "Sources"
+  },
+  "cityDashboard": {
+    "forecast": "3-DAY FORECAST",
+    "healthAlerts": "HEALTH ALERTS",
+    "noAlerts": "No active alerts. Good air quality.",
+    "pollutants": "POLLUTANTS",
+    "outdoorSafety": "OUTDOOR SAFETY",
+    "publicHealth": "PUBLIC HEALTH",
+    "smokeSource": "WHERE IS THE SMOKE FROM?",
+    "history": "HISTORY",
+    "noHistory": "History not yet available.",
+    "noData": "Data not available for this city.",
+    "close": "Close",
+    "compositeIndex": "Composite index: AQI + UV + Pollen",
+    "airQuality": "Air quality",
+    "uvIndex": "UV Index",
+    "pollen": "Pollen",
+    "aboveWho": "above WHO",
+    "wind": "Wind",
+    "fireFoci": "Fires",
+    "cityMarker": "City",
+    "fireFocusMarker": "Fire focus",
+    "windArrow": "Wind",
+    "days7": "7 days",
+    "days30": "30 days",
+    "hospitalizationsMonth": "Respiratory hospitalizations · last month",
+    "vsPrevMonth": "vs prev month",
+    "simulatedData": "Simulated data · last 12 months",
+    "safetyLabel": {
+      "safe": "Safe",
+      "moderate": "Moderate",
+      "caution": "Caution",
+      "dangerous": "Dangerous",
+      "critical": "Critical"
+    },
+    "uvTooltipTitle": "UV Index",
+    "uvTooltipDesc": "Measures the intensity of solar ultraviolet radiation. High values increase the risk of sunburn and skin damage.",
+    "pollenTooltipTitle": "Pollen Level",
+    "pollenTooltipDesc": "Concentration of pollen grains in the air. Can trigger respiratory allergies and worsen asthma.",
+    "information": "INFORMATION",
+    "coordinates": "Coordinates",
+    "state": "State",
+    "region": "Region",
+    "dataSource": "Data source",
+    "whoLimitPM25": "WHO PM2.5 limit",
+    "seeOnMap": "View on map",
+    "back": "Back",
+    "notFound": "City not found.",
+    "backToDashboard": "Back to dashboard",
+    "sourceLabel": "Source",
+    "lastUpdateLabel": "Last update",
+    "year1": "1 year"
+  },
+  "healthAlerts": {
+    "good_0": "Good air quality. No restrictions for outdoor activities.",
+    "moderate_0": "Moderate quality. Very sensitive people may feel slight discomfort.",
+    "sensitive_0": "Unhealthy for sensitive groups: children, elderly and asthmatics should limit outdoor exertion.",
+    "sensitive_1": "Healthy people are generally not affected.",
+    "unhealthy_0": "Unhealthy air quality. Avoid intense outdoor physical activities.",
+    "unhealthy_1": "At-risk groups: stay indoors with windows closed.",
+    "veryUnhealthy_0": "Very unhealthy air quality. Health risk for the entire population.",
+    "veryUnhealthy_1": "Children, elderly and cardiorespiratory patients: do not leave home.",
+    "hazardous_0": "EMERGENCY SITUATION. Hazardous air quality.",
+    "hazardous_1": "The entire population should avoid any outdoor air exposure."
+  },
+  "ranking": {
+    "title": "NATIONAL RANKING",
+    "subtitle": "Air quality across all monitored cities",
+    "city": "City",
+    "state": "State",
+    "region": "Region",
+    "aqi": "AQI",
+    "status": "Status",
+    "avgAqi": "National Average AQI",
+    "omsCompliant": "WHO Compliant",
+    "mostPolluted": "Most Polluted",
+    "morePolluted": "Most Polluted",
+    "cleanerAir": "Cleanest Air",
+    "all": "All",
+    "allStates": "All states",
+    "mostPollutedFirst": "Highest AQI first",
+    "leastPollutedFirst": "Lowest AQI first",
+    "cityCount_one": "{{count}} city",
+    "cityCount_other": "{{count}} cities",
+    "noResults": "No cities found with the selected filters.",
+    "sidebarMostPolluted": "MOST POLLUTED",
+    "sidebarCleanAir": "CLEANEST AIR",
+    "aqiIndex": "AQI INDEX",
+    "fullRanking": "View full ranking →"
+  },
+  "glossary": {
+    "title": "AIR QUALITY GUIDE",
+    "subtitle": "Understand the indexes, acronyms and metrics used on the platform.",
+    "whatIsAqi": "WHAT IS AQI?",
+    "aqiSubtitle": "Air Quality Index / Índice de Qualidade do Ar",
+    "aqiDesc1": "The AQI (Air Quality Index) is a standardized index that transforms concentrations of multiple atmospheric pollutants into a single number from 0 to 500. The higher the value, the worse the air quality and the greater the health risk. Developed by the EPA (US Environmental Protection Agency) and adopted internationally with adaptations.",
+    "aqiDesc2": "The index is calculated based on pollutants: PM2.5, PM10, O₃, NO₂ and CO — the final value corresponds to the pollutant with the highest concentration relative to its limit.",
+    "pollutants": "POLLUTANTS",
+    "pollutantsSubtitle": "Monitored compounds and their health effects",
+    "whoLimit": "WHO Limit",
+    "mainSources": "Main sources",
+    "healthEffects": "Health effects",
+    "uvIndex": "UV INDEX",
+    "uvSubtitle": "Intensity of solar ultraviolet radiation",
+    "uvDesc": "The UV Index measures the intensity of ultraviolet radiation reaching Earth's surface. High values increase the risk of sunburn, eye damage and skin cancer.",
+    "pollenLevel": "POLLEN LEVEL",
+    "pollenSubtitle": "Pollen concentration in the air",
+    "pollenDesc": "The pollen level indicates the number of pollen grains per cubic meter of air. High concentration can trigger respiratory allergies, rhinitis and worsening of asthma in sensitive people.",
+    "range": "Range",
+    "classification": "Classification",
+    "recommendation": "Recommendation",
+    "dataSources": "DATA SOURCES",
+    "dataSourcesSubtitle": "Scientific and institutional references used",
+    "footer": "RespirA · AirBR — data continuously updated via INPE, IQAir, CETESB and partners."
+  },
+  "firemap": {
+    "title": "WILDFIRE MAP",
+    "subtitle": "Active foci · INPE/BDQueimadas",
+    "activeFires": "{{count}} active fire foci are affecting air quality in {{cities}} cities",
+    "period": "Period",
+    "state": "State",
+    "allBrazil": "All of Brazil",
+    "layers": "Layers",
+    "fireFoci": "Fire Foci",
+    "deforestation": "Deforestation (PRODES)",
+    "officialStations": "Official Stations",
+    "fireIntensity": "Fire intensity",
+    "intensityHigh": "High",
+    "intensityMedium": "Medium",
+    "intensityLow": "Low",
+    "filtersAndLayers": "Filters and Layers",
+    "today": "Today",
+    "days7": "7 days",
+    "days30": "30 days"
+  },
+  "oms": {
+    "compliance": "WHO COMPLIANCE — PM2.5",
+    "limit": "WHO Limit",
+    "monitoredCities": "Monitored Brazilian cities",
+    "withinLimit": "within limit",
+    "compliant": "compliant",
+    "aboveLimit": "above limit",
+    "highestConcentrations": "Highest PM2.5 concentrations",
+    "allCompliant": "All monitored cities are within the WHO limit",
+    "noData": "PM2.5 data not yet available.",
+    "footer": "WHO PM2.5 limit: {{limit}} µg/m³ · WHO Air Quality Guidelines 2021",
+    "badgeCompliant": "WHO Compliant",
+    "badgeAboveLimit": "Above limit",
+    "tooltipTitle": "WHO Guideline — PM2.5",
+    "tooltipDesc": "The World Health Organization recommends PM2.5 concentration below 5 µg/m³ (annual mean).",
+    "tooltipCompliant": "This city is within the recommended limit.",
+    "tooltipNonCompliant": "The PM2.5 concentration exceeds the WHO recommended limit."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error loading data",
+    "noData": "No data available",
+    "lastUpdate": "Last update",
+    "source": "Source",
+    "search": "Search city...",
+    "sources": "Sources"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "backHome": "Back to home"
+  }
+}

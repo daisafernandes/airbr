@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Flame, Trees, Radio, GitCompare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { Header } from '@components/shared/Header'
 import { BrazilMap } from '@components/shared/BrazilMap'
@@ -7,6 +8,7 @@ import { AQISidebar } from '@components/shared/AQISidebar'
 import { CityDashboard } from '@components/shared/CityDashboard'
 import { ComparisonPanel } from '@components/shared/ComparisonPanel'
 import { useFires } from '@hooks/useFires'
+import { formatDateTime } from '@utils/formatters'
 
 type ViewMode = 'city' | 'compare' | 'sidebar'
 
@@ -18,10 +20,11 @@ export const DashboardPage = () => {
   const [showFires, setShowFires] = useState(false)
   const [showDeforestation, setShowDeforestation] = useState(false)
   const [showStations, setShowStations] = useState(false)
+  const { t } = useTranslation()
 
   const { data: fires = [] } = useFires()
 
-  const lastUpdate = new Date().toLocaleString('pt-BR', {
+  const lastUpdate = formatDateTime(new Date(), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -69,7 +72,7 @@ export const DashboardPage = () => {
 
       <main className="pt-16 px-4 pb-4 max-w-[1800px] mx-auto relative z-10">
         <div className="flex items-center gap-3 py-3 flex-wrap">
-          <span className="text-xs text-muted-foreground font-body uppercase tracking-wider">Camadas:</span>
+          <span className="text-xs text-muted-foreground font-body uppercase tracking-wider">{t('dashboard.layers')}:</span>
           <button
             onClick={() => setShowFires(!showFires)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-body rounded border transition-all ${
@@ -79,7 +82,7 @@ export const DashboardPage = () => {
             }`}
           >
             <Flame className="w-3.5 h-3.5" />
-            Queimadas
+            {t('dashboard.fires')}
           </button>
           <button
             onClick={() => setShowDeforestation(!showDeforestation)}
@@ -90,7 +93,7 @@ export const DashboardPage = () => {
             }`}
           >
             <Trees className="w-3.5 h-3.5" />
-            Desmatamento
+            {t('dashboard.deforestation')}
           </button>
           <button
             onClick={() => setShowStations(!showStations)}
@@ -101,7 +104,7 @@ export const DashboardPage = () => {
             }`}
           >
             <Radio className="w-3.5 h-3.5" />
-            Estações
+            {t('dashboard.stations')}
           </button>
 
           <div className="ml-auto">
@@ -114,7 +117,7 @@ export const DashboardPage = () => {
               }`}
             >
               <GitCompare className="w-3.5 h-3.5" />
-              {viewMode === 'compare' ? 'Sair da comparação' : 'Comparar cidades'}
+              {viewMode === 'compare' ? t('dashboard.exitComparison') : t('dashboard.compareCities')}
             </button>
           </div>
         </div>
@@ -145,8 +148,8 @@ export const DashboardPage = () => {
         </div>
 
         <footer className="mt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground py-3 border-t border-border">
-          <span className="font-mono">Última atualização: {lastUpdate}</span>
-          <span>Fontes: CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo</span>
+          <span className="font-mono">{t('dashboard.lastUpdate')}: {lastUpdate}</span>
+          <span>{t('dashboard.sources')}: CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo</span>
         </footer>
       </main>
     </div>

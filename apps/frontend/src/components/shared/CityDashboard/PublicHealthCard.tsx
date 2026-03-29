@@ -1,5 +1,6 @@
 import { Bar, BarChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { Activity } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface PublicHealthCardProps {
   hospitalizations: number
@@ -18,6 +19,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
 }
 
 export const PublicHealthCard = ({ hospitalizations, history }: PublicHealthCardProps) => {
+  const { t } = useTranslation()
   const prevMonth = history[history.length - 2] ?? hospitalizations
   const delta = hospitalizations - prevMonth
   const isUp = delta > 0
@@ -28,14 +30,14 @@ export const PublicHealthCard = ({ hospitalizations, history }: PublicHealthCard
     <div className="bg-card border border-border rounded p-4">
       <div className="flex items-center gap-2 mb-3">
         <Activity className="w-4 h-4 text-red-400" />
-        <h3 className="font-heading text-lg tracking-wide text-foreground">SAÚDE PÚBLICA</h3>
+        <h3 className="font-heading text-lg tracking-wide text-foreground">{t('cityDashboard.publicHealth')}</h3>
       </div>
 
       <div className="flex items-end justify-between mb-3">
         <div>
-          <p className="font-mono text-3xl font-bold text-foreground">{hospitalizations.toLocaleString('pt-BR')}</p>
+          <p className="font-mono text-3xl font-bold text-foreground">{hospitalizations.toLocaleString()}</p>
           <p className="text-[10px] text-muted-foreground font-body mt-0.5">
-            Internações respiratórias · último mês
+            {t('cityDashboard.hospitalizationsMonth')}
           </p>
         </div>
         <div className="text-right">
@@ -45,7 +47,7 @@ export const PublicHealthCard = ({ hospitalizations, history }: PublicHealthCard
           >
             {isUp ? '+' : ''}{delta}
           </span>
-          <p className="text-[10px] text-muted-foreground font-body">vs mês ant.</p>
+          <p className="text-[10px] text-muted-foreground font-body">{t('cityDashboard.vsPrevMonth')}</p>
         </div>
       </div>
 
@@ -56,7 +58,7 @@ export const PublicHealthCard = ({ hospitalizations, history }: PublicHealthCard
         </BarChart>
       </ResponsiveContainer>
       <p className="text-[9px] text-muted-foreground font-body mt-1 text-right">
-        Dados simulados · últimos 12 meses
+        {t('cityDashboard.simulatedData')}
       </p>
     </div>
   )

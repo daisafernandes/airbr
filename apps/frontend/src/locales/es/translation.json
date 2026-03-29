@@ -1,0 +1,305 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "ranking": "Ranking",
+    "fireMap": "Mapa de Incendios",
+    "guide": "Guía"
+  },
+  "header": {
+    "detectLocation": "Detectar mi ubicación",
+    "location": "Ubicación"
+  },
+  "aqi": {
+    "bands": {
+      "good": {
+        "label": "Bueno",
+        "healthImpact": "La calidad del aire es satisfactoria. La contaminación del aire presenta un riesgo mínimo.",
+        "recommendation": "Disfruta actividades al aire libre normalmente."
+      },
+      "moderate": {
+        "label": "Moderado",
+        "healthImpact": "La calidad del aire es aceptable. Los contaminantes pueden afectar a personas inusualmente sensibles.",
+        "recommendation": "Las personas inusualmente sensibles a la contaminación deben considerar reducir el esfuerzo prolongado al aire libre."
+      },
+      "sensitiveGroup": {
+        "label": "Malo para sensibles",
+        "healthImpact": "Los grupos sensibles pueden experimentar efectos en la salud. El público en general no se ve afectado.",
+        "recommendation": "Niños, ancianos, mujeres embarazadas y personas con enfermedades cardiorrespiratorias deben limitar el esfuerzo al aire libre."
+      },
+      "unhealthy": {
+        "label": "Malo",
+        "healthImpact": "Todos pueden comenzar a experimentar efectos en la salud. Los grupos sensibles pueden experimentar efectos más graves.",
+        "recommendation": "Evita actividades físicas prolongadas o intensas al aire libre. Grupos sensibles: quédate en interiores."
+      },
+      "veryUnhealthy": {
+        "label": "Muy malo",
+        "healthImpact": "Alerta de salud: todos pueden experimentar efectos más graves en la salud.",
+        "recommendation": "Evita cualquier actividad al aire libre. Usa mascarilla si necesitas salir. Mantén las ventanas cerradas."
+      },
+      "hazardous": {
+        "label": "Peligroso",
+        "healthImpact": "Emergencia de salud: todos están afectados. Grave riesgo de complicaciones.",
+        "recommendation": "Permanece en interiores. No salgas de casa. Busca atención médica si sientes síntomas."
+      }
+    },
+    "sensitiveShort": "Grupos sensibles",
+    "sensitiveShortAlt": "Sensibles",
+    "sensitiveShortest": "Sensible"
+  },
+  "pollutants": {
+    "pm25": {
+      "fullName": "Material Particulado Fino",
+      "whoLimitPeriod": "media anual",
+      "description": "Partículas sólidas o líquidas con diámetro aerodinámico inferior a 2,5 micrómetros (µm). Son tan pequeñas que penetran profundamente en los pulmones, alcanzando los alvéolos pulmonares, y pueden entrar en el torrente sanguíneo.",
+      "sources": "Quema de biomasa (incendios), vehículos diésel, industrias, centrales termoeléctricas y reacciones atmosféricas de otros contaminantes.",
+      "effects": "Enfermedades respiratorias (asma, bronquitis), cardiovasculares, cáncer de pulmón y muerte prematura. Los niños, ancianos y mujeres embarazadas son los grupos más vulnerables.",
+      "shortDesc": "Partículas finas (< 2,5 µm). Penetran profundamente en los pulmones causando enfermedades respiratorias y cardiovasculares."
+    },
+    "pm10": {
+      "fullName": "Material Particulado Inhalable",
+      "whoLimitPeriod": "media anual",
+      "description": "Partículas con diámetro aerodinámico inferior a 10 µm. Se retienen en las vías aéreas superiores (nariz, faringe, tráquea) y bronquios, sin alcanzar los alvéolos como el PM2.5.",
+      "sources": "Polvo de carreteras sin pavimentar, construcción, minería, incendios y resuspensión del suelo.",
+      "effects": "Irritación de ojos, nariz y garganta, agravamiento del asma y bronquitis, infecciones respiratorias y disminución de la función pulmonar.",
+      "shortDesc": "Partículas inhalables (< 10 µm). Irritan las vías aéreas superiores y agravan el asma y la bronquitis."
+    },
+    "no2": {
+      "fullName": "Dióxido de Nitrógeno",
+      "whoLimitPeriod": "media anual",
+      "description": "Gas de color rojizo con olor acre. Componente importante del smog fotoquímico y precursor del ozono troposférico y aerosoles de nitrato.",
+      "sources": "Combustión en motores de vehículos (especialmente diésel), centrales termoeléctricas y procesos industriales.",
+      "effects": "Inflamación de las vías respiratorias, agravamiento del asma, mayor susceptibilidad a infecciones respiratorias y mayor riesgo de enfermedades cardiovasculares.",
+      "shortDesc": "Dióxido de nitrógeno. Emitido por vehículos e industrias. Agrava el asma y aumenta el riesgo de infecciones."
+    },
+    "o3": {
+      "fullName": "Ozono Troposférico",
+      "whoLimitPeriod": "media de 8 horas",
+      "description": "Contaminante secundario formado por la reacción química entre NOx y Compuestos Orgánicos Volátiles (COV) bajo la acción de la luz solar. Diferente del \"buen ozono\" de la estratosfera que nos protege de la radiación UV.",
+      "sources": "No se emite directamente — se forma en la atmósfera a partir de emisiones de vehículos, industrias y solventes bajo luz solar intensa.",
+      "effects": "Irritación de ojos, nariz y garganta, tos, dificultad para respirar, agravamiento del asma y enfermedades pulmonares crónicas. Los efectos son peores en días calurosos y soleados.",
+      "shortDesc": "Ozono troposférico. Formado por reacciones de NOx y COV bajo la luz solar. Irrita ojos y pulmones."
+    },
+    "co": {
+      "fullName": "Monóxido de Carbono",
+      "whoLimitPeriod": "media de 24 horas",
+      "description": "Gas incoloro e inodoro producido por la combustión incompleta de materiales orgánicos. Se une a la hemoglobina con una afinidad 200 veces mayor que el oxígeno, reduciendo la capacidad de transporte de O₂ en la sangre.",
+      "sources": "Vehículos de motor (mayor fuente urbana), incendios, hornos, estufas de leña y equipos de combustión sin ventilación adecuada.",
+      "effects": "En bajas concentraciones: dolor de cabeza, mareos, debilidad y náuseas. En altas concentraciones: pérdida de conciencia y muerte. Grupos de riesgo: cardíacos y embarazadas.",
+      "shortDesc": "Monóxido de carbono. Gas inodoro e incoloro que reduce la capacidad de la sangre para transportar oxígeno."
+    }
+  },
+  "uv": {
+    "low": { "label": "Bajo", "recommendation": "Protección mínima necesaria." },
+    "moderate": { "label": "Moderado", "recommendation": "Usa protector solar FPS 30+ y gafas de sol." },
+    "high": { "label": "Alto", "recommendation": "Reduce la exposición entre las 10h–16h. Sombrero y protector solar." },
+    "veryHigh": { "label": "Muy Alto", "recommendation": "Evita la exposición directa. Protector solar FPS 50+." },
+    "extreme": { "label": "Extremo", "recommendation": "Permanece en lugares cubiertos. Riesgo de quemaduras en minutos." }
+  },
+  "pollen": {
+    "low": { "label": "Bajo", "recommendation": "Riesgo mínimo para alérgicos." },
+    "moderate": { "label": "Moderado", "recommendation": "Las personas alérgicas pueden experimentar síntomas leves." },
+    "high": { "label": "Alto", "recommendation": "Síntomas moderados a graves. Toma medicación preventiva." },
+    "veryHigh": { "label": "Muy Alto", "recommendation": "Evita la exposición al aire libre si eres alérgico." }
+  },
+  "dataSources": {
+    "who": {
+      "name": "OMS – Directrices Globales de Calidad del Aire (2021)",
+      "description": "Referencia global para límites de PM2.5, PM10, NO₂, O₃ y CO. Actualizada en 2021 con criterios más estrictos."
+    },
+    "inpe": {
+      "name": "INPE – Monitoreo de Incendios",
+      "description": "Datos de focos de calor e incendios detectados por satélites en territorio brasileño."
+    },
+    "cetesb": {
+      "name": "CETESB – Calidad del Aire en São Paulo",
+      "description": "Agencia ambiental del Estado de São Paulo. Referencia brasileña en monitoreo de calidad del aire."
+    },
+    "iqair": {
+      "name": "IQAir – World Air Quality Report",
+      "description": "Plataforma global de datos de calidad del aire en tiempo real e informes anuales por país."
+    },
+    "epa": {
+      "name": "EPA – AirNow (EE.UU.)",
+      "description": "Agencia de Protección Ambiental de EE.UU. Base del cálculo del índice AQI utilizado internacionalmente."
+    },
+    "ibama": {
+      "name": "IBAMA – Programa de Control de la Contaminación del Aire",
+      "description": "Instituto Brasileño del Medio Ambiente y los Recursos Naturales Renovables — fiscalización ambiental."
+    }
+  },
+  "dashboard": {
+    "layers": "Capas",
+    "fires": "Incendios",
+    "deforestation": "Deforestación",
+    "stations": "Estaciones",
+    "compareCities": "Comparar ciudades",
+    "exitComparison": "Salir de comparación",
+    "lastUpdate": "Última actualización",
+    "sources": "Fuentes"
+  },
+  "cityDashboard": {
+    "forecast": "PRONÓSTICO 3 DÍAS",
+    "healthAlerts": "ALERTAS DE SALUD",
+    "noAlerts": "Sin alertas activas. Buena calidad del aire.",
+    "pollutants": "CONTAMINANTES",
+    "outdoorSafety": "SEGURIDAD AL AIRE LIBRE",
+    "publicHealth": "SALUD PÚBLICA",
+    "smokeSource": "¿DE DÓNDE VIENE EL HUMO?",
+    "history": "HISTORIAL",
+    "noHistory": "Historial aún no disponible.",
+    "noData": "Datos no disponibles para esta ciudad.",
+    "close": "Cerrar",
+    "compositeIndex": "Índice compuesto: AQI + UV + Polen",
+    "airQuality": "Calidad del aire",
+    "uvIndex": "Índice UV",
+    "pollen": "Polen",
+    "aboveWho": "sobre límite OMS",
+    "wind": "Viento",
+    "fireFoci": "Focos",
+    "cityMarker": "Ciudad",
+    "fireFocusMarker": "Foco de incendio",
+    "windArrow": "Viento",
+    "days7": "7 días",
+    "days30": "30 días",
+    "hospitalizationsMonth": "Hospitalizaciones respiratorias · último mes",
+    "vsPrevMonth": "vs mes ant.",
+    "simulatedData": "Datos simulados · últimos 12 meses",
+    "safetyLabel": {
+      "safe": "Seguro",
+      "moderate": "Moderado",
+      "caution": "Precaución",
+      "dangerous": "Peligroso",
+      "critical": "Crítico"
+    },
+    "uvTooltipTitle": "Índice UV",
+    "uvTooltipDesc": "Mide la intensidad de la radiación ultravioleta solar. Los valores altos aumentan el riesgo de quemaduras y daño a la piel.",
+    "pollenTooltipTitle": "Nivel de Polen",
+    "pollenTooltipDesc": "Concentración de granos de polen en el aire. Puede desencadenar alergias respiratorias y agravar el asma.",
+    "information": "INFORMACIÓN",
+    "coordinates": "Coordenadas",
+    "state": "Estado",
+    "region": "Región",
+    "dataSource": "Fuente de datos",
+    "whoLimitPM25": "Límite OMS PM2.5",
+    "seeOnMap": "Ver en el mapa",
+    "back": "Volver",
+    "notFound": "Ciudad no encontrada.",
+    "backToDashboard": "Volver al dashboard",
+    "sourceLabel": "Fuente",
+    "lastUpdateLabel": "Última actualización",
+    "year1": "1 año"
+  },
+  "healthAlerts": {
+    "good_0": "Buena calidad del aire. Sin restricciones para actividades al aire libre.",
+    "moderate_0": "Calidad moderada. Las personas muy sensibles pueden sentir leve malestar.",
+    "sensitive_0": "Malo para grupos sensibles: niños, ancianos y asmáticos deben limitar el esfuerzo al aire libre.",
+    "sensitive_1": "Las personas sanas generalmente no se ven afectadas.",
+    "unhealthy_0": "Mala calidad del aire. Evita actividades físicas intensas al aire libre.",
+    "unhealthy_1": "Grupos de riesgo: permanece en interiores con ventanas cerradas.",
+    "veryUnhealthy_0": "Calidad del aire muy mala. Riesgo para la salud de toda la población.",
+    "veryUnhealthy_1": "Niños, ancianos y enfermos cardiorrespiratorios: no salgas de casa.",
+    "hazardous_0": "SITUACIÓN DE EMERGENCIA. Calidad del aire peligrosa.",
+    "hazardous_1": "Toda la población debe evitar cualquier exposición al aire exterior."
+  },
+  "ranking": {
+    "title": "RANKING NACIONAL",
+    "subtitle": "Calidad del aire en todas las ciudades monitoreadas",
+    "city": "Ciudad",
+    "state": "Estado",
+    "region": "Región",
+    "aqi": "AQI",
+    "status": "Estado",
+    "avgAqi": "AQI Promedio Nacional",
+    "omsCompliant": "Cumplen OMS",
+    "mostPolluted": "Más Contaminada",
+    "morePolluted": "Más Contaminadas",
+    "cleanerAir": "Más Limpias",
+    "all": "Todas",
+    "allStates": "Todos los estados",
+    "mostPollutedFirst": "Mayor AQI primero",
+    "leastPollutedFirst": "Menor AQI primero",
+    "cityCount_one": "{{count}} ciudad",
+    "cityCount_other": "{{count}} ciudades",
+    "noResults": "No se encontraron ciudades con los filtros seleccionados.",
+    "sidebarMostPolluted": "MÁS CONTAMINADAS",
+    "sidebarCleanAir": "AIRE MÁS LIMPIO",
+    "aqiIndex": "ÍNDICE AQI",
+    "fullRanking": "Ver ranking completo →"
+  },
+  "glossary": {
+    "title": "GUÍA DE CALIDAD DEL AIRE",
+    "subtitle": "Entiende los índices, siglas y métricas utilizadas en la plataforma.",
+    "whatIsAqi": "¿QUÉ ES EL AQI?",
+    "aqiSubtitle": "Índice de Calidad del Aire / Air Quality Index",
+    "aqiDesc1": "El AQI (Air Quality Index) es un índice estandarizado que transforma las concentraciones de múltiples contaminantes atmosféricos en un único número de 0 a 500. Cuanto mayor sea el valor, peor es la calidad del aire y mayor el riesgo para la salud. Fue desarrollado por la EPA (Agencia de Protección Ambiental de EE.UU.) y se adopta internacionalmente con adaptaciones.",
+    "aqiDesc2": "El índice se calcula en base a los contaminantes: PM2.5, PM10, O₃, NO₂ y CO — el valor final corresponde al contaminante con mayor concentración relativa a su límite.",
+    "pollutants": "CONTAMINANTES",
+    "pollutantsSubtitle": "Compuestos monitoreados y sus efectos en la salud",
+    "whoLimit": "Límite OMS",
+    "mainSources": "Principales fuentes",
+    "healthEffects": "Efectos en la salud",
+    "uvIndex": "ÍNDICE UV",
+    "uvSubtitle": "Intensidad de la radiación ultravioleta solar",
+    "uvDesc": "El Índice UV mide la intensidad de la radiación ultravioleta que llega a la superficie terrestre. Los valores altos aumentan el riesgo de quemaduras solares, daño ocular y cáncer de piel.",
+    "pollenLevel": "NIVEL DE POLEN",
+    "pollenSubtitle": "Concentración de polen en el aire",
+    "pollenDesc": "El nivel de polen indica la cantidad de granos de polen por metro cúbico de aire. Una alta concentración puede desencadenar alergias respiratorias, rinitis y agravamiento del asma en personas sensibles.",
+    "range": "Rango",
+    "classification": "Clasificación",
+    "recommendation": "Recomendación",
+    "dataSources": "FUENTES DE DATOS",
+    "dataSourcesSubtitle": "Referencias científicas e institucionales utilizadas",
+    "footer": "RespirA · AirBR — datos actualizados continuamente vía INPE, IQAir, CETESB y socios."
+  },
+  "firemap": {
+    "title": "MAPA DE INCENDIOS",
+    "subtitle": "Focos activos · INPE/BDQueimadas",
+    "activeFires": "{{count}} focos activos están afectando la calidad del aire en {{cities}} ciudades",
+    "period": "Período",
+    "state": "Estado",
+    "allBrazil": "Todo Brasil",
+    "layers": "Capas",
+    "fireFoci": "Focos de Incendio",
+    "deforestation": "Deforestación (PRODES)",
+    "officialStations": "Estaciones Oficiales",
+    "fireIntensity": "Intensidad de los focos",
+    "intensityHigh": "Alta",
+    "intensityMedium": "Media",
+    "intensityLow": "Baja",
+    "filtersAndLayers": "Filtros y Capas",
+    "today": "Hoy",
+    "days7": "7 días",
+    "days30": "30 días"
+  },
+  "oms": {
+    "compliance": "CONFORMIDAD OMS — PM2.5",
+    "limit": "Límite OMS",
+    "monitoredCities": "Ciudades brasileñas monitoreadas",
+    "withinLimit": "dentro del límite",
+    "compliant": "conformes",
+    "aboveLimit": "sobre el límite",
+    "highestConcentrations": "Mayores concentraciones de PM2.5",
+    "allCompliant": "Todas las ciudades monitoreadas están dentro del límite OMS",
+    "noData": "Datos de PM2.5 aún no disponibles.",
+    "footer": "Límite OMS PM2.5: {{limit}} µg/m³ · WHO Air Quality Guidelines 2021",
+    "badgeCompliant": "Cumple OMS",
+    "badgeAboveLimit": "Sobre el límite",
+    "tooltipTitle": "Directriz OMS — PM2.5",
+    "tooltipDesc": "La Organización Mundial de la Salud recomienda una concentración de PM2.5 inferior a 5 µg/m³ (media anual).",
+    "tooltipCompliant": "Esta ciudad está dentro del límite recomendado.",
+    "tooltipNonCompliant": "La concentración de PM2.5 supera el límite recomendado por la OMS."
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error al cargar datos",
+    "noData": "Sin datos disponibles",
+    "lastUpdate": "Última actualización",
+    "source": "Fuente",
+    "search": "Buscar ciudad...",
+    "sources": "Fuentes"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "backHome": "Volver al inicio"
+  }
+}

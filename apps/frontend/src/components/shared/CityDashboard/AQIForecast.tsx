@@ -1,6 +1,8 @@
 import { Cloud, CloudSun, Sun, Wind, CloudLightning } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { DayForecast, ForecastIcon } from '@app-types/city.types'
+import { getAQILabel } from '@utils/aqiInfo'
 
 interface AQIForecastProps {
   forecast: DayForecast[]
@@ -15,15 +17,6 @@ function getAQIColor(aqi: number): string {
   return '#be123c'
 }
 
-function getAQILabel(aqi: number): string {
-  if (aqi <= 50) return 'Bom'
-  if (aqi <= 100) return 'Moderado'
-  if (aqi <= 150) return 'Sensível'
-  if (aqi <= 200) return 'Ruim'
-  if (aqi <= 300) return 'Muito Ruim'
-  return 'Perigoso'
-}
-
 const IconMap: Record<ForecastIcon, React.ElementType> = {
   sun: Sun,
   'cloud-sun': CloudSun,
@@ -33,13 +26,15 @@ const IconMap: Record<ForecastIcon, React.ElementType> = {
 }
 
 export const AQIForecast = ({ forecast }: AQIForecastProps) => {
+  const { t } = useTranslation()
+
   return (
     <div className="bg-card border border-border rounded p-4">
-      <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">PREVISÃO 3 DIAS</h3>
+      <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">{t('cityDashboard.forecast')}</h3>
       <div className="flex gap-2">
         {forecast.map(day => {
           const color = getAQIColor(day.aqi)
-          const label = getAQILabel(day.aqi)
+          const label = getAQILabel(day.aqi, t)
           const Icon = IconMap[day.icon]
           return (
             <div

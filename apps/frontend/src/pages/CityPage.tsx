@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Wind, ArrowLeft, ExternalLink } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useCity } from '@hooks/useCity'
 import { useCityHistory } from '@hooks/useCityHistory'
@@ -12,57 +13,39 @@ import { OutdoorSafetyCard } from '@components/shared/CityDashboard/OutdoorSafet
 import { HealthAlertsCard } from '@components/shared/CityDashboard/HealthAlertsCard'
 import { SmokeSourceCard } from '@components/shared/CityDashboard/SmokeSourceCard'
 import { OmsComplianceBadge } from '@components/shared/OmsComplianceBadge'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { getAQILabel, getHealthAlerts, getPollutantInfo } from '@utils/aqiInfo'
+import { formatDateTime } from '@/utils/formatters'
 import type { AqiReadingApi } from '@app-types/airQuality.types'
-import type { Pollutant, AQIHistoryPoint, HealthAlert } from '@app-types/city.types'
+import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
 
 type Period = '7d' | '30d' | '1y'
 
-function getAQILabel(aqi: number): string {
-  if (aqi <= 50) return 'Bom'
-  if (aqi <= 100) return 'Moderado'
-  if (aqi <= 150) return 'Ruim p/ sensíveis'
-  if (aqi <= 200) return 'Ruim'
-  if (aqi <= 300) return 'Muito ruim'
-  return 'Perigoso'
+function buildPollutants(
+  reading: AqiReadingApi,
+  pollutantInfo: ReturnType<typeof getPollutantInfo>,
+): Pollutant[] {
+  const keys: Array<Pollutant['key']> = ['pm25', 'pm10', 'no2', 'o3', 'co']
+  return keys
+    .filter(k => reading[k] !== null)
+    .map(k => {
+      const info = pollutantInfo[k]!
+      return {
+        key: k,
+        label: info.label,
+        value: reading[k] as number,
+        unit: info.unit,
+        whoLimit: info.whoLimit,
+        description: info.shortDesc,
+      }
+    })
 }
 
-function buildPollutants(reading: AqiReadingApi): Pollutant[] {
-  const defs: Array<{ key: Pollutant['key']; label: string; unit: string; whoLimit: number; description: string }> = [
-    { key: 'pm25', label: 'PM2.5', unit: 'µg/m³', whoLimit: 5, description: 'Partículas finas (< 2,5 µm). Penetram fundo nos pulmões e causam doenças respiratórias e cardiovasculares.' },
-    { key: 'pm10', label: 'PM10', unit: 'µg/m³', whoLimit: 15, description: 'Partículas inaláveis (< 10 µm). Irritam vias aéreas superiores e agravam asma e bronquite.' },
-    { key: 'no2', label: 'NO₂', unit: 'µg/m³', whoLimit: 10, description: 'Dióxido de nitrogênio. Emitido por motores e indústrias. Agrava asma e aumenta risco de infecções.' },
-    { key: 'o3', label: 'O₃', unit: 'µg/m³', whoLimit: 60, description: 'Ozônio troposférico. Formado pela reação de NOx com COV sob luz solar. Irrita olhos e pulmões.' },
-    { key: 'co', label: 'CO', unit: 'mg/m³', whoLimit: 4, description: 'Monóxido de carbono. Gás inodoro e incolor que reduz a capacidade do sangue de transportar oxigênio.' },
-  ]
-  return defs
-    .filter(d => reading[d.key] !== null)
-    .map(d => ({ key: d.key, label: d.label, value: reading[d.key] as number, unit: d.unit, whoLimit: d.whoLimit, description: d.description }))
-}
-
-function buildHealthAlerts(aqi: number): HealthAlert[] {
-  if (aqi <= 50) return [{ severity: 'info', message: 'Qualidade do ar boa. Sem restrições para atividades ao ar livre.' }]
-  if (aqi <= 100) return [{ severity: 'warning', message: 'Qualidade moderada. Pessoas muito sensíveis podem sentir leve desconforto.' }]
-  if (aqi <= 150) return [
-    { severity: 'warning', message: 'Ruim para grupos sensíveis: crianças, idosos e asmáticos devem limitar esforços ao ar livre.' },
-    { severity: 'info', message: 'Pessoas saudáveis geralmente não são afetadas.' },
-  ]
-  if (aqi <= 200) return [
-    { severity: 'danger', message: 'Qualidade do ar ruim. Evite atividades físicas intensas ao ar livre.' },
-    { severity: 'warning', message: 'Grupos de risco: permaneça em ambientes fechados e com janelas fechadas.' },
-  ]
-  if (aqi <= 300) return [
-    { severity: 'critical', message: 'Qualidade muito ruim. Risco à saúde de toda a população.' },
-    { severity: 'danger', message: 'Crianças, idosos e doentes cardiorrespiratórios: não saia de casa.' },
-  ]
-  return [
-    { severity: 'critical', message: 'SITUAÇÃO DE EMERGÊNCIA. Qualidade do ar perigosa.' },
-    { severity: 'critical', message: 'Toda a população deve evitar qualquer exposição ao ar externo.' },
-  ]
-}
-
-function buildHistoryPoints(readings: AqiReadingApi[]): AQIHistoryPoint[] {
+function buildHistoryPoints(readings: AqiReadingApi[], locale: string): AQIHistoryPoint[] {
+  const localeMap: Record<string, string> = { pt: 'pt-BR', en: 'en-US', es: 'es-ES' }
+  const resolvedLocale = localeMap[locale] ?? 'pt-BR'
   return readings.map(r => ({
-    day: new Date(r.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+    day: new Date(r.timestamp).toLocaleDateString(resolvedLocale, { day: '2-digit', month: '2-digit' }),
     aqi: r.aqi,
   }))
 }
@@ -76,6 +59,7 @@ function computeOutdoorSafety(aqi: number, uv: number | null, pollen: number | n
 }
 
 export const CityPage = () => {
+  const { t, i18n } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [period, setPeriod] = useState<Period>('7d')
@@ -83,14 +67,22 @@ export const CityPage = () => {
   const { data: city, isLoading, isError } = useCity(id ?? null)
   const { data: historyReadings = [], isLoading: historyLoading } = useCityHistory(id ?? null, period === '1y' ? '1y' : period)
 
+  const pollutantInfo = getPollutantInfo(t)
   const aqi = city?.latestAqi?.aqi ?? 0
-  const aqiLabel = getAQILabel(aqi)
-  const pollutants = city?.latestAqi ? buildPollutants(city.latestAqi) : []
-  const healthAlerts = buildHealthAlerts(aqi)
-  const historyData = buildHistoryPoints(historyReadings)
+  const aqiLabel = getAQILabel(aqi, t)
+  const pollutants = city?.latestAqi ? buildPollutants(city.latestAqi, pollutantInfo) : []
+  const healthAlerts = getHealthAlerts(aqi, t)
+  const historyData = buildHistoryPoints(historyReadings, i18n.language)
   const pm25 = city?.latestAqi?.pm25 ?? null
   const omsCompliant = pm25 !== null ? pm25 <= 5 : false
   const safety = city ? computeOutdoorSafety(aqi, city.latestAqi?.uv ?? null, city.latestAqi?.pollen ?? null) : null
+
+  const navLinks = [
+    { to: '/', label: t('nav.dashboard') },
+    { to: '/ranking', label: t('nav.ranking') },
+    { to: '/mapa-queimadas', label: t('nav.fireMap') },
+    { to: '/guia', label: t('nav.guide') },
+  ]
 
   return (
     <div className="grain-overlay min-h-screen bg-background relative overflow-hidden">
@@ -109,21 +101,21 @@ export const CityPage = () => {
           </Link>
 
           <nav className="hidden md:flex items-center gap-0.5">
-            <Link to="/" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Dashboard
-            </Link>
-            <Link to="/ranking" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Ranking
-            </Link>
-            <Link to="/mapa-queimadas" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Mapa Queimadas
-            </Link>
-            <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Guia
-            </Link>
+            {navLinks.map(link => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
 
-          <LiveIndicator />
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <LiveIndicator />
+          </div>
         </div>
       </header>
 
@@ -134,7 +126,7 @@ export const CityPage = () => {
           className="flex items-center gap-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          Voltar
+          {t('cityDashboard.back')}
         </button>
 
         {isLoading ? (
@@ -148,8 +140,8 @@ export const CityPage = () => {
           </div>
         ) : isError || !city ? (
           <div className="bg-card border border-border rounded p-8 text-center">
-            <p className="text-muted-foreground font-body mb-4">Cidade não encontrada.</p>
-            <Link to="/" className="text-xs text-primary hover:underline">Voltar ao dashboard</Link>
+            <p className="text-muted-foreground font-body mb-4">{t('cityDashboard.notFound')}</p>
+            <Link to="/" className="text-xs text-primary hover:underline">{t('cityDashboard.backToDashboard')}</Link>
           </div>
         ) : (
           <>
@@ -172,14 +164,14 @@ export const CityPage = () => {
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-body border border-border rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    Ver no mapa
+                    {t('cityDashboard.seeOnMap')}
                   </Link>
                 </div>
               </div>
               <p className="text-[10px] font-mono text-muted-foreground mt-2">
-                Fonte: {city.source} · Última atualização:{' '}
+                {t('cityDashboard.sourceLabel')}: {city.source} · {t('cityDashboard.lastUpdateLabel')}:{' '}
                 {city.latestAqi
-                  ? new Date(city.latestAqi.timestamp).toLocaleString('pt-BR', {
+                  ? formatDateTime(new Date(city.latestAqi.timestamp), {
                       day: '2-digit',
                       month: '2-digit',
                       year: 'numeric',
@@ -211,7 +203,7 @@ export const CityPage = () => {
                 {/* History chart */}
                 <div className="bg-card border border-border rounded p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-heading text-lg tracking-wide text-foreground">HISTÓRICO</h3>
+                    <h3 className="font-heading text-lg tracking-wide text-foreground">{t('cityDashboard.history')}</h3>
                     <div className="flex items-center gap-0.5 bg-muted rounded border border-border overflow-hidden">
                       {(['7d', '30d', '1y'] as Period[]).map(p => (
                         <button
@@ -221,7 +213,7 @@ export const CityPage = () => {
                             period === p ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
-                          {p === '7d' ? '7d' : p === '30d' ? '30d' : '1 ano'}
+                          {p === '7d' ? t('cityDashboard.days7') : p === '30d' ? t('cityDashboard.days30') : t('cityDashboard.year1')}
                         </button>
                       ))}
                     </div>
@@ -232,7 +224,7 @@ export const CityPage = () => {
                     <AQIHistoryChart history={historyData} hideTitleBar />
                   ) : (
                     <p className="text-xs text-muted-foreground font-body text-center py-4">
-                      Histórico ainda não disponível.
+                      {t('cityDashboard.noHistory')}
                     </p>
                   )}
                 </div>
@@ -247,7 +239,7 @@ export const CityPage = () => {
                   />
                 )}
 
-                {/* Smoke source — TODO Fase 4: wind API + INPE cross-reference */}
+                {/* Smoke source */}
                 <SmokeSourceCard
                   lat={city.lat}
                   lng={city.lng}
@@ -258,28 +250,28 @@ export const CityPage = () => {
 
                 {/* Metadata */}
                 <div className="bg-card border border-border rounded p-4">
-                  <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">INFORMAÇÕES</h3>
+                  <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">{t('cityDashboard.information')}</h3>
                   <div className="space-y-2 text-xs font-mono">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Coordenadas</span>
+                      <span className="text-muted-foreground">{t('cityDashboard.coordinates')}</span>
                       <span className="text-foreground">{city.lat.toFixed(4)}, {city.lng.toFixed(4)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Estado</span>
+                      <span className="text-muted-foreground">{t('cityDashboard.state')}</span>
                       <span className="text-foreground">{city.state}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Região</span>
+                      <span className="text-muted-foreground">{t('cityDashboard.region')}</span>
                       <span className="text-foreground">{city.region}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Fonte dos dados</span>
+                      <span className="text-muted-foreground">{t('cityDashboard.dataSource')}</span>
                       <span className="text-foreground">{city.source}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Limite OMS PM2.5</span>
+                      <span className="text-muted-foreground">{t('cityDashboard.whoLimitPM25')}</span>
                       <span className={omsCompliant ? 'text-primary' : 'text-accent'}>
-                        {pm25 !== null ? `${pm25.toFixed(1)} µg/m³ (limite: 5)` : '—'}
+                        {pm25 !== null ? `${pm25.toFixed(1)} µg/m³ (${t('oms.limit').toLowerCase()}: 5)` : '—'}
                       </span>
                     </div>
                   </div>
@@ -288,7 +280,7 @@ export const CityPage = () => {
             </div>
 
             <footer className="mt-10 text-xs text-muted-foreground text-center font-mono">
-              Fontes: {city.source} · INPE · DATASUS · Open-Meteo · IQAir
+              {t('dashboard.sources')}: {city.source} · INPE · DATASUS · Open-Meteo · IQAir
             </footer>
           </>
         )}

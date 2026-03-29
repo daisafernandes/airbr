@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ShieldCheck, ShieldAlert } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useOMSCompliance } from '@hooks/useOMSCompliance'
 import type { OMSComplianceCityApi } from '@app-types/airQuality.types'
@@ -15,6 +16,7 @@ function getPM25Color(pm25: number): string {
 
 export const OMSCompliancePanel = () => {
   const { data, isLoading } = useOMSCompliance()
+  const { t } = useTranslation()
 
   const nonCompliant = data?.cities.filter(c => !c.compliant).slice(0, 10) ?? []
   const compliantPct = data?.compliantPct ?? 0
@@ -23,9 +25,9 @@ export const OMSCompliancePanel = () => {
     <div className="bg-card border border-border rounded p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-heading text-xl tracking-wide text-foreground">CONFORMIDADE OMS — PM2.5</h3>
+          <h3 className="font-heading text-xl tracking-wide text-foreground">{t('oms.compliance')}</h3>
           <p className="text-xs text-muted-foreground font-body mt-0.5">
-            Limite OMS: {OMS_LIMIT} µg/m³ · Cidades brasileiras monitoradas
+            {t('oms.limit')}: {OMS_LIMIT} µg/m³ · {t('oms.monitoredCities')}
           </p>
         </div>
         {!isLoading && data && (
@@ -33,7 +35,7 @@ export const OMSCompliancePanel = () => {
             <div className="font-mono text-2xl font-bold" style={{ color: compliantPct >= 50 ? '#4af0c4' : '#ef4444' }}>
               {compliantPct}%
             </div>
-            <p className="text-[10px] text-muted-foreground font-mono">dentro do limite</p>
+            <p className="text-[10px] text-muted-foreground font-mono">{t('oms.withinLimit')}</p>
           </div>
         )}
       </div>
@@ -53,11 +55,11 @@ export const OMSCompliancePanel = () => {
           <div className="flex justify-between mt-1 text-[10px] text-muted-foreground font-mono">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-green-400" />
-              {data.cities.filter(c => c.compliant).length} conformes
+              {data.cities.filter(c => c.compliant).length} {t('oms.compliant')}
             </span>
             <span className="flex items-center gap-1">
               <ShieldAlert className="w-3 h-3 text-red-400" />
-              {data.cities.filter(c => !c.compliant).length} acima do limite
+              {data.cities.filter(c => !c.compliant).length} {t('oms.aboveLimit')}
             </span>
           </div>
         </div>
@@ -73,7 +75,7 @@ export const OMSCompliancePanel = () => {
       ) : nonCompliant.length > 0 ? (
         <>
           <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">
-            Maiores concentrações de PM2.5
+            {t('oms.highestConcentrations')}
           </p>
           <div className="space-y-1.5">
             {nonCompliant.map((city: OMSComplianceCityApi, i: number) => {
@@ -110,16 +112,16 @@ export const OMSCompliancePanel = () => {
       ) : data && data.cities.length > 0 ? (
         <div className="flex items-center gap-2 text-sm text-green-400 font-body py-2">
           <ShieldCheck className="w-4 h-4" />
-          Todas as cidades monitoradas estão dentro do limite OMS
+          {t('oms.allCompliant')}
         </div>
       ) : (
         <p className="text-xs text-muted-foreground font-body text-center py-4">
-          Dados de PM2.5 ainda não disponíveis.
+          {t('oms.noData')}
         </p>
       )}
 
       <p className="text-[9px] text-muted-foreground font-mono mt-3 text-right">
-        Limite OMS PM2.5: {OMS_LIMIT} µg/m³ · WHO Air Quality Guidelines 2021
+        {t('oms.footer', { limit: OMS_LIMIT })}
       </p>
     </div>
   )

@@ -1,6 +1,8 @@
 import { Sun, Wind, Flower2, Info } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { UV_LEVELS, POLLEN_LEVELS } from '@utils/aqiInfo'
+import { getUVLevels, getPollenLevels } from '@utils/aqiInfo'
 
 interface OutdoorSafetyCardProps {
   score: number
@@ -9,27 +11,20 @@ interface OutdoorSafetyCardProps {
   aqi: number
 }
 
-function getSafetyLabel(score: number): { label: string; color: string } {
-  if (score >= 8) return { label: 'Seguro', color: '#4af0c4' }
-  if (score >= 6) return { label: 'Moderado', color: '#facc15' }
-  if (score >= 4) return { label: 'Atenção', color: '#ff9f4a' }
-  if (score >= 2) return { label: 'Perigoso', color: '#ef4444' }
-  return { label: 'Crítico', color: '#a855f7' }
+function getSafetyLabelKey(score: number): keyof { safe: string; moderate: string; caution: string; dangerous: string; critical: string } {
+  if (score >= 8) return 'safe'
+  if (score >= 6) return 'moderate'
+  if (score >= 4) return 'caution'
+  if (score >= 2) return 'dangerous'
+  return 'critical'
 }
 
-function getUVLabel(uv: number): string {
-  if (uv <= 2) return 'Baixo'
-  if (uv <= 5) return 'Moderado'
-  if (uv <= 7) return 'Alto'
-  if (uv <= 10) return 'Muito Alto'
-  return 'Extremo'
-}
-
-function getPollenLabel(level: number): string {
-  if (level <= 2) return 'Baixo'
-  if (level <= 5) return 'Moderado'
-  if (level <= 7) return 'Alto'
-  return 'Muito Alto'
+function getSafetyColor(score: number): string {
+  if (score >= 8) return '#4af0c4'
+  if (score >= 6) return '#facc15'
+  if (score >= 4) return '#ff9f4a'
+  if (score >= 2) return '#ef4444'
+  return '#a855f7'
 }
 
 interface MetricRowProps {
@@ -71,48 +66,64 @@ const MetricRow = ({ icon, label, value, sublabel, barFill, color, tooltip }: Me
   </div>
 )
 
-const UVTooltip = () => (
-  <div className="space-y-1.5">
-    <p className="text-xs font-body font-semibold text-foreground">Índice UV</p>
-    <p className="text-xs font-body text-muted-foreground">
-      Mede a intensidade da radiação ultravioleta solar. Valores altos aumentam o risco de queimaduras e danos à pele.
-    </p>
-    <div className="space-y-0.5 pt-0.5">
-      {UV_LEVELS.map(level => (
-        <div key={level.label} className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: level.color }} />
-          <span className="text-[10px] font-body" style={{ color: level.color }}>{level.label}</span>
-          <span className="text-[10px] text-muted-foreground">— {level.recommendation}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-)
+function getUVLabel(uv: number, uvLevels: ReturnType<typeof getUVLevels>): string {
+  for (const level of uvLevels) {
+    if (uv <= level.max) return level.label
+  }
+  return uvLevels[uvLevels.length - 1]?.label ?? ''
+}
 
-const PollenTooltip = () => (
-  <div className="space-y-1.5">
-    <p className="text-xs font-body font-semibold text-foreground">Nível de Pólen</p>
-    <p className="text-xs font-body text-muted-foreground">
-      Concentração de grãos de pólen no ar. Pode desencadear alergias respiratórias e agravar asma.
-    </p>
-    <div className="space-y-0.5 pt-0.5">
-      {POLLEN_LEVELS.map(level => (
-        <div key={level.label} className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: level.color }} />
-          <span className="text-[10px] font-body" style={{ color: level.color }}>{level.label}</span>
-          <span className="text-[10px] text-muted-foreground">— {level.recommendation}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-)
+function getPollenLabel(level: number, pollenLevels: ReturnType<typeof getPollenLevels>): string {
+  for (const pl of pollenLevels) {
+    if (level <= pl.max) return pl.label
+  }
+  return pollenLevels[pollenLevels.length - 1]?.label ?? ''
+}
 
 export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorSafetyCardProps) => {
-  const { label, color } = getSafetyLabel(score)
+  const { t } = useTranslation()
+  const uvLevels = getUVLevels(t)
+  const pollenLevels = getPollenLevels(t)
+
+  const labelKey = getSafetyLabelKey(score)
+  const color = getSafetyColor(score)
+  const label = t(`cityDashboard.safetyLabel.${labelKey}`)
+
+  const UVTooltip = () => (
+    <div className="space-y-1.5">
+      <p className="text-xs font-body font-semibold text-foreground">{t('cityDashboard.uvTooltipTitle')}</p>
+      <p className="text-xs font-body text-muted-foreground">{t('cityDashboard.uvTooltipDesc')}</p>
+      <div className="space-y-0.5 pt-0.5">
+        {uvLevels.map(level => (
+          <div key={level.label} className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: level.color }} />
+            <span className="text-[10px] font-body" style={{ color: level.color }}>{level.label}</span>
+            <span className="text-[10px] text-muted-foreground">— {level.recommendation}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  const PollenTooltip = () => (
+    <div className="space-y-1.5">
+      <p className="text-xs font-body font-semibold text-foreground">{t('cityDashboard.pollenTooltipTitle')}</p>
+      <p className="text-xs font-body text-muted-foreground">{t('cityDashboard.pollenTooltipDesc')}</p>
+      <div className="space-y-0.5 pt-0.5">
+        {pollenLevels.map(level => (
+          <div key={level.label} className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: level.color }} />
+            <span className="text-[10px] font-body" style={{ color: level.color }}>{level.label}</span>
+            <span className="text-[10px] text-muted-foreground">— {level.recommendation}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <div className="bg-card border border-border rounded p-4">
-      <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">SEGURANÇA AO AR LIVRE</h3>
+      <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">{t('cityDashboard.outdoorSafety')}</h3>
 
       <div className="flex items-center gap-4 mb-4">
         <div className="flex flex-col items-center">
@@ -129,7 +140,7 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorS
             {label}
           </span>
           <p className="text-[10px] text-muted-foreground mt-1 font-body">
-            Índice composto: AQI + UV + Pólen
+            {t('cityDashboard.compositeIndex')}
           </p>
         </div>
       </div>
@@ -137,7 +148,7 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorS
       <div className="space-y-2.5">
         <MetricRow
           icon={<Wind className="w-3.5 h-3.5" />}
-          label="Qualidade do ar"
+          label={t('cityDashboard.airQuality')}
           value={aqi}
           sublabel="AQI"
           barFill={Math.min((aqi / 300) * 100, 100)}
@@ -145,18 +156,18 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi }: OutdoorS
         />
         <MetricRow
           icon={<Sun className="w-3.5 h-3.5" />}
-          label="Índice UV"
+          label={t('cityDashboard.uvIndex')}
           value={uvIndex}
-          sublabel={getUVLabel(uvIndex)}
+          sublabel={getUVLabel(uvIndex, uvLevels)}
           barFill={(uvIndex / 11) * 100}
           color={uvIndex <= 2 ? '#4af0c4' : uvIndex <= 5 ? '#facc15' : uvIndex <= 7 ? '#ff9f4a' : '#ef4444'}
           tooltip={<UVTooltip />}
         />
         <MetricRow
           icon={<Flower2 className="w-3.5 h-3.5" />}
-          label="Pólen"
+          label={t('cityDashboard.pollen')}
           value={pollenLevel}
-          sublabel={getPollenLabel(pollenLevel)}
+          sublabel={getPollenLabel(pollenLevel, pollenLevels)}
           barFill={(pollenLevel / 10) * 100}
           color={pollenLevel <= 2 ? '#4af0c4' : pollenLevel <= 5 ? '#facc15' : '#ff9f4a'}
           tooltip={<PollenTooltip />}

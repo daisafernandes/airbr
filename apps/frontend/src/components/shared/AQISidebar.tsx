@@ -1,8 +1,9 @@
+import type { RankedCityApi } from '@app-types/airQuality.types'
+import { useRanking } from '@hooks/useRanking'
 import { TrendingUp, TrendingDown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { useRanking } from '@hooks/useRanking'
-import type { RankedCityApi } from '@app-types/airQuality.types'
 
 function getAQIColor(aqi: number): string {
   if (aqi <= 50) return 'text-primary'
@@ -69,20 +70,30 @@ const RankingCard = ({
 
 export const AQISidebar = () => {
   const { data, isLoading } = useRanking()
+  const { t } = useTranslation()
 
   const mostPolluted = data?.mostPolluted.slice(0, 5) ?? []
   const leastPolluted = data?.leastPolluted.slice(0, 5) ?? []
 
+  const aqiLegend = [
+    { labelKey: 'aqi.bands.good.label',          range: '0–50',   color: 'bg-primary' },
+    { labelKey: 'aqi.bands.moderate.label',       range: '51–100', color: 'bg-yellow-400' },
+    { labelKey: 'aqi.sensitiveShortAlt',          range: '101–150', color: 'bg-accent' },
+    { labelKey: 'aqi.bands.unhealthy.label',      range: '151–200', color: 'bg-red-500' },
+    { labelKey: 'aqi.bands.veryUnhealthy.label',  range: '201–300', color: 'bg-purple-500' },
+    { labelKey: 'aqi.bands.hazardous.label',      range: '300+',   color: 'bg-rose-900' },
+  ]
+
   return (
     <div className="w-80 flex-shrink-0 space-y-4 overflow-y-auto max-h-[calc(100vh-140px)] pr-1">
       <RankingCard
-        title="MAIS POLUÍDAS"
+        title={t('ranking.sidebarMostPolluted')}
         icon={<TrendingUp className="w-4 h-4 text-accent" />}
         data={mostPolluted}
         loading={isLoading}
       />
       <RankingCard
-        title="AR MAIS LIMPO"
+        title={t('ranking.sidebarCleanAir')}
         icon={<TrendingDown className="w-4 h-4 text-primary" />}
         data={leastPolluted}
         loading={isLoading}
@@ -90,19 +101,12 @@ export const AQISidebar = () => {
 
       {/* AQI legend */}
       <div className="bg-card border border-border rounded p-4">
-        <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">ÍNDICE AQI</h3>
+        <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">{t('ranking.aqiIndex')}</h3>
         <div className="space-y-1.5 text-xs">
-          {[
-            { label: 'Bom', range: '0–50', color: 'bg-primary' },
-            { label: 'Moderado', range: '51–100', color: 'bg-yellow-400' },
-            { label: 'Ruim p/ sensíveis', range: '101–150', color: 'bg-accent' },
-            { label: 'Ruim', range: '151–200', color: 'bg-red-500' },
-            { label: 'Muito ruim', range: '201–300', color: 'bg-purple-500' },
-            { label: 'Perigoso', range: '300+', color: 'bg-rose-900' },
-          ].map(item => (
-            <div key={item.label} className="flex items-center gap-2">
+          {aqiLegend.map(item => (
+            <div key={item.labelKey} className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-sm ${item.color}`} />
-              <span className="text-muted-foreground">{item.label}</span>
+              <span className="text-muted-foreground">{t(item.labelKey as Parameters<typeof t>[0])}</span>
               <span className="font-mono text-muted-foreground ml-auto">{item.range}</span>
             </div>
           ))}
@@ -111,7 +115,7 @@ export const AQISidebar = () => {
           to="/ranking"
           className="mt-3 flex items-center justify-center w-full px-3 py-2 text-xs font-body border border-border rounded hover:bg-muted hover:text-foreground text-muted-foreground transition-colors"
         >
-          Ver ranking completo →
+          {t('ranking.fullRanking')}
         </Link>
       </div>
     </div>

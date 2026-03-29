@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDownUp, Wind } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useCities } from '@hooks/useCities'
 import { useIsMobile } from '@hooks/use-mobile'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
 import { OMSCompliancePanel } from '@components/shared/OMSCompliancePanel'
 import { RankingTable } from '@components/shared/RankingTable'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { formatDateTime } from '@utils/formatters'
 
 type SortMode = 'polluted' | 'clean'
 
@@ -17,6 +20,7 @@ export const RankingPage = () => {
   const [sortMode, setSortMode] = useState<SortMode>('polluted')
   const [regionFilter, setRegionFilter] = useState<string>('all')
   const [stateFilter, setStateFilter] = useState<string>('all')
+  const { t } = useTranslation()
 
   const { data: cities = [], isLoading } = useCities()
 
@@ -55,6 +59,8 @@ export const RankingPage = () => {
     return { avg, compliant, total: cities.length, worst }
   }, [cities])
 
+  const lastUpdate = formatDateTime(new Date(), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
   return (
     <div className="grain-overlay min-h-screen bg-background relative overflow-hidden">
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
@@ -73,37 +79,40 @@ export const RankingPage = () => {
 
           <nav className="hidden sm:flex items-center gap-1">
             <Link to="/" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Dashboard
+              {t('nav.dashboard')}
             </Link>
             <span className="px-3 py-1.5 text-xs font-body text-primary border-b border-primary font-semibold">
-              Ranking
+              {t('nav.ranking')}
             </span>
             <Link to="/mapa-queimadas" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Mapa Queimadas
+              {t('nav.fireMap')}
             </Link>
             <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Guia
+              {t('nav.guide')}
             </Link>
           </nav>
 
-          <LiveIndicator />
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <LiveIndicator />
+          </div>
         </div>
       </header>
 
       <main className="pt-20 pb-8 px-4 max-w-[1400px] mx-auto relative z-10">
         {/* Page title */}
         <div className="mb-6">
-          <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">RANKING NACIONAL</h1>
+          <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">{t('ranking.title')}</h1>
           <p className="text-sm text-muted-foreground font-body mt-1">
-            Qualidade do ar em todas as cidades monitoradas
-            {stats && ` · ${stats.total} cidades`}
+            {t('ranking.subtitle')}
+            {stats && ` · ${stats.total} ${t('ranking.city', { count: stats.total }).replace(/\d+ /, '')}`}
           </p>
         </div>
 
         {/* Stats strip */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
           <div className="bg-card border border-border rounded p-3">
-            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">AQI Médio Nacional</p>
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">{t('ranking.avgAqi')}</p>
             {isLoading ? (
               <div className="h-8 bg-muted animate-pulse rounded w-16" />
             ) : (
@@ -111,7 +120,7 @@ export const RankingPage = () => {
             )}
           </div>
           <div className="bg-card border border-border rounded p-3">
-            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Conformes OMS</p>
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">{t('ranking.omsCompliant')}</p>
             {isLoading ? (
               <div className="h-8 bg-muted animate-pulse rounded w-20" />
             ) : (
@@ -122,7 +131,7 @@ export const RankingPage = () => {
             )}
           </div>
           <div className="bg-card border border-border rounded p-3 col-span-2 sm:col-span-1">
-            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Mais Poluída</p>
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">{t('ranking.mostPolluted')}</p>
             {isLoading ? (
               <div className="h-6 bg-muted animate-pulse rounded w-32" />
             ) : (
@@ -148,7 +157,7 @@ export const RankingPage = () => {
                   : 'text-muted-foreground hover:text-foreground border-r border-border'
               }`}
             >
-              Mais Poluídas
+              {t('ranking.morePolluted')}
             </button>
             <button
               onClick={() => setSortMode('clean')}
@@ -156,7 +165,7 @@ export const RankingPage = () => {
                 sortMode === 'clean' ? 'bg-green-500/15 text-green-400' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Mais Limpas
+              {t('ranking.cleanerAir')}
             </button>
           </div>
 
@@ -170,7 +179,7 @@ export const RankingPage = () => {
                   : 'bg-muted border-border text-muted-foreground hover:text-foreground'
               }`}
             >
-              Todas
+              {t('ranking.all')}
             </button>
             {REGIONS.map(r => (
               <button
@@ -193,7 +202,7 @@ export const RankingPage = () => {
             onChange={e => setStateFilter(e.target.value)}
             className="bg-muted border border-border rounded px-3 py-1.5 text-xs font-body text-foreground focus:outline-none focus:ring-1 focus:ring-primary sm:ml-auto"
           >
-            <option value="all">Todos os estados</option>
+            <option value="all">{t('ranking.allStates')}</option>
             {states.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}
@@ -203,8 +212,8 @@ export const RankingPage = () => {
         {/* Sort indicator */}
         <div className="flex items-center gap-1.5 mb-3 text-xs text-muted-foreground font-mono">
           <ArrowDownUp className="w-3.5 h-3.5" />
-          {filteredAndSorted.length} cidade{filteredAndSorted.length !== 1 ? 's' : ''} ·{' '}
-          {sortMode === 'polluted' ? 'Maior AQI primeiro' : 'Menor AQI primeiro'}
+          {filteredAndSorted.length} {filteredAndSorted.length !== 1 ? t('ranking.city', { count: 2 }) : t('ranking.city', { count: 1 })} ·{' '}
+          {sortMode === 'polluted' ? t('ranking.mostPollutedFirst') : t('ranking.leastPollutedFirst')}
         </div>
 
         {/* Table / List */}
@@ -218,7 +227,7 @@ export const RankingPage = () => {
           <RankingTable cities={filteredAndSorted} isMobile={isMobile} />
         ) : (
           <div className="bg-card border border-border rounded p-8 text-center">
-            <p className="text-muted-foreground font-body">Nenhuma cidade encontrada com os filtros selecionados.</p>
+            <p className="text-muted-foreground font-body">{t('ranking.noResults')}</p>
           </div>
         )}
 
@@ -229,9 +238,9 @@ export const RankingPage = () => {
 
         <footer className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground py-3 border-t border-border gap-2">
           <span className="font-mono">
-            Última atualização: {new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            {t('common.lastUpdate')}: {lastUpdate}
           </span>
-          <span>Fontes: IQAir · AQICN · CETESB · DATASUS · IBGE · Open-Meteo</span>
+          <span>{t('common.sources')}: IQAir · AQICN · CETESB · DATASUS · IBGE · Open-Meteo</span>
         </footer>
       </main>
     </div>

@@ -1,4 +1,6 @@
 import { Info } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Pollutant } from '@app-types/city.types'
 
@@ -15,9 +17,11 @@ function getBarColor(ratio: number): string {
 }
 
 export const PollutantCards = ({ pollutants }: PollutantCardsProps) => {
+  const { t } = useTranslation()
+
   return (
     <div className="bg-card border border-border rounded p-4">
-      <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">POLUENTES</h3>
+      <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">{t('cityDashboard.pollutants')}</h3>
       <div className="grid grid-cols-2 gap-2">
         {pollutants.map(p => {
           const ratio = p.value / p.whoLimit
@@ -50,7 +54,7 @@ export const PollutantCards = ({ pollutants }: PollutantCardsProps) => {
                 </div>
                 {overLimit && (
                   <span className="text-[9px] font-mono px-1 py-0.5 rounded shrink-0" style={{ background: `${color}20`, color }}>
-                    acima OMS
+                    {t('cityDashboard.aboveWho')}
                   </span>
                 )}
               </div>
@@ -67,7 +71,7 @@ export const PollutantCards = ({ pollutants }: PollutantCardsProps) => {
                 />
               </div>
               <span className="text-[9px] text-muted-foreground font-mono">
-                OMS: {p.whoLimit} {p.unit}
+                {t('oms.limit')}: {p.whoLimit} {p.unit}
               </span>
             </div>
           )

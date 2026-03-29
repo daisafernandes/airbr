@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
-  "files": ["*.js"],
+  "files": [
+    "*.js"
+  ],
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1"
+  },
+  "devDependencies": {
+    "eslint-import-resolver-typescript": "^3.10.1"
   }
 }

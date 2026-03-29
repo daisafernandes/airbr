@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Flame, Trees, Radio, SlidersHorizontal, Wind } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { FireMap } from '@components/shared/FireMap'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
@@ -14,14 +15,9 @@ import {
 import { useFires } from '@hooks/useFires'
 import { useCities } from '@hooks/useCities'
 import { useIsMobile } from '@hooks/use-mobile'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
 
 type Period = 'hoje' | '7d' | '30d'
-
-const PERIOD_LABELS: Record<Period, string> = {
-  hoje: 'Hoje',
-  '7d': '7 dias',
-  '30d': '30 dias',
-}
 
 function ImpactCard({
   fireCount,
@@ -32,6 +28,7 @@ function ImpactCard({
   affectedCities: number
   loading: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <div className="bg-card/90 backdrop-blur-md border border-border rounded-lg p-3 shadow-xl">
       <div className="flex items-start gap-2">
@@ -40,9 +37,8 @@ function ImpactCard({
           <div className="h-4 bg-muted animate-pulse rounded w-48" />
         ) : (
           <p className="text-xs font-body text-foreground leading-snug">
-            <span className="font-mono font-bold text-accent">{fireCount}</span> focos ativos estão afetando a
-            qualidade do ar em{' '}
-            <span className="font-mono font-bold text-foreground">{affectedCities}</span> cidades
+            <span className="font-mono font-bold text-accent">{fireCount}</span>{' '}
+            {t('firemap.activeFires', { count: fireCount, cities: affectedCities })}
           </p>
         )}
       </div>
@@ -75,11 +71,19 @@ function FilterControls({
   onToggleStations: () => void
   states: string[]
 }) {
+  const { t } = useTranslation()
+
+  const PERIOD_LABELS: Record<Period, string> = {
+    hoje: t('firemap.today'),
+    '7d': t('firemap.days7'),
+    '30d': t('firemap.days30'),
+  }
+
   return (
     <div className="space-y-4">
       {/* Period */}
       <div>
-        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Período</p>
+        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{t('firemap.period')}</p>
         <div className="flex gap-1.5">
           {(['hoje', '7d', '30d'] as Period[]).map(p => (
             <button
@@ -99,13 +103,13 @@ function FilterControls({
 
       {/* State */}
       <div>
-        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Estado</p>
+        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{t('firemap.state')}</p>
         <select
           value={stateFilter}
           onChange={e => onStateChange(e.target.value)}
           className="w-full bg-muted border border-border rounded px-3 py-2 text-xs font-body text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         >
-          <option value="">Todo o Brasil</option>
+          <option value="">{t('firemap.allBrazil')}</option>
           {states.map(s => (
             <option key={s} value={s}>{s}</option>
           ))}
@@ -114,7 +118,7 @@ function FilterControls({
 
       {/* Layer toggles */}
       <div>
-        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Camadas</p>
+        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{t('firemap.layers')}</p>
         <div className="space-y-2">
           <button
             onClick={onToggleFires}
@@ -125,7 +129,7 @@ function FilterControls({
             }`}
           >
             <Flame className="w-3.5 h-3.5" />
-            Focos de Queimada
+            {t('firemap.fireFoci')}
             {showFires && <span className="ml-auto text-[9px] font-mono bg-accent/20 px-1.5 py-0.5 rounded">ON</span>}
           </button>
           <button
@@ -137,7 +141,7 @@ function FilterControls({
             }`}
           >
             <Trees className="w-3.5 h-3.5" />
-            Desmatamento (PRODES)
+            {t('firemap.deforestation')}
             {showDeforestation && <span className="ml-auto text-[9px] font-mono bg-green-500/20 px-1.5 py-0.5 rounded">ON</span>}
           </button>
           <button
@@ -149,7 +153,7 @@ function FilterControls({
             }`}
           >
             <Radio className="w-3.5 h-3.5" />
-            Estações Oficiais
+            {t('firemap.officialStations')}
             {showStations && <span className="ml-auto text-[9px] font-mono bg-blue-500/20 px-1.5 py-0.5 rounded">ON</span>}
           </button>
         </div>
@@ -157,16 +161,16 @@ function FilterControls({
 
       {/* Fire legend */}
       <div>
-        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Intensidade dos focos</p>
+        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{t('firemap.fireIntensity')}</p>
         <div className="space-y-1.5">
           {[
-            { label: 'Alta', color: '#ef4444' },
-            { label: 'Média', color: '#ff9f4a' },
-            { label: 'Baixa', color: '#facc15' },
-          ].map(({ label, color }) => (
-            <div key={label} className="flex items-center gap-2 text-xs font-body text-muted-foreground">
+            { labelKey: 'firemap.intensityHigh',   color: '#ef4444' },
+            { labelKey: 'firemap.intensityMedium', color: '#ff9f4a' },
+            { labelKey: 'firemap.intensityLow',    color: '#facc15' },
+          ].map(({ labelKey, color }) => (
+            <div key={labelKey} className="flex items-center gap-2 text-xs font-body text-muted-foreground">
               <span className="w-3 h-3 rounded-full shrink-0" style={{ background: color }} />
-              {label}
+              {t(labelKey as Parameters<typeof t>[0])}
             </div>
           ))}
         </div>
@@ -182,6 +186,7 @@ export const FireMapPage = () => {
   const [showStations, setShowStations] = useState(false)
   const [stateFilter, setStateFilter] = useState('')
   const [period, setPeriod] = useState<Period>('hoje')
+  const { t } = useTranslation()
 
   const { data: fires = [], isLoading: firesLoading } = useFires(
     stateFilter ? { state: stateFilter } : undefined,
@@ -233,20 +238,23 @@ export const FireMapPage = () => {
 
           <nav className="hidden sm:flex items-center gap-1">
             <Link to="/" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Dashboard
+              {t('nav.dashboard')}
             </Link>
             <Link to="/ranking" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Ranking
+              {t('nav.ranking')}
             </Link>
             <span className="px-3 py-1.5 text-xs font-body text-accent border-b border-accent font-semibold">
-              Mapa Queimadas
+              {t('nav.fireMap')}
             </span>
             <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              Guia
+              {t('nav.guide')}
             </Link>
           </nav>
 
-          <LiveIndicator />
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <LiveIndicator />
+          </div>
         </div>
       </header>
 
@@ -256,8 +264,8 @@ export const FireMapPage = () => {
         {!isMobile && (
           <aside className="w-72 shrink-0 bg-card border-r border-border overflow-y-auto p-4 space-y-2 z-10">
             <div className="mb-4">
-              <h2 className="font-heading text-2xl tracking-wide text-foreground">MAPA DE QUEIMADAS</h2>
-              <p className="text-xs text-muted-foreground font-body mt-0.5">Focos ativos · INPE/BDQueimadas</p>
+              <h2 className="font-heading text-2xl tracking-wide text-foreground">{t('firemap.title')}</h2>
+              <p className="text-xs text-muted-foreground font-body mt-0.5">{t('firemap.subtitle')}</p>
             </div>
 
             <ImpactCard
@@ -300,13 +308,13 @@ export const FireMapPage = () => {
               <DrawerTrigger asChild>
                 <button className="absolute bottom-6 right-4 z-20 flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2.5 shadow-xl text-sm font-body text-foreground hover:bg-muted transition-colors">
                   <SlidersHorizontal className="w-4 h-4 text-primary" />
-                  Filtros e Camadas
+                  {t('firemap.filtersAndLayers')}
                 </button>
               </DrawerTrigger>
               <DrawerContent className="bg-card border-t border-border">
                 <DrawerHeader>
                   <DrawerTitle className="font-heading tracking-wide text-foreground">
-                    Filtros e Camadas
+                    {t('firemap.filtersAndLayers')}
                   </DrawerTitle>
                 </DrawerHeader>
                 <div className="px-4 pb-6 overflow-y-auto max-h-[60vh]">

@@ -1,4 +1,6 @@
 import { ShieldCheck, ShieldAlert } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface OmsComplianceBadgeProps {
@@ -7,6 +9,7 @@ interface OmsComplianceBadgeProps {
 }
 
 export const OmsComplianceBadge = ({ compliant, size = 'sm' }: OmsComplianceBadgeProps) => {
+  const { t } = useTranslation()
   const isSmall = size === 'sm'
 
   const badge = compliant ? (
@@ -16,7 +19,7 @@ export const OmsComplianceBadge = ({ compliant, size = 'sm' }: OmsComplianceBadg
       } bg-green-500/15 text-green-400 border border-green-500/30`}
     >
       <ShieldCheck className={isSmall ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5'} />
-      Conforme OMS
+      {t('oms.badgeCompliant')}
     </span>
   ) : (
     <span
@@ -25,7 +28,7 @@ export const OmsComplianceBadge = ({ compliant, size = 'sm' }: OmsComplianceBadg
       } bg-red-500/15 text-red-400 border border-red-500/30`}
     >
       <ShieldAlert className={isSmall ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5'} />
-      Acima do limite
+      {t('oms.badgeAboveLimit')}
     </span>
   )
 
@@ -35,19 +38,12 @@ export const OmsComplianceBadge = ({ compliant, size = 'sm' }: OmsComplianceBadg
         <span>{badge}</span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-[240px] p-3 space-y-1.5">
-        <p className="text-xs font-body font-semibold text-foreground">Diretriz OMS — PM2.5</p>
-        <p className="text-xs font-body text-muted-foreground">
-          A Organização Mundial da Saúde recomenda concentração de PM2.5 inferior a{' '}
-          <strong className="text-foreground">5 µg/m³</strong> (média anual).
-        </p>
+        <p className="text-xs font-body font-semibold text-foreground">{t('oms.tooltipTitle')}</p>
+        <p className="text-xs font-body text-muted-foreground">{t('oms.tooltipDesc')}</p>
         {compliant ? (
-          <p className="text-xs font-body text-green-400">
-            Esta cidade está dentro do limite recomendado.
-          </p>
+          <p className="text-xs font-body text-green-400">{t('oms.tooltipCompliant')}</p>
         ) : (
-          <p className="text-xs font-body text-red-400">
-            A concentração de PM2.5 supera o limite recomendado pela OMS.
-          </p>
+          <p className="text-xs font-body text-red-400">{t('oms.tooltipNonCompliant')}</p>
         )}
       </TooltipContent>
     </Tooltip>

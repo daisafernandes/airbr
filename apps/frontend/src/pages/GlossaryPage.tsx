@@ -1,25 +1,29 @@
 import { Link } from 'react-router-dom'
 import { Wind, ExternalLink, Info, Droplets, Sun, Flower2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { LiveIndicator } from '@components/shared/LiveIndicator'
-import {
-  AQI_BANDS,
-  POLLUTANT_INFO,
-  UV_LEVELS,
-  POLLEN_LEVELS,
-  DATA_SOURCES,
-} from '@utils/aqiInfo'
-
-const NAV_LINKS = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/ranking', label: 'Ranking' },
-  { to: '/mapa-queimadas', label: 'Mapa Queimadas' },
-  { to: '/guia', label: 'Guia' },
-]
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { getAqiBands, getUVLevels, getPollenLevels, getPollutantInfo, getDataSources } from '@utils/aqiInfo'
 
 const POLLUTANTS_ORDER = ['pm25', 'pm10', 'no2', 'o3', 'co'] as const
 
 export const GlossaryPage = () => {
+  const { t } = useTranslation()
+
+  const aqiBands = getAqiBands(t)
+  const uvLevels = getUVLevels(t)
+  const pollenLevels = getPollenLevels(t)
+  const pollutantInfo = getPollutantInfo(t)
+  const dataSources = getDataSources(t)
+
+  const navLinks = [
+    { to: '/', label: t('nav.dashboard') },
+    { to: '/ranking', label: t('nav.ranking') },
+    { to: '/mapa-queimadas', label: t('nav.fireMap') },
+    { to: '/guia', label: t('nav.guide') },
+  ]
+
   return (
     <div className="grain-overlay min-h-screen bg-background relative overflow-hidden">
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
@@ -37,7 +41,7 @@ export const GlossaryPage = () => {
           </Link>
 
           <nav className="hidden md:flex items-center gap-0.5">
-            {NAV_LINKS.map(link => (
+            {navLinks.map(link => (
               <Link
                 key={link.to}
                 to={link.to}
@@ -52,38 +56,39 @@ export const GlossaryPage = () => {
             ))}
           </nav>
 
-          <LiveIndicator />
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <LiveIndicator />
+          </div>
         </div>
       </header>
 
       <main className="pt-20 pb-12 px-4 max-w-[900px] mx-auto relative z-10">
         {/* Page title */}
         <div className="mb-10">
-          <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">GUIA DE QUALIDADE DO AR</h1>
-          <p className="text-sm text-muted-foreground font-body mt-2">
-            Entenda os índices, siglas e métricas utilizadas na plataforma.
-          </p>
+          <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">{t('glossary.title')}</h1>
+          <p className="text-sm text-muted-foreground font-body mt-2">{t('glossary.subtitle')}</p>
         </div>
 
         {/* AQI Section */}
         <section className="mb-10" id="aqi">
           <div className="flex items-center gap-2 mb-1">
             <Info className="w-4 h-4 text-primary" />
-            <h2 className="font-heading text-2xl tracking-wide text-foreground">O QUE É O AQI?</h2>
+            <h2 className="font-heading text-2xl tracking-wide text-foreground">{t('glossary.whatIsAqi')}</h2>
           </div>
-          <p className="text-xs font-mono text-muted-foreground mb-4">Índice de Qualidade do Ar / Air Quality Index</p>
+          <p className="text-xs font-mono text-muted-foreground mb-4">{t('glossary.aqiSubtitle')}</p>
 
           <p className="text-sm font-body text-muted-foreground mb-4 leading-relaxed">
-            O <strong className="text-foreground">AQI (Air Quality Index)</strong> é um índice padronizado que transforma as concentrações de múltiplos poluentes atmosféricos em um único número de <strong className="text-foreground">0 a 500</strong>. Quanto maior o valor, pior a qualidade do ar e maior o risco à saúde. Foi desenvolvido pela EPA (Agência de Proteção Ambiental dos EUA) e é adotado internacionalmente com adaptações.
+            {t('glossary.aqiDesc1')}
           </p>
 
           <p className="text-sm font-body text-muted-foreground mb-6 leading-relaxed">
-            O índice é calculado com base nos poluentes: PM2.5, PM10, O₃, NO₂ e CO — o valor final corresponde ao <strong className="text-foreground">poluente com maior concentração relativa ao seu limite</strong>.
+            {t('glossary.aqiDesc2')}
           </p>
 
           {/* AQI Scale */}
           <div className="space-y-2">
-            {AQI_BANDS.map(band => (
+            {aqiBands.map(band => (
               <div
                 key={band.label}
                 className="flex items-start gap-3 bg-card border border-border rounded p-3"
@@ -115,13 +120,13 @@ export const GlossaryPage = () => {
         <section className="mb-10" id="poluentes">
           <div className="flex items-center gap-2 mb-1">
             <Droplets className="w-4 h-4 text-primary" />
-            <h2 className="font-heading text-2xl tracking-wide text-foreground">POLUENTES</h2>
+            <h2 className="font-heading text-2xl tracking-wide text-foreground">{t('glossary.pollutants')}</h2>
           </div>
-          <p className="text-xs font-mono text-muted-foreground mb-4">Compostos monitorados e seus efeitos na saúde</p>
+          <p className="text-xs font-mono text-muted-foreground mb-4">{t('glossary.pollutantsSubtitle')}</p>
 
           <div className="grid grid-cols-1 gap-4">
             {POLLUTANTS_ORDER.map(key => {
-              const p = POLLUTANT_INFO[key]!
+              const p = pollutantInfo[key]!
               return (
                 <div key={key} className="bg-card border border-border rounded p-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -130,7 +135,7 @@ export const GlossaryPage = () => {
                       <span className="text-xs text-muted-foreground font-body ml-2">{p.fullName}</span>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="text-xs font-mono text-muted-foreground block">Limite OMS</span>
+                      <span className="text-xs font-mono text-muted-foreground block">{t('glossary.whoLimit')}</span>
                       <span className="font-mono font-bold text-primary">
                         {p.whoLimit} {p.unit}
                       </span>
@@ -141,11 +146,11 @@ export const GlossaryPage = () => {
                     <p>{p.description}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                       <div className="bg-muted/40 border border-border/50 rounded p-2.5">
-                        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Principais fontes</p>
+                        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">{t('glossary.mainSources')}</p>
                         <p className="text-xs">{p.sources}</p>
                       </div>
                       <div className="bg-muted/40 border border-border/50 rounded p-2.5">
-                        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Efeitos na saúde</p>
+                        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">{t('glossary.healthEffects')}</p>
                         <p className="text-xs">{p.effects}</p>
                       </div>
                     </div>
@@ -160,26 +165,24 @@ export const GlossaryPage = () => {
         <section className="mb-10" id="uv">
           <div className="flex items-center gap-2 mb-1">
             <Sun className="w-4 h-4 text-primary" />
-            <h2 className="font-heading text-2xl tracking-wide text-foreground">ÍNDICE UV</h2>
+            <h2 className="font-heading text-2xl tracking-wide text-foreground">{t('glossary.uvIndex')}</h2>
           </div>
-          <p className="text-xs font-mono text-muted-foreground mb-3">Intensidade da radiação ultravioleta solar</p>
+          <p className="text-xs font-mono text-muted-foreground mb-3">{t('glossary.uvSubtitle')}</p>
 
-          <p className="text-sm font-body text-muted-foreground mb-4 leading-relaxed">
-            O <strong className="text-foreground">Índice UV</strong> mede a intensidade da radiação ultravioleta que chega à superfície terrestre. Valores altos aumentam o risco de queimaduras solares, danos oculares e câncer de pele.
-          </p>
+          <p className="text-sm font-body text-muted-foreground mb-4 leading-relaxed">{t('glossary.uvDesc')}</p>
 
           <div className="overflow-hidden rounded border border-border">
             <table className="w-full text-xs font-body">
               <thead>
                 <tr className="bg-muted/60 border-b border-border">
-                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider">Faixa</th>
-                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider">Classificação</th>
-                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Recomendação</th>
+                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider">{t('glossary.range')}</th>
+                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider">{t('glossary.classification')}</th>
+                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider hidden sm:table-cell">{t('glossary.recommendation')}</th>
                 </tr>
               </thead>
               <tbody>
-                {UV_LEVELS.map((level, i) => {
-                  const min = i === 0 ? 0 : UV_LEVELS[i - 1]!.max + 1
+                {uvLevels.map((level, i) => {
+                  const min = i === 0 ? 0 : uvLevels[i - 1]!.max + 1
                   return (
                     <tr key={level.label} className="border-b border-border last:border-0 bg-card hover:bg-muted/30 transition-colors">
                       <td className="px-3 py-2.5 font-mono" style={{ color: level.color }}>
@@ -206,26 +209,24 @@ export const GlossaryPage = () => {
         <section className="mb-10" id="polen">
           <div className="flex items-center gap-2 mb-1">
             <Flower2 className="w-4 h-4 text-primary" />
-            <h2 className="font-heading text-2xl tracking-wide text-foreground">NÍVEL DE PÓLEN</h2>
+            <h2 className="font-heading text-2xl tracking-wide text-foreground">{t('glossary.pollenLevel')}</h2>
           </div>
-          <p className="text-xs font-mono text-muted-foreground mb-3">Concentração de pólen no ar</p>
+          <p className="text-xs font-mono text-muted-foreground mb-3">{t('glossary.pollenSubtitle')}</p>
 
-          <p className="text-sm font-body text-muted-foreground mb-4 leading-relaxed">
-            O <strong className="text-foreground">nível de pólen</strong> indica a quantidade de grãos de pólen por metro cúbico de ar. Alta concentração pode desencadear alergias respiratórias, rinite e agravamento de asma em pessoas sensíveis.
-          </p>
+          <p className="text-sm font-body text-muted-foreground mb-4 leading-relaxed">{t('glossary.pollenDesc')}</p>
 
           <div className="overflow-hidden rounded border border-border">
             <table className="w-full text-xs font-body">
               <thead>
                 <tr className="bg-muted/60 border-b border-border">
-                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider">Faixa</th>
-                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider">Classificação</th>
-                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Recomendação</th>
+                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider">{t('glossary.range')}</th>
+                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider">{t('glossary.classification')}</th>
+                  <th className="text-left px-3 py-2 font-mono text-muted-foreground uppercase tracking-wider hidden sm:table-cell">{t('glossary.recommendation')}</th>
                 </tr>
               </thead>
               <tbody>
-                {POLLEN_LEVELS.map((level, i) => {
-                  const min = i === 0 ? 0 : POLLEN_LEVELS[i - 1]!.max + 1
+                {pollenLevels.map((level, i) => {
+                  const min = i === 0 ? 0 : pollenLevels[i - 1]!.max + 1
                   return (
                     <tr key={level.label} className="border-b border-border last:border-0 bg-card hover:bg-muted/30 transition-colors">
                       <td className="px-3 py-2.5 font-mono" style={{ color: level.color }}>
@@ -252,12 +253,12 @@ export const GlossaryPage = () => {
         <section className="mb-10" id="fontes">
           <div className="flex items-center gap-2 mb-1">
             <ExternalLink className="w-4 h-4 text-primary" />
-            <h2 className="font-heading text-2xl tracking-wide text-foreground">FONTES DE DADOS</h2>
+            <h2 className="font-heading text-2xl tracking-wide text-foreground">{t('glossary.dataSources')}</h2>
           </div>
-          <p className="text-xs font-mono text-muted-foreground mb-4">Referências científicas e institucionais utilizadas</p>
+          <p className="text-xs font-mono text-muted-foreground mb-4">{t('glossary.dataSourcesSubtitle')}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {DATA_SOURCES.map(source => (
+            {dataSources.map(source => (
               <a
                 key={source.name}
                 href={source.url}
@@ -278,7 +279,7 @@ export const GlossaryPage = () => {
         </section>
 
         <footer className="mt-10 text-xs text-muted-foreground text-center font-mono border-t border-border pt-6">
-          RespirA · AirBR — dados atualizados continuamente via INPE, IQAir, CETESB e parceiros.
+          {t('glossary.footer')}
         </footer>
       </main>
     </div>
