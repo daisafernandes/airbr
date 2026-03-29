@@ -10,7 +10,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border rounded px-2 py-1 text-xs">
-        <span className="font-mono text-foreground">{payload[0].value} intern.</span>
+        <span className="font-mono text-foreground">{payload[0]?.value} intern.</span>
       </div>
     )
   }

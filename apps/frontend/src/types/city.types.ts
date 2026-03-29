@@ -28,6 +28,20 @@ export interface HealthAlert {
   severity: AlertSeverity
 }
 
+export type Region = 'Norte' | 'Nordeste' | 'Centro-Oeste' | 'Sudeste' | 'Sul'
+
+export interface FireSpot {
+  lat: number
+  lng: number
+  intensity: 'low' | 'medium' | 'high'
+}
+
+export interface DeforestationArea {
+  lat: number
+  lng: number
+  radius: number
+}
+
 export interface CityData {
   name: string
   state: string
@@ -35,12 +49,15 @@ export interface CityData {
   lng: number
   aqi: number
   aqiLabel: string
+  region: Region
+  omsCompliant: boolean
   pollutants: Pollutant[]
   history: AQIHistoryPoint[]
   forecast: DayForecast[]
   windDirection: number
   windSpeed: number
-  nearbyFires: Array<{ lat: number; lng: number }>
+  nearbyFires: FireSpot[]
+  deforestationAreas: DeforestationArea[]
   outdoorSafetyScore: number
   uvIndex: number
   pollenLevel: number

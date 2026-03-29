@@ -13,7 +13,8 @@
       "@utils/*": ["utils/*"],
       "@app-types/*": ["types/*"],
       "@assets/*": ["assets/*"],
-      "@styles/*": ["styles/*"]
+      "@styles/*": ["styles/*"],
+      "@data/*": ["data/*"]
     }
   },
   "include": ["src/**/*", "vite.config.ts", "tailwind.config.ts"],

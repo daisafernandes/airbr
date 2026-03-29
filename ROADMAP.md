@@ -57,31 +57,29 @@ Conectar ao banco real e trazer os primeiros dados externos. O Agente A prepara 
 
 > **Dependência:** O Agente B deve aguardar o schema do Prisma (Agente A) antes de iniciar a escrita no banco. Alinhar os tipos do `Normalizer` com o schema antes de começar.
 
-### Agente A — Banco de Dados e ORM
+### Agente A — Banco de Dados e ORM ✅ CONCLUÍDO
 
-- Instalar **Prisma** com suporte a PostGIS via raw SQL
-- Criar `apps/backend/prisma/schema.prisma` com os modelos:
-  - `City` — `id`, `name`, `state`, `lat`, `lng`, `source`
-  - `AqiReading` — `cityId`, `aqi`, `pm25`, `pm10`, `o3`, `no2`, `co`, `uv`, `pollen`, `timestamp`, `source`
-  - `FireFocus` — `lat`, `lng`, `intensity`, `satellite`, `detectedAt`, `biome`
-- Criar migrations e validar no Docker Compose local
-- Instalar `node-cache` e criar `apps/backend/src/infrastructure/cache/NodeCacheService.ts`
-- Criar `CacheService` com métodos `get`, `set`, `invalidate` — cache em memória, sem dependência externa
+- ✅ **Prisma** instalado com `@prisma/client`
+- ✅ `apps/backend/prisma/schema.prisma` com modelos `City`, `AqiReading`, `FireFocus`, `JobLog`
+- ✅ Migration `20260329181033_init` criada e aplicada — tabelas criadas no PostgreSQL + PostGIS (Docker Compose local)
+- ✅ `node-cache` instalado; `apps/backend/src/infrastructure/cache/NodeCacheService.ts` criado
+- ✅ Interface `ICacheService` (`get`, `set`, `invalidate`, `invalidateByPrefix`) em `apps/backend/src/domain/cache/ICacheService.ts`
+- ✅ `NodeCacheService` instanciado no `main.ts` (exportado como `cacheService` — pronto para uso nos endpoints da Fase 2)
 
-### Agente B — Primeiros Coletores (APIs gratuitas, sem chave paga)
+### Agente B — Primeiros Coletores (APIs gratuitas, sem chave paga) ✅ CONCLUÍDO
 
-- Criar interface `ICollector` em `apps/backend/src/jobs/collectors/ICollector.ts`
-- Implementar `OpenWeatherMapCollector` — AQI por coordenada, 1.000 req/dia grátis
-- Implementar `AQICNCollector` — +500 estações no Brasil, token gratuito
-- Implementar `INPEFiresCollector` — focos de queimada em CSV, polling a cada 3h
-- Implementar `OpenMeteoCollector` — clima + UV + AQI, sem necessidade de chave de API
-- Criar `Normalizer` que converte os diferentes formatos para o schema unificado:
-  ```
-  { city, aqi, pm25, pm10, uv, pollen, fires, lat, lng, timestamp, source }
-  ```
-- Criar `apps/backend/data/cities.json` com lista inicial de 50 cidades brasileiras monitoradas
+- ✅ Interface `ICollector` + `NormalizedReading` em `apps/backend/src/jobs/collectors/ICollector.ts`
+- ✅ `OpenWeatherMapCollector` — AQI por coordenada, 1.000 req/dia grátis
+- ✅ `AQICNCollector` — +500 estações no Brasil, token gratuito
+- ✅ `INPEFiresCollector` — focos de queimada em CSV, polling a cada 3h
+- ✅ `OpenMeteoCollector` — clima + UV + AQI, sem necessidade de chave de API
+- ✅ `Normalizer` com retry (exponential backoff) e persistência via `JobLog`
+- ✅ `apps/backend/data/cities.json` com 50 cidades brasileiras monitoradas
+- ✅ `JobScheduler` com `node-cron` (adiantado da Fase 2): AQI a cada 1h, queimadas a cada 3h, cleanup diário às 03:00
 
-**Entregas:** Prisma + PostgreSQL, NodeCache CacheService, 4 coletores funcionando, Normalizer unificado.
+**Entregas:** Prisma + PostgreSQL ✅, migration aplicada ✅, seed com 50 cidades + 1200 leituras AQI ✅, `ICacheService` + `NodeCacheService` ✅, 4 coletores funcionando ✅, Normalizer unificado ✅.
+
+> **Fase 1 concluída integralmente.**
 
 ---
 

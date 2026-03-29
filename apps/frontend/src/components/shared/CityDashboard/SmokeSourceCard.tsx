@@ -90,7 +90,7 @@ export const SmokeSourceCard = ({ lat, lng, windDirection, windSpeed, nearbyFire
 
   const compassLabel = (deg: number): string => {
     const dirs = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO']
-    return dirs[Math.round(deg / 45) % 8]
+    return dirs[Math.round(deg / 45) % 8] ?? 'N'
   }
 
   return (

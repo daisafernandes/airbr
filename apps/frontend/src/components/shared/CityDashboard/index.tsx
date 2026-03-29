@@ -117,16 +117,17 @@ function getCityData(cityName: string): CityData | null {
     const fAqi = Math.max(10, base.aqi + seeded(s * (20 + offset), -40, 40))
     const iconIdx = seeded(s * (30 + offset), 0, 4)
     return {
-      date: DAY_NAMES[(todayDow + offset) % 7],
+      date: DAY_NAMES[(todayDow + offset) % 7]!,
       aqi: fAqi,
-      condition: fAqi <= 50 ? 'good' : fAqi <= 100 ? 'moderate' : fAqi <= 150 ? 'sensitive' : fAqi <= 200 ? 'bad' : 'very-bad',
-      icon: FORECAST_ICONS[iconIdx],
+      condition: fAqi <= 50 ? 'good' : fAqi <= 100 ? 'moderate' : fAqi <= 150 ? 'sensitive' : fAqi <= 200 ? 'bad' : ('very-bad' as const),
+      icon: FORECAST_ICONS[iconIdx]!,
     }
   })
 
   const nearbyFires = Array.from({ length: seeded(s, 2, 5) }, (_, i) => ({
     lat: base.lat + seeded(s * (40 + i), -20, 20) * 0.08,
     lng: base.lng + seeded(s * (50 + i), -20, 20) * 0.08,
+    intensity: (base.aqi > 100 ? 'medium' : 'low') as 'low' | 'medium' | 'high',
   }))
 
   const windDir = seeded(s * 6, 0, 359)
@@ -154,12 +155,15 @@ function getCityData(cityName: string): CityData | null {
     lng: base.lng,
     aqi: base.aqi,
     aqiLabel: getAQILabel(base.aqi),
+    region: 'Sudeste' as const,
+    omsCompliant: base.aqi <= 50,
     pollutants,
     history,
     forecast,
     windDirection: windDir,
     windSpeed,
     nearbyFires,
+    deforestationAreas: [],
     outdoorSafetyScore,
     uvIndex,
     pollenLevel,

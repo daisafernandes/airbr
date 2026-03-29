@@ -6,6 +6,7 @@ import { AqiService } from '@application/services/AqiService'
 import { CityService } from '@application/services/CityService'
 import { FireService } from '@application/services/FireService'
 import { env } from '@infrastructure/config/env'
+import { NodeCacheService } from '@infrastructure/cache/NodeCacheService'
 import { prisma } from '@infrastructure/database/prisma'
 import { PrismaAqiRepository } from '@infrastructure/database/repositories/PrismaAqiRepository'
 import { PrismaCityRepository } from '@infrastructure/database/repositories/PrismaCityRepository'
@@ -23,6 +24,9 @@ import { Normalizer } from '@jobs/Normalizer'
 
 const app = express()
 app.use(express.json())
+
+// Cache
+export const cacheService = new NodeCacheService()
 
 // Repositories
 const cityRepository = new PrismaCityRepository()

@@ -16,6 +16,7 @@ export default defineConfig({
       '@app-types': resolve(__dirname, 'src/types'),
       '@assets': resolve(__dirname, 'src/assets'),
       '@styles': resolve(__dirname, 'src/styles'),
+      '@data': resolve(__dirname, 'src/data'),
     },
   },
   server: {
