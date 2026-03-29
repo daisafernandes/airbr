@@ -3,8 +3,8 @@ import { useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
 
 import { useCities } from '@hooks/useCities'
-import { GLOBAL_DEFORESTATION_AREAS } from '@data/mockCities'
-import type { CityApiData } from '@app-types/airQuality.types'
+import { useDeforestation } from '@hooks/useDeforestation'
+import type { CityApiData, DeforestationAlertApi } from '@app-types/airQuality.types'
 
 function getAQIColor(aqi: number): string {
   if (aqi <= 50) return '#22c55e'
@@ -47,6 +47,7 @@ export const BrazilMap = ({
   const stationsLayerRef = useRef<L.LayerGroup>(L.layerGroup())
 
   const { data: cities = [], isLoading } = useCities()
+  const { data: deforestationAlerts = [] } = useDeforestation()
 
   // Initialise map once
   useEffect(() => {
@@ -62,21 +63,6 @@ export const BrazilMap = ({
       attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
       maxZoom: 18,
     }).addTo(map)
-
-    // Static deforestation layer (Fase 4: replace with PRODES API)
-    GLOBAL_DEFORESTATION_AREAS.forEach(area => {
-      L.circle([area.lat, area.lng], {
-        radius: area.radius,
-        fillColor: '#22c55e',
-        fillOpacity: 0.15,
-        color: '#22c55e',
-        weight: 1,
-        opacity: 0.3,
-        dashArray: '4 4',
-      })
-        .bindPopup('<span style="font-family:\'DM Sans\',sans-serif;color:#0a0f1e">🌳 Área de desmatamento detectado · PRODES/INPE</span>')
-        .addTo(deforestLayerRef.current)
-    })
 
     cityLayerRef.current.addTo(map)
     mapInstanceRef.current = map
@@ -143,6 +129,36 @@ export const BrazilMap = ({
         .addTo(stationsLayerRef.current)
     })
   }, [cities])
+
+  // Redraw deforestation alerts from PRODES when data changes
+  useEffect(() => {
+    deforestLayerRef.current.clearLayers()
+    deforestationAlerts.forEach((alert: DeforestationAlertApi) => {
+      if (alert.lat == null || alert.lng == null) return
+      const radiusM = Math.sqrt(alert.areaHa * 10_000 / Math.PI)
+      const intensity = Math.min(1, alert.areaHa / 50_000)
+      const green = Math.round(180 + 75 * (1 - intensity))
+      const color = `rgb(0, ${green}, 0)`
+      L.circle([alert.lat, alert.lng], {
+        radius: Math.max(radiusM, 5000),
+        fillColor: color,
+        fillOpacity: 0.15 + 0.25 * intensity,
+        color,
+        weight: 1,
+        opacity: 0.4,
+        dashArray: '4 4',
+      })
+        .bindPopup(
+          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
+            🌳 <strong>Desmatamento · ${alert.state}</strong><br/>
+            ${alert.biome ? `Bioma: ${alert.biome}<br/>` : ''}
+            Área: <strong>${alert.areaHa.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} ha</strong><br/>
+            <span style="font-size:10px;color:#666">Fonte: PRODES/INPE</span>
+          </div>`,
+        )
+        .addTo(deforestLayerRef.current)
+    })
+  }, [deforestationAlerts])
 
   // Redraw fire spots when fires prop changes
   useEffect(() => {

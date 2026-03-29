@@ -3,7 +3,10 @@ import type { IAqiRepository } from '@domain/repositories/IAqiRepository'
 import type { IFireRepository } from '@domain/repositories/IFireRepository'
 import { prisma } from '@infrastructure/database/prisma'
 import { withRetry } from '@shared/utils/retry'
+import type { DATASUSCollector } from './collectors/DATASUSCollector'
+import type { IBGECollector } from './collectors/IBGECollector'
 import type { ICollector } from './collectors/ICollector'
+import type { PRODESCollector } from './collectors/PRODESCollector'
 
 const MAX_ATTEMPTS = 3
 const RETRY_BASE_DELAY_MS = 1_000
@@ -19,6 +22,7 @@ const RETRY_BASE_DELAY_MS = 1_000
  *   5. On SUCCESS, invalidate related cache prefixes
  *
  * AQI collectors produce city-linked readings; fire collectors produce geographic foci.
+ * Specialized collectors (PRODES, DATASUS, IBGE) manage their own persistence.
  */
 export class Normalizer {
   constructor(
@@ -27,6 +31,9 @@ export class Normalizer {
     private readonly aqiRepository: IAqiRepository,
     private readonly fireRepository: IFireRepository,
     private readonly cache: ICacheService,
+    private readonly prodesCollector?: PRODESCollector,
+    private readonly datasusCollector?: DATASUSCollector,
+    private readonly ibgeCollector?: IBGECollector,
   ) {}
 
   async runAqi(): Promise<void> {
@@ -48,6 +55,9 @@ export class Normalizer {
             co: reading.co ?? null,
             uv: reading.uv ?? null,
             pollen: reading.pollen ?? null,
+            windDirection: reading.windDirection ?? null,
+            windSpeed: reading.windSpeed ?? null,
+            temperature: reading.temperature ?? null,
             timestamp: reading.timestamp,
             source: reading.source,
           })
@@ -85,6 +95,35 @@ export class Normalizer {
         return count
       })
     }
+  }
+
+  async runProdes(): Promise<void> {
+    if (!this.prodesCollector) return
+    await this.runSpecialized(this.prodesCollector.name, 'deforestation:', () =>
+      this.prodesCollector!.collect(),
+    )
+  }
+
+  async runDatasus(): Promise<void> {
+    if (!this.datasusCollector) return
+    await this.runSpecialized(this.datasusCollector.name, 'health:', () =>
+      this.datasusCollector!.collect(),
+    )
+  }
+
+  async runIbge(): Promise<void> {
+    if (!this.ibgeCollector) return
+    await this.runSpecialized(this.ibgeCollector.name, 'cities:', () =>
+      this.ibgeCollector!.collect(),
+    )
+  }
+
+  private async runSpecialized(
+    collectorName: string,
+    cachePrefix: string,
+    work: () => Promise<number>,
+  ): Promise<void> {
+    await this.runWithLog({ name: collectorName } as ICollector, cachePrefix, work)
   }
 
   /**

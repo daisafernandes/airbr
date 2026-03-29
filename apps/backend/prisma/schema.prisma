@@ -9,34 +9,41 @@ datasource db {
 }
 
 model City {
-  id          String       @id @default(cuid())
-  name        String
-  state       String
-  region      String
-  lat         Float
-  lng         Float
-  source      String       @default("seed")
-  createdAt   DateTime     @default(now())
-  aqiReadings AqiReading[]
+  id              String       @id @default(cuid())
+  name            String
+  state           String
+  region          String
+  lat             Float
+  lng             Float
+  source          String       @default("seed")
+  populationTotal Int?
+  elderlyPct      Float?
+  childrenPct     Float?
+  createdAt       DateTime     @default(now())
+  aqiReadings     AqiReading[]
+  healthData      HealthData[]
 
   @@unique([name, state])
   @@map("cities")
 }
 
 model AqiReading {
-  id        String   @id @default(cuid())
-  cityId    String
-  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  aqi       Int
-  pm25      Float?
-  pm10      Float?
-  o3        Float?
-  no2       Float?
-  co        Float?
-  uv        Float?
-  pollen    Float?
-  timestamp DateTime @default(now())
-  source    String
+  id             String   @id @default(cuid())
+  cityId         String
+  city           City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  aqi            Int
+  pm25           Float?
+  pm10           Float?
+  o3             Float?
+  no2            Float?
+  co             Float?
+  uv             Float?
+  pollen         Float?
+  windDirection  Float?
+  windSpeed      Float?
+  temperature    Float?
+  timestamp      DateTime @default(now())
+  source         String
 
   @@index([cityId, timestamp(sort: Desc)])
   @@map("aqi_readings")
@@ -55,6 +62,36 @@ model FireFocus {
   @@unique([lat, lng, detectedAt])
   @@index([detectedAt])
   @@map("fire_focuses")
+}
+
+model DeforestationAlert {
+  id         String   @id @default(cuid())
+  state      String
+  lat        Float?
+  lng        Float?
+  areaHa     Float
+  biome      String?
+  detectedAt DateTime
+  source     String   @default("prodes")
+  createdAt  DateTime @default(now())
+
+  @@index([detectedAt])
+  @@map("deforestation_alerts")
+}
+
+model HealthData {
+  id                          String   @id @default(cuid())
+  cityId                      String
+  city                        City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  year                        Int
+  month                       Int
+  respiratoryHospitalizations Int
+  source                      String   @default("datasus")
+  createdAt                   DateTime @default(now())
+
+  @@unique([cityId, year, month])
+  @@index([cityId, year, month])
+  @@map("health_data")
 }
 
 model JobLog {

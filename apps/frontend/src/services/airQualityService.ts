@@ -8,6 +8,12 @@ import type {
   HistoryPeriod,
   FireFilters,
   RankingFilters,
+  WindSmokeApi,
+  OutdoorSafetyApi,
+  HealthDataApi,
+  DeforestationAlertApi,
+  DeforestationFilters,
+  OMSComplianceApi,
 } from '@app-types/airQuality.types'
 
 export const airQualityService = {
@@ -39,5 +45,25 @@ export const airQualityService = {
     return api
       .get<NearbyCityApi[]>('/cities/nearby', { params: { lat, lng, radius: radiusKm } })
       .then(r => r.data)
+  },
+
+  getWindSmoke(cityId: string): Promise<WindSmokeApi> {
+    return api.get<WindSmokeApi>(`/cities/${cityId}/wind-smoke`).then(r => r.data)
+  },
+
+  getOutdoorSafety(cityId: string): Promise<OutdoorSafetyApi> {
+    return api.get<OutdoorSafetyApi>(`/cities/${cityId}/outdoor-safety`).then(r => r.data)
+  },
+
+  getHealthData(cityId: string): Promise<HealthDataApi> {
+    return api.get<HealthDataApi>(`/cities/${cityId}/health`).then(r => r.data)
+  },
+
+  getDeforestation(filters?: DeforestationFilters): Promise<DeforestationAlertApi[]> {
+    return api.get<DeforestationAlertApi[]>('/deforestation', { params: filters }).then(r => r.data)
+  },
+
+  getOMSCompliance(): Promise<OMSComplianceApi> {
+    return api.get<OMSComplianceApi>('/cities/oms-compliance').then(r => r.data)
   },
 }

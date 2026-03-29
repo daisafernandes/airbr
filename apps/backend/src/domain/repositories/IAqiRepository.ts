@@ -9,6 +9,9 @@ export interface AqiReadingData {
   co: number | null
   uv: number | null
   pollen: number | null
+  windDirection: number | null
+  windSpeed: number | null
+  temperature: number | null
   timestamp: Date
   source: string
 }
@@ -23,6 +26,9 @@ export interface AqiUpsertInput {
   co?: number | null
   uv?: number | null
   pollen?: number | null
+  windDirection?: number | null
+  windSpeed?: number | null
+  temperature?: number | null
   timestamp: Date
   source: string
 }
@@ -37,10 +43,20 @@ export interface RankedCity {
 
 export type HistoryPeriod = '24h' | '7d' | '30d' | '1y'
 
+export interface OMSComplianceCity {
+  cityId: string
+  cityName: string
+  state: string
+  region: string
+  pm25: number
+  compliant: boolean
+}
+
 export interface IAqiRepository {
   findLatestByCity(cityId: string): Promise<AqiReadingData | null>
   findLatestForAllCities(): Promise<AqiReadingData[]>
   findHistoryByCity(cityId: string, period: HistoryPeriod): Promise<AqiReadingData[]>
   upsert(input: AqiUpsertInput): Promise<AqiReadingData>
   getRanking(options?: { region?: string; state?: string; limit?: number }): Promise<{ mostPolluted: RankedCity[]; leastPolluted: RankedCity[] }>
+  getOMSCompliance(): Promise<{ cities: OMSComplianceCity[]; compliantPct: number }>
 }

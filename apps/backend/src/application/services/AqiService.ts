@@ -1,5 +1,5 @@
 import type { ICacheService } from '@domain/cache/ICacheService'
-import type { AqiReadingData, HistoryPeriod, IAqiRepository, RankedCity } from '@domain/repositories/IAqiRepository'
+import type { AqiReadingData, HistoryPeriod, IAqiRepository, OMSComplianceCity, RankedCity } from '@domain/repositories/IAqiRepository'
 
 const TTL_15_MIN = 60 * 15
 const TTL_1_HOUR = 60 * 60
@@ -31,6 +31,16 @@ export class AqiService {
 
     const result = await this.aqiRepository.getRanking({ ...options, limit: 10 })
     this.cache.set(key, result, TTL_15_MIN)
+    return result
+  }
+
+  async getOMSCompliance(): Promise<{ cities: OMSComplianceCity[]; compliantPct: number }> {
+    const key = 'oms-compliance'
+    const cached = this.cache.get<{ cities: OMSComplianceCity[]; compliantPct: number }>(key)
+    if (cached) return cached
+
+    const result = await this.aqiRepository.getOMSCompliance()
+    this.cache.set(key, result, TTL_1_HOUR)
     return result
   }
 }

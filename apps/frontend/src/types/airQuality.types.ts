@@ -64,3 +64,84 @@ export interface RankingFilters {
   region?: string
   state?: string
 }
+
+// Phase 4 types
+
+export interface WindSmokeApi {
+  city: { id: string; lat: number; lng: number }
+  wind: {
+    direction: number | null
+    speed: number | null
+    compassLabel: string | null
+  }
+  nearbyFires: Array<{
+    lat: number
+    lng: number
+    intensity: number | null
+    biome: string | null
+    distanceKm: number
+  }>
+}
+
+export interface OutdoorSafetyApi {
+  score: number
+  level: 'seguro' | 'moderado' | 'arriscado'
+  breakdown: {
+    aqi: number | null
+    uv: number | null
+    pollen: number | null
+    temperature: number | null
+    aqiScore: number
+    uvScore: number
+    pollenScore: number
+    tempScore: number
+  }
+}
+
+export interface HealthMonthlyData {
+  year: number
+  month: number
+  hospitalizations: number
+  avgAqi: number | null
+}
+
+export interface HealthDataApi {
+  cityId: string
+  populationTotal: number | null
+  elderlyPct: number | null
+  childrenPct: number | null
+  monthlyData: HealthMonthlyData[]
+  correlation: number
+  totalHospitalizations: number
+}
+
+export interface DeforestationAlertApi {
+  id: string
+  state: string
+  lat: number | null
+  lng: number | null
+  areaHa: number
+  biome: string | null
+  detectedAt: string
+  source: string
+}
+
+export interface DeforestationFilters {
+  state?: string
+  biome?: string
+  since?: string
+}
+
+export interface OMSComplianceCityApi {
+  cityId: string
+  cityName: string
+  state: string
+  region: string
+  pm25: number
+  compliant: boolean
+}
+
+export interface OMSComplianceApi {
+  cities: OMSComplianceCityApi[]
+  compliantPct: number
+}

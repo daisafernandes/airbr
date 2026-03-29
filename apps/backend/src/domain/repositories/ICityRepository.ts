@@ -6,6 +6,9 @@ export interface CityData {
   lat: number
   lng: number
   source: string
+  populationTotal: number | null
+  elderlyPct: number | null
+  childrenPct: number | null
   createdAt: Date
 }
 

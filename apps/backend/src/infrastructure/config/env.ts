@@ -9,6 +9,8 @@ const envSchema = z.object({
     .default('postgresql://postgres:postgres@localhost:5432/airbr'),
   OWM_API_KEY: z.string().optional(),
   AQICN_TOKEN: z.string().optional(),
+  CETESB_USERNAME: z.string().optional(),
+  CETESB_PASSWORD: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>

@@ -4,6 +4,7 @@ import type {
   AqiUpsertInput,
   HistoryPeriod,
   IAqiRepository,
+  OMSComplianceCity,
   RankedCity,
 } from '@domain/repositories/IAqiRepository'
 
@@ -51,6 +52,44 @@ export class PrismaAqiRepository implements IAqiRepository {
   async upsert(input: AqiUpsertInput): Promise<AqiReadingData> {
     // AQI readings are time-series — always insert; no true upsert key exists
     return prisma.aqiReading.create({ data: input })
+  }
+
+  async getOMSCompliance(): Promise<{ cities: OMSComplianceCity[]; compliantPct: number }> {
+    const OMS_PM25_LIMIT = 5
+
+    const cities = await prisma.city.findMany({
+      select: { id: true, name: true, state: true, region: true },
+    })
+
+    const results = await Promise.all(
+      cities.map(async city => {
+        const reading = await prisma.aqiReading.findFirst({
+          where: { cityId: city.id, pm25: { not: null } },
+          orderBy: { timestamp: 'desc' },
+          select: { pm25: true },
+        })
+        return reading?.pm25 != null
+          ? {
+              cityId: city.id,
+              cityName: city.name,
+              state: city.state,
+              region: city.region,
+              pm25: reading.pm25,
+              compliant: reading.pm25 <= OMS_PM25_LIMIT,
+            }
+          : null
+      }),
+    )
+
+    const withData = results.filter((r): r is OMSComplianceCity => r !== null)
+    const compliantCount = withData.filter(r => r.compliant).length
+    const compliantPct =
+      withData.length > 0 ? Math.round((compliantCount / withData.length) * 100) : 0
+
+    return {
+      cities: withData.sort((a, b) => b.pm25 - a.pm25),
+      compliantPct,
+    }
   }
 
   async getRanking(options?: {

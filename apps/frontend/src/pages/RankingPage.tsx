@@ -5,6 +5,7 @@ import { ArrowDownUp, Wind } from 'lucide-react'
 import { useCities } from '@hooks/useCities'
 import { useIsMobile } from '@hooks/use-mobile'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
+import { OMSCompliancePanel } from '@components/shared/OMSCompliancePanel'
 import { RankingTable } from '@components/shared/RankingTable'
 
 type SortMode = 'polluted' | 'clean'
@@ -220,6 +221,11 @@ export const RankingPage = () => {
             <p className="text-muted-foreground font-body">Nenhuma cidade encontrada com os filtros selecionados.</p>
           </div>
         )}
+
+        {/* OMS Compliance Panel */}
+        <div className="mt-8">
+          <OMSCompliancePanel />
+        </div>
 
         <footer className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground py-3 border-t border-border gap-2">
           <span className="font-mono">

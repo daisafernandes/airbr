@@ -2,6 +2,9 @@ import type { Request, Response } from 'express'
 
 import type { AqiService } from '@application/services/AqiService'
 import type { CityService } from '@application/services/CityService'
+import type { HealthService } from '@application/services/HealthService'
+import type { OutdoorSafetyService } from '@application/services/OutdoorSafetyService'
+import type { WindSmokeService } from '@application/services/WindSmokeService'
 import type { HistoryPeriod } from '@domain/repositories/IAqiRepository'
 import { AppError } from '@shared/errors/AppError'
 
@@ -11,6 +14,9 @@ export class CityController {
   constructor(
     private readonly cityService: CityService,
     private readonly aqiService: AqiService,
+    private readonly windSmokeService: WindSmokeService,
+    private readonly outdoorSafetyService: OutdoorSafetyService,
+    private readonly healthService: HealthService,
   ) {}
 
   listCities = async (_req: Request, res: Response): Promise<void> => {
@@ -73,5 +79,37 @@ export class CityController {
     })
 
     res.json(ranking)
+  }
+
+  getWindSmoke = async (req: Request, res: Response): Promise<void> => {
+    const id = req.params['id'] ?? ''
+    const city = await this.cityService.getCityById(id)
+    if (!city) throw new AppError('City not found', 404)
+
+    const result = await this.windSmokeService.getWindSmoke(id, city.lat, city.lng)
+    res.json(result)
+  }
+
+  getOutdoorSafety = async (req: Request, res: Response): Promise<void> => {
+    const id = req.params['id'] ?? ''
+    const city = await this.cityService.getCityById(id)
+    if (!city) throw new AppError('City not found', 404)
+
+    const result = await this.outdoorSafetyService.getOutdoorSafety(id)
+    res.json(result)
+  }
+
+  getHealthData = async (req: Request, res: Response): Promise<void> => {
+    const id = req.params['id'] ?? ''
+    const city = await this.cityService.getCityById(id)
+    if (!city) throw new AppError('City not found', 404)
+
+    const result = await this.healthService.getHealthData(id)
+    res.json(result)
+  }
+
+  getOMSCompliance = async (_req: Request, res: Response): Promise<void> => {
+    const result = await this.aqiService.getOMSCompliance()
+    res.json(result)
   }
 }

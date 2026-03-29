@@ -23,13 +23,31 @@ export class JobScheduler {
       void this.normalizer.runFire()
     })
 
+    // PRODES deforestation: daily at 06:00
+    cron.schedule('0 6 * * *', () => {
+      console.info('[Scheduler] Starting PRODES deforestation collection')
+      void this.normalizer.runProdes()
+    })
+
+    // DATASUS health data: weekly on Sunday at 04:00
+    cron.schedule('0 4 * * 0', () => {
+      console.info('[Scheduler] Starting DATASUS health data collection')
+      void this.normalizer.runDatasus()
+    })
+
+    // IBGE population: monthly on 1st at 05:00
+    cron.schedule('0 5 1 * *', () => {
+      console.info('[Scheduler] Starting IBGE population collection')
+      void this.normalizer.runIbge()
+    })
+
     // Cleanup AQI readings older than 90 days: daily at 03:00
     cron.schedule('0 3 * * *', () => {
       console.info('[Scheduler] Starting old-readings cleanup')
       void this.cleanOldReadings()
     })
 
-    console.info('[Scheduler] All jobs scheduled (AQI=1h, Fire=3h, Cleanup=24h)')
+    console.info('[Scheduler] All jobs scheduled (AQI=1h, Fire=3h, PRODES=24h, DATASUS=weekly, IBGE=monthly, Cleanup=24h)')
   }
 
   private async cleanOldReadings(): Promise<void> {

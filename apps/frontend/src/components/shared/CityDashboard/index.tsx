@@ -3,6 +3,9 @@ import { useState } from 'react'
 
 import { useCity } from '@hooks/useCity'
 import { useCityHistory } from '@hooks/useCityHistory'
+import { useHealthData } from '@hooks/useHealthData'
+import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
+import { useWindSmoke } from '@hooks/useWindSmoke'
 import type { AqiReadingApi } from '@app-types/airQuality.types'
 import type { Pollutant, AQIHistoryPoint, HealthAlert } from '@app-types/city.types'
 
@@ -11,6 +14,7 @@ import { AQIHistoryChart } from './AQIHistoryChart'
 import { HealthAlertsCard } from './HealthAlertsCard'
 import { OutdoorSafetyCard } from './OutdoorSafetyCard'
 import { PollutantCards } from './PollutantCards'
+import { PublicHealthCard } from './PublicHealthCard'
 import { SmokeSourceCard } from './SmokeSourceCard'
 
 type Period = '7d' | '30d'
@@ -96,6 +100,9 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
     cityId,
     period === '7d' ? '7d' : '30d',
   )
+  const { data: windSmoke } = useWindSmoke(cityId)
+  const { data: outdoorSafety } = useOutdoorSafety(cityId)
+  const { data: healthData } = useHealthData(cityId)
 
   if (isLoading) {
     return (
@@ -127,11 +134,15 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
   const pollutants = city.latestAqi ? buildPollutants(city.latestAqi) : []
   const healthAlerts = buildHealthAlerts(aqi)
   const historyData = buildHistoryPoints(historyReadings)
-  const { score, uvIndex, pollenLevel } = computeOutdoorSafety(
-    aqi,
-    city.latestAqi?.uv ?? null,
-    city.latestAqi?.pollen ?? null,
-  )
+
+  const outdoorScore = outdoorSafety
+    ? outdoorSafety.score / 10
+    : (() => {
+        const { score } = computeOutdoorSafety(aqi, city.latestAqi?.uv ?? null, city.latestAqi?.pollen ?? null)
+        return score
+      })()
+  const uvIndex = outdoorSafety?.breakdown.uv ?? city.latestAqi?.uv ?? 0
+  const pollenLevel = outdoorSafety?.breakdown.pollen ?? city.latestAqi?.pollen ?? 0
 
   return (
     <div className="w-80 flex-shrink-0 flex flex-col overflow-y-auto max-h-[calc(100vh-140px)] pr-1 space-y-3 animate-fade-in">
@@ -193,17 +204,25 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
         )}
       </div>
 
-      {/* Outdoor safety — computed from API fields */}
-      <OutdoorSafetyCard score={score} uvIndex={uvIndex} pollenLevel={pollenLevel} aqi={aqi} />
+      {/* Outdoor safety — from API endpoint /outdoor-safety */}
+      <OutdoorSafetyCard score={outdoorScore} uvIndex={uvIndex} pollenLevel={pollenLevel} aqi={aqi} />
 
-      {/* Smoke source — TODO Fase 4: requires wind API + INPE fires cross-reference */}
+      {/* Smoke source — from API endpoint /wind-smoke */}
       <SmokeSourceCard
         lat={city.lat}
         lng={city.lng}
-        windDirection={45}
-        windSpeed={0}
-        nearbyFires={[]}
+        windDirection={windSmoke?.wind.direction ?? 0}
+        windSpeed={windSmoke?.wind.speed ?? 0}
+        nearbyFires={windSmoke?.nearbyFires ?? []}
       />
+
+      {/* Public health — from API endpoint /health */}
+      {healthData && healthData.monthlyData.length > 0 && (
+        <PublicHealthCard
+          hospitalizations={healthData.monthlyData[healthData.monthlyData.length - 1]?.hospitalizations ?? 0}
+          history={healthData.monthlyData.map(d => d.hospitalizations)}
+        />
+      )}
 
       <HealthAlertsCard alerts={healthAlerts} aqiLabel={aqiLabel} />
     </div>

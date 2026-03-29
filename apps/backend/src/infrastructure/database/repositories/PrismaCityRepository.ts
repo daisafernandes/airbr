@@ -19,28 +19,90 @@ export class PrismaCityRepository implements ICityRepository {
   }
 
   /**
-   * Finds cities within radiusKm using the Haversine formula via raw SQL.
-   * Neon (PostgreSQL serverless) does not support PostGIS — Haversine replaces geospatial queries.
+   * Finds cities within radiusKm using PostGIS ST_DWithin (geospatial index).
+   * Falls back to Haversine formula if PostGIS is unavailable.
    */
   async findNearby(lat: number, lng: number, radiusKm: number): Promise<NearbyCity[]> {
+    const radiusMeters = radiusKm * 1000
+
+    type RawRow = {
+      id: string
+      name: string
+      state: string
+      region: string
+      lat: number
+      lng: number
+      source: string
+      populationTotal: number | null
+      elderlyPct: number | null
+      childrenPct: number | null
+      createdAt: Date
+      distance_km: number
+    }
+
+    try {
+      const results = await prisma.$queryRaw<RawRow[]>`
+        SELECT
+          id,
+          name,
+          state,
+          region,
+          lat,
+          lng,
+          source,
+          "populationTotal",
+          "elderlyPct",
+          "childrenPct",
+          "createdAt",
+          ST_Distance(
+            ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography,
+            ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
+          ) / 1000 AS distance_km
+        FROM cities
+        WHERE ST_DWithin(
+          ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography,
+          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+          ${radiusMeters}
+        )
+        ORDER BY distance_km ASC
+      `
+
+      return results.map(r => ({
+        id: r.id,
+        name: r.name,
+        state: r.state,
+        region: r.region,
+        lat: Number(r.lat),
+        lng: Number(r.lng),
+        source: r.source,
+        populationTotal: r.populationTotal,
+        elderlyPct: r.elderlyPct,
+        childrenPct: r.childrenPct,
+        createdAt: r.createdAt,
+        distanceKm: Number(r.distance_km),
+      }))
+    } catch {
+      return this.findNearbyHaversine(lat, lng, radiusKm)
+    }
+  }
+
+  private async findNearbyHaversine(lat: number, lng: number, radiusKm: number): Promise<NearbyCity[]> {
     const EARTH_RADIUS_KM = 6371
 
-    type RawRow = CityData & { distance_km: number }
+    type RawRow = {
+      id: string; name: string; state: string; region: string;
+      lat: number; lng: number; source: string;
+      populationTotal: number | null; elderlyPct: number | null; childrenPct: number | null;
+      createdAt: Date; distance_km: number
+    }
 
     const results = await prisma.$queryRaw<RawRow[]>`
       SELECT
-        id,
-        name,
-        state,
-        region,
-        lat,
-        lng,
-        source,
-        "createdAt",
+        id, name, state, region, lat, lng, source,
+        "populationTotal", "elderlyPct", "childrenPct", "createdAt",
         distance_km
       FROM (
-        SELECT
-          *,
+        SELECT *,
           (
             ${EARTH_RADIUS_KM} * acos(
               LEAST(1.0,
@@ -56,16 +118,11 @@ export class PrismaCityRepository implements ICityRepository {
       ORDER BY distance_km ASC
     `
 
-    return results.map((r: CityData & { distance_km: number }) => ({
-      id: r.id,
-      name: r.name,
-      state: r.state,
-      region: r.region,
-      lat: r.lat,
-      lng: r.lng,
-      source: r.source,
-      createdAt: r.createdAt,
-      distanceKm: Number(r.distance_km),
+    return results.map(r => ({
+      id: r.id, name: r.name, state: r.state, region: r.region,
+      lat: Number(r.lat), lng: Number(r.lng), source: r.source,
+      populationTotal: r.populationTotal, elderlyPct: r.elderlyPct, childrenPct: r.childrenPct,
+      createdAt: r.createdAt, distanceKm: Number(r.distance_km),
     }))
   }
 }

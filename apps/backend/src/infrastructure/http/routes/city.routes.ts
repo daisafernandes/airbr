@@ -10,9 +10,13 @@ export const buildCityRoutes = (controller: CityController): Router => {
   router.get('/search', asyncHandler(controller.searchCities))
   router.get('/nearby', asyncHandler(controller.findNearby))
   router.get('/ranking', asyncHandler(controller.getRanking))
+  router.get('/oms-compliance', asyncHandler(controller.getOMSCompliance))
   router.get('/', asyncHandler(controller.listCities))
   router.get('/:id', asyncHandler(controller.getCity))
   router.get('/:id/history', asyncHandler(controller.getCityHistory))
+  router.get('/:id/wind-smoke', asyncHandler(controller.getWindSmoke))
+  router.get('/:id/outdoor-safety', asyncHandler(controller.getOutdoorSafety))
+  router.get('/:id/health', asyncHandler(controller.getHealthData))
 
   return router
 }
