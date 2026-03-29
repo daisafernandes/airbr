@@ -28,19 +28,21 @@ Corrigir inconsistências do scaffold atual antes de qualquer desenvolvimento no
 
 - Garantir que o boot não quebra quando `DATABASE_URL` aponta para um banco inacessível (modo dev sem Docker)
 
-### Agente C — Corrigir Frontend
+### Agente C — Corrigir Frontend ✅ CONCLUÍDO
 
-- Instalar `tailwindcss`, `postcss` e `autoprefixer`; criar `tailwind.config.ts` e `postcss.config.ts` em `apps/frontend/`
+- ✅ Instalar `tailwindcss`, `postcss` e `autoprefixer`; criar `tailwind.config.ts` e `postcss.config.js` em `apps/frontend/`
+- ✅ Tokens de cor e tipografia (DM Sans, Bebas Neue, DM Mono) configurados em `apps/frontend/src/styles/global.css`
+- ✅ Biblioteca de componentes **shadcn/ui** completa instalada (~40 componentes em `components/ui/`)
 
 ### Agente D — Configuração Base
 
-- Criar `docker-compose.yml` na raiz com serviços: **PostgreSQL 16 + PostGIS**, **Redis 7**
+- Criar `docker-compose.yml` na raiz com serviços: **PostgreSQL 16 + PostGIS**
 - Criar `apps/backend/jest.config.ts` (Jest + ts-jest — arquivo de config ausente no scaffold)
 - Criar `apps/frontend/vitest.config.ts` (Vitest — arquivo de config ausente)
 - Configurar **GitHub Actions** básico (`.github/workflows/ci.yml`): lint + type-check em cada PR
 - Atualizar `apps/backend/.env.example` com comentários explicativos por variável
 
-**Entregas:** Tailwind funcionando, Docker Compose (Postgres + Redis), CI básico.
+**Entregas:** Tailwind funcionando ✅, Docker Compose (Postgres), CI básico.
 
 ---
 
@@ -61,8 +63,8 @@ Conectar ao banco real e trazer os primeiros dados externos. O Agente A prepara 
   - `AqiReading` — `cityId`, `aqi`, `pm25`, `pm10`, `o3`, `no2`, `co`, `uv`, `pollen`, `timestamp`, `source`
   - `FireFocus` — `lat`, `lng`, `intensity`, `satellite`, `detectedAt`, `biome`
 - Criar migrations e validar no Docker Compose local
-- Instalar `ioredis` e criar `apps/backend/src/infrastructure/cache/RedisCache.ts`
-- Criar `CacheService` com métodos `get`, `set`, `invalidate` e fallback gracioso (sem Redis = sem cache, sem erro)
+- Instalar `node-cache` e criar `apps/backend/src/infrastructure/cache/NodeCacheService.ts`
+- Criar `CacheService` com métodos `get`, `set`, `invalidate` — cache em memória, sem dependência externa
 
 ### Agente B — Primeiros Coletores (APIs gratuitas, sem chave paga)
 
@@ -77,7 +79,7 @@ Conectar ao banco real e trazer os primeiros dados externos. O Agente A prepara 
   ```
 - Criar `apps/backend/data/cities.json` com lista inicial de 50 cidades brasileiras monitoradas
 
-**Entregas:** Prisma + PostgreSQL, Redis CacheService, 4 coletores funcionando, Normalizer unificado.
+**Entregas:** Prisma + PostgreSQL, NodeCache CacheService, 4 coletores funcionando, Normalizer unificado.
 
 ---
 
@@ -103,6 +105,10 @@ Automatizar a ingestão de dados e expor os primeiros endpoints REST. É o ponto
 
 ### Agente A — Endpoints REST Core
 
+- Adicionar **Redis 7** ao `docker-compose.yml`
+- Instalar `ioredis` e criar `apps/backend/src/infrastructure/cache/RedisCache.ts`
+- Migrar `CacheService` do NodeCache para Redis; manter fallback gracioso (sem Redis = sem cache, sem erro)
+
 Todos com cache Redis (TTL conforme frequência de atualização):
 
 - `GET /api/v1/cities` — lista com AQI atual, lat/lng e fonte; cache 15 min
@@ -113,7 +119,7 @@ Todos com cache Redis (TTL conforme frequência de atualização):
 - `GET /api/v1/search?q=` — autocomplete por nome de cidade com estado e AQI atual
 - `GET /api/v1/nearby?lat=&lng=` — cidades monitoradas próximas a uma coordenada
 
-**Entregas:** Scheduler com node-cron, JobLog no banco, todos os 7 endpoints core funcionando.
+**Entregas:** Scheduler com node-cron, JobLog no banco, todos os 7 endpoints core funcionando, Redis como cache distribuído.
 
 ---
 
@@ -126,27 +132,43 @@ Construir as telas principais que definem a identidade visual do produto. Esta f
 
 ### Agente C1 — Mapa Interativo
 
-- Instalar `leaflet`, `react-leaflet` e `@types/leaflet`
-- Criar `apps/frontend/src/pages/MapPage.tsx` com mapa do Brasil centralizado
-- Marcadores coloridos por faixa de AQI (escala 0–500: verde → amarelo → laranja → vermelho → marrom)
-- Camada de focos de queimada INPE sobrepostos (pontos laranja/vermelho)
-- Clique em marcador abre tooltip com AQI, cidade, estado e link para o dashboard da cidade
-- Toggle de camadas: apenas AQI | apenas queimadas | ambos
-- Botão de geolocalização do usuário com marcador de posição atual
+> **Decisão arquitetural:** Em vez de `MapPage.tsx` isolado, o mapa foi integrado como tela principal em `DashboardPage.tsx`, que combina mapa + sidebar de ranking numa única rota `/`. Essa abordagem reflete melhor o produto como dashboard ambiental.
+
+- ✅ Instalar `leaflet`, `react-leaflet` e `@types/leaflet`
+- ✅ `apps/frontend/src/components/shared/BrazilMap.tsx` com mapa do Brasil centralizado (tiles CARTO dark)
+- ✅ Marcadores coloridos por faixa de AQI (escala 0–500: verde → amarelo → laranja → vermelho → marrom)
+- ✅ Camada de focos de queimada INPE sobrepostos (toggle `showFires`)
+- ✅ Camada de desmatamento sobrepostos (toggle `showDeforestation`)
+- ✅ Toggle de camadas: Queimadas | Desmatamento — controles em `DashboardPage`
+- ✅ Botão de geolocalização no `Header` (chama `onCitySelect`)
+- ⚠️ Clique em marcador abre popup com AQI e cidade — **falta link funcional para `CityPage`** (pendente até `CityPage.tsx` existir)
+- ⚠️ `flyTo` ao selecionar cidade via busca funciona, mas geolocalização passa string `'Minha Localização'` sem coordenadas reais — **binding incompleto**
+- ⚠️ Dados de cidades e AQI **ainda são estáticos/hardcoded** em `BrazilMap.tsx` — substituir por `airQualityService.ts` quando disponível
 
 ### Agente C2 — Páginas de Conteúdo
 
-- Criar `apps/frontend/src/pages/CityPage.tsx`: gauge de AQI, cards de poluentes individuais, gráfico histórico com **Recharts**, alerta de saúde dinâmico por faixa, fonte dos dados
-- Criar `apps/frontend/src/pages/RankingPage.tsx`: cidades mais e menos poluídas com filtros por região e estado
-- Criar `apps/frontend/src/components/ui/SearchBar.tsx` com autocomplete (debounce 300ms), integrado ao `GET /search`
-- Criar `apps/frontend/src/components/ui/AqiGauge.tsx` — gauge reutilizável com escala colorida e nível textual (Bom / Moderado / Prejudicial...)
-- Criar `apps/frontend/src/components/ui/HealthAlert.tsx` — recomendações por faixa de AQI para grupos sensíveis (crianças, idosos, asmáticos)
-- Criar `apps/frontend/src/services/airQualityService.ts` com todos os métodos mapeados para os endpoints da Fase 2
-- Atualizar Header com navegação: Mapa, Ranking, Busca
+> **Pré-requisito crítico:** `apps/frontend/src/services/airQualityService.ts` deve ser criado primeiro — todas as páginas abaixo dependem dele para substituir os dados estáticos atuais. Aguarda os endpoints da Fase 2 estarem disponíveis.
 
-> **Design system:** reutilizar os tokens de cor e tipografia já definidos na arquitetura (DM Sans, Bebas Neue, DM Mono). Mapa com esquema escuro alinhado ao brand.
+> **Nota:** O ranking de cidades existe atualmente como dados **estáticos** em `apps/frontend/src/components/shared/AQISidebar.tsx` (cards "MAIS POLUÍDAS" / "AR MAIS LIMPO"). Quando `RankingPage.tsx` for criado, migrar esses dados para o serviço real.
 
-**Entregas:** MapPage com Leaflet, camada de queimadas, CityPage + AqiGauge, histórico com Recharts, SearchBar autocomplete, RankingPage, HealthAlert.
+- ❌ Criar `apps/frontend/src/services/airQualityService.ts` com todos os métodos mapeados para os endpoints da Fase 2 — **pré-requisito de tudo abaixo**
+- ❌ Criar `apps/frontend/src/pages/CityPage.tsx`: gauge de AQI, cards de poluentes individuais, gráfico histórico com **Recharts**, alerta de saúde dinâmico por faixa, fonte dos dados
+- ❌ Criar `apps/frontend/src/pages/RankingPage.tsx`: cidades mais e menos poluídas com filtros por região e estado
+- ❌ Criar `apps/frontend/src/components/ui/SearchBar.tsx` com autocomplete (debounce 300ms), integrado ao `GET /search` — busca atual em `Header` usa lista estática
+- ❌ Criar `apps/frontend/src/components/ui/AqiGauge.tsx` — gauge reutilizável com escala colorida e nível textual (Bom / Moderado / Prejudicial...)
+- ❌ Criar `apps/frontend/src/components/ui/HealthAlert.tsx` — recomendações por faixa de AQI para grupos sensíveis (crianças, idosos, asmáticos)
+- ❌ Atualizar `Header` com navegação: Mapa, Ranking, Busca (atualmente sem links de navegação)
+
+> **Design system:** tokens de cor e tipografia já disponíveis (DM Sans, Bebas Neue, DM Mono em `global.css`). Componentes shadcn/ui prontos para uso. Mapa com esquema escuro alinhado ao brand.
+
+**Entregas:** `airQualityService.ts`, `CityPage` + `AqiGauge` + histórico com Recharts, `SearchBar` autocomplete integrado à API, `RankingPage`, `HealthAlert`, Header com navegação.
+
+### Arquivos órfãos — limpar antes de avançar
+
+Os arquivos abaixo existem no repositório mas não estão em uso. Devem ser resolvidos durante esta fase:
+
+- `apps/frontend/src/pages/HomePage.tsx` — existe mas **sem rota** em `App.tsx`. Remover (conteúdo é placeholder de scaffold) ou converter em página de marketing/landing futura.
+- `apps/frontend/src/components/layout/RootLayout.tsx` — existe mas **não é referenciado** nas rotas. Ativar quando houver rotas aninhadas (ex: área autenticada com sidebar persistente) ou remover.
 
 ---
 
@@ -309,13 +331,26 @@ Introduzir sistema de identidade completo, vinculando alertas e relatos a contas
 
 ### Agente C — Frontend de Autenticação
 
-- Criar `apps/frontend/src/services/authService.ts` com métodos `login`, `register` e `logout`
-- Criar `apps/frontend/src/pages/LoginPage.tsx` + rota `/login`
-- Criar `apps/frontend/src/pages/RegisterPage.tsx` + rota `/register` (usando o hook `useCreateUser`)
-- Conectar `AuthContext.signIn` ao endpoint real `POST /api/v1/auth/login`
-- Adicionar interceptor Axios para redirecionar ao `/login` em respostas 401
-- Indicador visual na `CityPage` quando o usuário autenticado já tem um alerta ativo para aquela cidade
-- Persistência de alertas vinculada à conta entre dispositivos
+> **Infraestrutura antecipada — já implementada antes desta fase:**
+>
+> | Item | Arquivo | Status |
+> |------|---------|--------|
+> | `AuthContext` com JWT + localStorage | `apps/frontend/src/contexts/AuthContext.tsx` | ✅ pre-built |
+> | Axios interceptor 401 → `/login` | `apps/frontend/src/services/api.ts` | ✅ pre-built |
+> | `userService.ts` (create + getById) | `apps/frontend/src/services/userService.ts` | ✅ pre-built |
+> | `useCreateUser` hook (TanStack Query) | `apps/frontend/src/hooks/useCreateUser.ts` | ✅ pre-built |
+> | `user.types.ts` + `api.types.ts` | `apps/frontend/src/types/` | ✅ pre-built |
+> | Zod schema `createUserSchema` | `apps/frontend/src/utils/validators.ts` | ✅ pre-built |
+>
+> **Delta restante para completar esta fase:**
+
+- ❌ Criar `apps/frontend/src/services/authService.ts` com métodos `login`, `register` e `logout`
+- ❌ Criar `apps/frontend/src/pages/LoginPage.tsx` + rota `/login`
+- ❌ Criar `apps/frontend/src/pages/RegisterPage.tsx` + rota `/register` (usando o hook `useCreateUser`)
+- ❌ Conectar `AuthContext.signIn` ao endpoint real `POST /api/v1/auth/login` (atualmente o contexto existe mas sem endpoint real)
+- ✅ Interceptor Axios para redirecionar ao `/login` em respostas 401 — já implementado em `services/api.ts`
+- ❌ Indicador visual na `CityPage` quando o usuário autenticado já tem um alerta ativo para aquela cidade
+- ❌ Persistência de alertas vinculada à conta entre dispositivos
 
 **Entregas:** Modelo `User` no banco, `POST /auth/register`, `POST /auth/login`, JWT + authMiddleware, páginas `/login` e `/register`, alertas vinculados à conta, gamificação de reporters.
 

@@ -4,6 +4,7 @@ import { Flame, Trees } from 'lucide-react'
 import { Header } from '@components/shared/Header'
 import { BrazilMap } from '@components/shared/BrazilMap'
 import { AQISidebar } from '@components/shared/AQISidebar'
+import { CityDashboard } from '@components/shared/CityDashboard'
 
 export const DashboardPage = () => {
   const [selectedCity, setSelectedCity] = useState<string | null>(null)
@@ -60,7 +61,9 @@ export const DashboardPage = () => {
             showDeforestation={showDeforestation}
           />
           <div className="hidden lg:block">
-            <AQISidebar />
+            {selectedCity
+              ? <CityDashboard cityName={selectedCity} onClose={() => setSelectedCity(null)} />
+              : <AQISidebar />}
           </div>
         </div>
 

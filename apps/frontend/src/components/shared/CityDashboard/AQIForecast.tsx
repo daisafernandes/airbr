@@ -1,0 +1,68 @@
+import { Cloud, CloudSun, Sun, Wind, CloudLightning } from 'lucide-react'
+
+import { DayForecast, ForecastIcon } from '@app-types/city.types'
+
+interface AQIForecastProps {
+  forecast: DayForecast[]
+}
+
+function getAQIColor(aqi: number): string {
+  if (aqi <= 50) return '#4af0c4'
+  if (aqi <= 100) return '#facc15'
+  if (aqi <= 150) return '#ff9f4a'
+  if (aqi <= 200) return '#ef4444'
+  if (aqi <= 300) return '#a855f7'
+  return '#be123c'
+}
+
+function getAQILabel(aqi: number): string {
+  if (aqi <= 50) return 'Bom'
+  if (aqi <= 100) return 'Moderado'
+  if (aqi <= 150) return 'Sensível'
+  if (aqi <= 200) return 'Ruim'
+  if (aqi <= 300) return 'Muito Ruim'
+  return 'Perigoso'
+}
+
+const IconMap: Record<ForecastIcon, React.ElementType> = {
+  sun: Sun,
+  'cloud-sun': CloudSun,
+  cloud: Cloud,
+  haze: Wind,
+  storm: CloudLightning,
+}
+
+export const AQIForecast = ({ forecast }: AQIForecastProps) => {
+  return (
+    <div className="bg-card border border-border rounded p-4">
+      <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">PREVISÃO 3 DIAS</h3>
+      <div className="flex gap-2">
+        {forecast.map(day => {
+          const color = getAQIColor(day.aqi)
+          const label = getAQILabel(day.aqi)
+          const Icon = IconMap[day.icon]
+          return (
+            <div
+              key={day.date}
+              className="flex-1 flex flex-col items-center gap-1.5 bg-muted/40 border border-border/50 rounded p-2.5"
+            >
+              <span className="text-xs font-body font-semibold text-muted-foreground uppercase tracking-wider">
+                {day.date}
+              </span>
+              <Icon className="w-5 h-5 text-muted-foreground" />
+              <span className="font-mono text-base font-bold" style={{ color }}>
+                {day.aqi}
+              </span>
+              <span
+                className="text-[9px] font-body font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide"
+                style={{ background: `${color}20`, color }}
+              >
+                {label}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
