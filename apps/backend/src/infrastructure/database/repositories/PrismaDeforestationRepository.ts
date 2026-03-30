@@ -12,7 +12,8 @@ export class PrismaDeforestationRepository implements IDeforestationRepository {
   }
 
   async findAll(filters?: DeforestationFilters): Promise<DeforestationAlertData[]> {
-    const since = filters?.since ?? new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+    // PRODES scenes span the monitoring year; 90d would hide most polygons. Default ~24 months.
+    const since = filters?.since ?? new Date(Date.now() - 730 * 24 * 60 * 60 * 1000)
 
     return prisma.deforestationAlert.findMany({
       where: {
