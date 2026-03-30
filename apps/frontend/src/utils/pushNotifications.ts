@@ -24,7 +24,10 @@ export async function registerPushNotifications(): Promise<{ ok: boolean; reason
     return { ok: false, reason: 'no_vapid' }
   }
 
-  const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+  let reg = await navigator.serviceWorker.getRegistration()
+  if (!reg) {
+    reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+  }
 
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') {

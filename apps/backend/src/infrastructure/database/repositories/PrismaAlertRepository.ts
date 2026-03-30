@@ -76,6 +76,40 @@ export class PrismaAlertRepository implements IAlertRepository {
     return result.count > 0
   }
 
+  async updateActive(alertId: string, userId: string, active: boolean): Promise<Alert | null> {
+    const updated = await prisma.alert.updateMany({
+      where: { id: alertId, userId },
+      data: { active },
+    })
+    if (updated.count === 0) {
+      return null
+    }
+    return this.findByIdForUser(alertId, userId)
+  }
+
+  async findRecentDispatchesForAlert(
+    alertId: string,
+    limit: number,
+  ): Promise<
+    Array<{
+      channel: 'EMAIL' | 'PUSH'
+      aqiValue: number
+      sentAt: Date
+    }>
+  > {
+    const rows = await prisma.alertDispatch.findMany({
+      where: { alertId },
+      orderBy: { sentAt: 'desc' },
+      take: limit,
+      select: { channel: true, aqiValue: true, sentAt: true },
+    })
+    return rows.map((r) => ({
+      channel: channelToDomain(r.channel),
+      aqiValue: r.aqiValue,
+      sentAt: r.sentAt,
+    }))
+  }
+
   async findActiveForChecker(): Promise<ActiveAlertForJob[]> {
     const rows = await prisma.alert.findMany({
       where: { active: true },

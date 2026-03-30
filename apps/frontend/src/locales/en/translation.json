@@ -50,7 +50,28 @@
     "pushDenied": "Notification permission denied.",
     "pushNoVapid": "Push is not configured on the server.",
     "pushError": "Could not enable push notifications.",
-    "pushReady": "Push enabled for this browser."
+    "pushReady": "Push enabled for this browser.",
+    "active": "Active",
+    "inactive": "Paused",
+    "toggleActive": "Alert active",
+    "recentDispatches": "Recent notifications",
+    "dispatchEmpty": "No dispatches yet.",
+    "updateActiveError": "Could not update alert."
+  },
+  "comparisonPanel": {
+    "title": "COMPARE CITIES",
+    "cityA": "City A",
+    "cityB": "City B",
+    "airQualityIndex": "AIR QUALITY INDEX",
+    "aqiAbbr": "AQI",
+    "pickCityA": "Select city A",
+    "pickCityB": "Select city B",
+    "whoLimit": "WHO: {{limit}} {{unit}}",
+    "pollutantsHeading": "POLLUTANTS"
+  },
+  "pwa": {
+    "install": "Install app",
+    "installing": "Installing…"
   },
   "header": {
     "detectLocation": "Detect my location",
@@ -384,7 +405,8 @@
     "lastUpdate": "Last update",
     "source": "Source",
     "search": "Search city...",
-    "sources": "Sources"
+    "sources": "Sources",
+    "selectPlaceholder": "Select..."
   },
   "notFound": {
     "title": "Page not found",

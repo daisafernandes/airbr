@@ -15,6 +15,18 @@ export class AlertController {
     res.json(alerts)
   }
 
+  patch = async (req: Request, res: Response): Promise<void> => {
+    const userId = req.userId
+    if (!userId) throw new AppError('Unauthorized', 401)
+    const id = req.params['id'] ?? ''
+    const body = req.body as { active: boolean }
+    const updated = await this.alertService.setActive(id, userId, body.active)
+    if (!updated) {
+      throw new AppError('Alert not found', 404)
+    }
+    res.json(updated.toJSON())
+  }
+
   create = async (req: Request, res: Response): Promise<void> => {
     const userId = req.userId
     if (!userId) throw new AppError('Unauthorized', 401)

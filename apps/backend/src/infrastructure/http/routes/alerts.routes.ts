@@ -13,6 +13,10 @@ const createAlertSchema = z.object({
   active: z.boolean().optional(),
 })
 
+const patchAlertSchema = z.object({
+  active: z.boolean(),
+})
+
 export const buildAlertRoutes = (controller: AlertController): Router => {
   const router = Router()
 
@@ -20,6 +24,7 @@ export const buildAlertRoutes = (controller: AlertController): Router => {
 
   router.get('/', asyncHandler(controller.list))
   router.post('/', validateBody(createAlertSchema), asyncHandler(controller.create))
+  router.patch('/:id', validateBody(patchAlertSchema), asyncHandler(controller.patch))
   router.delete('/:id', asyncHandler(controller.remove))
 
   return router

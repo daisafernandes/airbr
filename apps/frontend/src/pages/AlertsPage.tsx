@@ -9,10 +9,12 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { ProtectedRoute } from '@components/layout/ProtectedRoute'
 import { CitySearchBar } from '@components/shared/CitySearchBar'
 import { useAuth } from '@contexts/AuthContext'
 import { alertsService, type AlertChannel } from '@services/alertsService'
+import { formatDateTime } from '@utils/formatters'
 import { registerPushNotifications } from '@utils/pushNotifications'
 
 const AlertsContent = () => {
@@ -83,6 +85,14 @@ const AlertsContent = () => {
       toast.success(t('alerts.removed'))
     },
     onError: () => toast.error(t('alerts.removeError')),
+  })
+
+  const activeMutation = useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) => alertsService.setActive(id, active),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['alerts'] })
+    },
+    onError: () => toast.error(t('alerts.updateActiveError')),
   })
 
   const handleEnablePush = async () => {
@@ -200,33 +210,71 @@ const AlertsContent = () => {
             <p className="text-muted-foreground">{t('alerts.empty')}</p>
           ) : (
             <ul className="space-y-3">
-              {alerts.map(a => (
-                <li
-                  key={a.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card/40 px-4 py-3"
-                >
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {a.cityName ?? a.cityId}
-                      {a.state ? `, ${a.state}` : ''}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('alerts.threshold')}: {a.thresholdAqi} ·{' '}
-                      {a.channels.map(c => (c === 'EMAIL' ? t('alerts.channelEmail') : t('alerts.channelPush'))).join(', ')}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => deleteMutation.mutate(a.id)}
-                    disabled={deleteMutation.isPending}
-                    aria-label={t('alerts.remove')}
+              {alerts.map(a => {
+                const recent = a.recentDispatches ?? []
+                return (
+                  <li
+                    key={a.id}
+                    className="rounded-lg border border-border bg-card/40 px-4 py-3 space-y-3"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </li>
-              ))}
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground">
+                          {a.cityName ?? a.cityId}
+                          {a.state ? `, ${a.state}` : ''}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {t('alerts.threshold')}: {a.thresholdAqi} ·{' '}
+                          {a.channels.map(c => (c === 'EMAIL' ? t('alerts.channelEmail') : t('alerts.channelPush'))).join(', ')}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <span className={a.active ? 'text-primary' : ''}>
+                            {a.active ? t('alerts.active') : t('alerts.inactive')}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <Switch
+                          checked={a.active}
+                          disabled={activeMutation.isPending}
+                          onCheckedChange={checked => activeMutation.mutate({ id: a.id, active: checked })}
+                          aria-label={t('alerts.toggleActive')}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => deleteMutation.mutate(a.id)}
+                          disabled={deleteMutation.isPending}
+                          aria-label={t('alerts.remove')}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border-t border-border pt-2">
+                      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">
+                        {t('alerts.recentDispatches')}
+                      </p>
+                      {recent.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">{t('alerts.dispatchEmpty')}</p>
+                      ) : (
+                        <ul className="text-xs text-muted-foreground space-y-1">
+                          {recent.map(d => (
+                            <li key={`${d.sentAt}-${d.channel}-${d.aqiValue}`}>
+                              {d.channel === 'EMAIL' ? t('alerts.channelEmail') : t('alerts.channelPush')} · AQI {d.aqiValue} ·{' '}
+                              {formatDateTime(new Date(d.sentAt), {
+                                dateStyle: 'short',
+                                timeStyle: 'short',
+                              })}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </section>

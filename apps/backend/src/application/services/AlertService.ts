@@ -18,23 +18,34 @@ export class AlertService {
       ReturnType<Alert['toJSON']> & {
         cityName: string | null
         state: string | null
+        recentDispatches: Array<{
+          channel: 'EMAIL' | 'PUSH'
+          aqiValue: number
+          sentAt: string
+        }>
       }
     >
   > {
     const items = await this.alerts.findByUserId(userId)
-    const out: Array<
-      ReturnType<Alert['toJSON']> & { cityName: string | null; state: string | null }
-    > = []
 
-    for (const a of items) {
-      const city = await this.cities.findById(a.cityId)
-      out.push({
-        ...a.toJSON(),
-        cityName: city?.name ?? null,
-        state: city?.state ?? null,
-      })
-    }
-    return out
+    return Promise.all(
+      items.map(async (a) => {
+        const [city, recent] = await Promise.all([
+          this.cities.findById(a.cityId),
+          this.alerts.findRecentDispatchesForAlert(a.id, 5),
+        ])
+        return {
+          ...a.toJSON(),
+          cityName: city?.name ?? null,
+          state: city?.state ?? null,
+          recentDispatches: recent.map((d) => ({
+            channel: d.channel,
+            aqiValue: d.aqiValue,
+            sentAt: d.sentAt.toISOString(),
+          })),
+        }
+      }),
+    )
   }
 
   async create(
@@ -64,5 +75,9 @@ export class AlertService {
 
   async remove(alertId: string, userId: string): Promise<boolean> {
     return this.alerts.delete(alertId, userId)
+  }
+
+  async setActive(alertId: string, userId: string, active: boolean): Promise<Alert | null> {
+    return this.alerts.updateActive(alertId, userId, active)
   }
 }

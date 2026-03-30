@@ -3,7 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "baseUrl": "./src",
-    "types": ["vite/client"],
+    "types": ["vite/client", "vite-plugin-pwa/client"],
     "paths": {
       "@/*": ["./*"],
       "@components/*": ["components/*"],

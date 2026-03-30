@@ -50,7 +50,28 @@
     "pushDenied": "Permissão de notificação negada.",
     "pushNoVapid": "Push não está configurado no servidor.",
     "pushError": "Não foi possível ativar notificações push.",
-    "pushReady": "Push ativado neste navegador."
+    "pushReady": "Push ativado neste navegador.",
+    "active": "Ativo",
+    "inactive": "Pausado",
+    "toggleActive": "Alerta ativo",
+    "recentDispatches": "Últimos avisos",
+    "dispatchEmpty": "Nenhum disparo registrado ainda.",
+    "updateActiveError": "Não foi possível atualizar o alerta."
+  },
+  "comparisonPanel": {
+    "title": "COMPARAR CIDADES",
+    "cityA": "Cidade A",
+    "cityB": "Cidade B",
+    "airQualityIndex": "ÍNDICE DE QUALIDADE DO AR",
+    "aqiAbbr": "IQAr",
+    "pickCityA": "Selecione a cidade A",
+    "pickCityB": "Selecione a cidade B",
+    "whoLimit": "OMS: {{limit}} {{unit}}",
+    "pollutantsHeading": "POLUENTES"
+  },
+  "pwa": {
+    "install": "Instalar app",
+    "installing": "Instalando…"
   },
   "header": {
     "detectLocation": "Detectar minha localização",
@@ -384,7 +405,8 @@
     "lastUpdate": "Última atualização",
     "source": "Fonte",
     "search": "Buscar cidade...",
-    "sources": "Fontes"
+    "sources": "Fontes",
+    "selectPlaceholder": "Selecionar..."
   },
   "notFound": {
     "title": "Página não encontrada",

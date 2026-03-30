@@ -1,11 +1,12 @@
 import { Wind, MapPin } from 'lucide-react'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import { useAuth } from '@contexts/AuthContext'
+import { usePwaInstall } from '@hooks/usePwaInstall'
 import { airQualityService } from '@services/airQualityService'
 
 import { CitySearchBar } from './CitySearchBar'
@@ -19,6 +20,17 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
   const location = useLocation()
   const { t } = useTranslation()
   const { isAuthenticated, authReady, signOut } = useAuth()
+  const { canInstall, install } = usePwaInstall()
+  const [installBusy, setInstallBusy] = useState(false)
+
+  const handleInstall = async () => {
+    setInstallBusy(true)
+    try {
+      await install()
+    } finally {
+      setInstallBusy(false)
+    }
+  }
 
   const handleLocation = useCallback(() => {
     if (!navigator.geolocation) return
@@ -96,6 +108,18 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
             <span className="hidden sm:inline">{t('header.location')}</span>
           </button>
           <LanguageSelector />
+          {canInstall && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="text-xs shrink-0 hidden sm:inline-flex"
+              disabled={installBusy}
+              onClick={() => void handleInstall()}
+            >
+              {installBusy ? t('pwa.installing') : t('pwa.install')}
+            </Button>
+          )}
           {authReady &&
             (isAuthenticated ? (
               <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => signOut()}>
