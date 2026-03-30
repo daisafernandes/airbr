@@ -11,5 +11,5 @@ export interface JobLogEntry {
 }
 
 export interface IJobLogRepository {
-  findRecent(limit: number): Promise<JobLogEntry[]>
+  findRecent(limit: number, status?: JobStatus): Promise<JobLogEntry[]>
 }

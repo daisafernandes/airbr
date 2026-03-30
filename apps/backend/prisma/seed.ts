@@ -1,7 +1,47 @@
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+
 import { PrismaClient } from '@prisma/client'
 import citiesData from '../data/cities.json'
 
 const prisma = new PrismaClient()
+
+type MunicipalityGeoRow = {
+  ibgeCode: number
+  name: string
+  state: string
+  region: string
+  lat: number
+  lng: number
+}
+
+async function seedMunicipalities(): Promise<void> {
+  const geoPath = path.join(__dirname, '../data/municipalities-geo.json')
+  if (!fs.existsSync(geoPath)) {
+    console.warn(
+      '⚠️  municipalities-geo.json not found — run: npm run import:municipalities (from apps/backend)',
+    )
+    return
+  }
+  const raw = JSON.parse(fs.readFileSync(geoPath, 'utf8')) as MunicipalityGeoRow[]
+  await prisma.municipality.deleteMany()
+
+  const batchSize = 800
+  for (let i = 0; i < raw.length; i += batchSize) {
+    const batch = raw.slice(i, i + batchSize)
+    await prisma.municipality.createMany({
+      data: batch.map(m => ({
+        ibgeCode: m.ibgeCode,
+        name: m.name,
+        state: m.state,
+        region: m.region,
+        lat: m.lat,
+        lng: m.lng,
+      })),
+    })
+  }
+  console.log(`✅ Seeded ${raw.length} IBGE municipalities (geo)`)
+}
 
 function randomBetween(min: number, max: number): number {
   return Math.random() * (max - min) + min
@@ -28,6 +68,8 @@ async function main() {
 
   await prisma.aqiReading.deleteMany()
   await prisma.city.deleteMany()
+
+  await seedMunicipalities()
 
   const cities = await Promise.all(
     citiesData.map((c) =>

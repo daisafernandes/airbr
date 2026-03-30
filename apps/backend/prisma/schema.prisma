@@ -49,6 +49,19 @@ model AqiReading {
   @@map("aqi_readings")
 }
 
+/// IBGE municipal seats (sedes) for geospatial "nearest municipality" lookups — not tied to AQI stations.
+model Municipality {
+  id       String @id @default(cuid())
+  ibgeCode Int    @unique
+  name     String
+  state    String
+  region   String
+  lat      Float
+  lng      Float
+
+  @@map("municipalities")
+}
+
 model FireFocus {
   id         String   @id @default(cuid())
   lat        Float

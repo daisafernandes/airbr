@@ -1,4 +1,4 @@
-import type { IJobLogRepository } from '@domain/repositories/IJobLogRepository'
+import type { IJobLogRepository, JobStatus } from '@domain/repositories/IJobLogRepository'
 import type { Normalizer } from '@jobs/Normalizer'
 import type { Request, Response } from 'express'
 
@@ -22,7 +22,8 @@ export class AdminController {
     const raw = parseInt(String(req.query['limit'] ?? DEFAULT_LIMIT), 10)
     const limit = isNaN(raw) || raw < 1 ? DEFAULT_LIMIT : Math.min(raw, MAX_LIMIT)
 
-    const jobs = await this.jobLogRepository.findRecent(limit)
+    const status = req.query['status'] as JobStatus | undefined;
+    const jobs = await this.jobLogRepository.findRecent(limit, status)
     res.json({ jobs })
   }
 }

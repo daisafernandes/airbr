@@ -4,8 +4,8 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "node",
-    "target": "ES2024",
-    "lib": ["ES2024"],
+    "target": "ES2023",
+    "lib": ["ES2023"],
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,

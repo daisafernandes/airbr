@@ -18,6 +18,7 @@ import { PrismaAqiRepository } from '@infrastructure/database/repositories/Prism
 import { PrismaCityRepository } from '@infrastructure/database/repositories/PrismaCityRepository'
 import { PrismaDeforestationRepository } from '@infrastructure/database/repositories/PrismaDeforestationRepository'
 import { PrismaFireRepository } from '@infrastructure/database/repositories/PrismaFireRepository'
+import { PrismaMunicipalityRepository } from '@infrastructure/database/repositories/PrismaMunicipalityRepository'
 import { PrismaHealthRepository } from '@infrastructure/database/repositories/PrismaHealthRepository'
 import { PrismaJobLogRepository } from '@infrastructure/database/repositories/PrismaJobLogRepository'
 import { AdminController } from '@infrastructure/http/controllers/AdminController'
@@ -58,6 +59,7 @@ export const cacheService = new NodeCacheService()
 const cityRepository = new PrismaCityRepository()
 const aqiRepository = new PrismaAqiRepository()
 const fireRepository = new PrismaFireRepository()
+const municipalityRepository = new PrismaMunicipalityRepository()
 const jobLogRepository = new PrismaJobLogRepository()
 const deforestationRepository = new PrismaDeforestationRepository()
 const healthRepository = new PrismaHealthRepository()
@@ -65,7 +67,7 @@ const healthRepository = new PrismaHealthRepository()
 // Services
 const cityService = new CityService(cityRepository, aqiRepository, cacheService)
 const aqiService = new AqiService(aqiRepository, cacheService)
-const fireService = new FireService(fireRepository, cacheService)
+const fireService = new FireService(fireRepository, cacheService, municipalityRepository)
 const windSmokeService = new WindSmokeService(aqiRepository, fireRepository, cacheService)
 const outdoorSafetyService = new OutdoorSafetyService(aqiRepository, cacheService)
 const healthService = new HealthService(healthRepository, aqiRepository, cityRepository, cacheService)
