@@ -89,7 +89,9 @@ export class PrismaAqiRepository implements IAqiRepository {
     return latest
       .map((r, i): AqiReadingData | null => {
         if (!r) return null
-        const om = newestOpenMeteoByCity.get(cities[i].id)
+        const city = cities[i]
+        if (!city) return null
+        const om = newestOpenMeteoByCity.get(city.id)
         return mergeLatestWithOpenMeteoWeather(r, om)
       })
       .filter((r): r is AqiReadingData => r !== null)
