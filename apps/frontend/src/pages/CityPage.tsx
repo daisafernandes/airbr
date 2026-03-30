@@ -94,6 +94,7 @@ export const CityPage = () => {
     { to: '/ranking', label: t('nav.ranking') },
     { to: '/mapa-queimadas', label: t('nav.fireMap') },
     { to: '/guia', label: t('nav.guide') },
+    { to: '/metodologia', label: t('nav.methodology') },
   ]
 
   return (

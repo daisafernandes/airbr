@@ -1,4 +1,4 @@
-import { Flame, Trees, Radio, SlidersHorizontal, Wind } from 'lucide-react'
+import { Flame, Trees, SlidersHorizontal, Wind } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -28,11 +28,13 @@ const PERIOD_DAYS: Record<Period, number> = {
 const AFFECTED_CITIES_PREVIEW = 6
 
 function ImpactCard({
+  showFires,
   fireCount,
   affectedCities,
   affectedCityLabels,
   loading,
 }: {
+  showFires: boolean
   fireCount: number
   affectedCities: number
   affectedCityLabels: string[]
@@ -48,6 +50,14 @@ function ImpactCard({
         <Flame className="w-4 h-4 text-accent mt-0.5 shrink-0" />
         {loading ? (
           <div className="h-4 bg-muted animate-pulse rounded w-48" />
+        ) : !showFires ? (
+          <p className="text-xs font-body text-muted-foreground leading-snug min-w-0 flex-1">
+            {t('firemap.fireLayerOffHint')}
+          </p>
+        ) : fireCount === 0 ? (
+          <p className="text-xs font-body text-muted-foreground leading-snug min-w-0 flex-1">
+            {t('firemap.noFireFoci')}
+          </p>
         ) : (
           <div className="text-xs font-body text-foreground leading-snug min-w-0 flex-1">
             <p>
@@ -82,8 +92,6 @@ function FilterControls({
   onToggleFires,
   showDeforestation,
   onToggleDeforestation,
-  showStations,
-  onToggleStations,
   states,
 }: {
   stateFilter: string
@@ -94,8 +102,6 @@ function FilterControls({
   onToggleFires: () => void
   showDeforestation: boolean
   onToggleDeforestation: () => void
-  showStations: boolean
-  onToggleStations: () => void
   states: string[]
 }) {
   const { t } = useTranslation()
@@ -171,18 +177,6 @@ function FilterControls({
             {t('firemap.deforestation')}
             {showDeforestation && <span className="ml-auto text-[9px] font-mono bg-green-500/20 px-1.5 py-0.5 rounded">ON</span>}
           </button>
-          <button
-            onClick={onToggleStations}
-            className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-body rounded border transition-colors ${
-              showStations
-                ? 'bg-blue-500/15 border-blue-500/40 text-blue-400'
-                : 'bg-muted border-border text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Radio className="w-3.5 h-3.5" />
-            {t('firemap.officialStations')}
-            {showStations && <span className="ml-auto text-[9px] font-mono bg-blue-500/20 px-1.5 py-0.5 rounded">ON</span>}
-          </button>
         </div>
       </div>
 
@@ -212,7 +206,6 @@ export const FireMapPage = () => {
   const isMobile = useIsMobile()
   const [showFires, setShowFires] = useState(true)
   const [showDeforestation, setShowDeforestation] = useState(false)
-  const [showStations, setShowStations] = useState(false)
   const [stateFilter, setStateFilter] = useState('')
   const [period, setPeriod] = useState<Period>('hoje')
   const { t } = useTranslation()
@@ -252,8 +245,6 @@ export const FireMapPage = () => {
       onToggleFires={() => setShowFires(v => !v)}
       showDeforestation={showDeforestation}
       onToggleDeforestation={() => setShowDeforestation(v => !v)}
-      showStations={showStations}
-      onToggleStations={() => setShowStations(v => !v)}
       states={states}
     />
   )
@@ -284,6 +275,9 @@ export const FireMapPage = () => {
             <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
               {t('nav.guide')}
             </Link>
+            <Link to="/metodologia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
+              {t('nav.methodology')}
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -304,6 +298,7 @@ export const FireMapPage = () => {
             </div>
 
             <ImpactCard
+              showFires={showFires}
               fireCount={impactStats.fireCount}
               affectedCities={impactStats.affectedCities}
               affectedCityLabels={impactStats.affectedCityLabels}
@@ -321,7 +316,6 @@ export const FireMapPage = () => {
           <FireMap
             showFires={showFires}
             showDeforestation={showDeforestation}
-            showStations={showStations}
             stateFilter={stateFilter}
             fires={fires}
           />
@@ -330,6 +324,7 @@ export const FireMapPage = () => {
           {isMobile && (
             <div className="absolute top-4 left-4 right-4 z-20">
               <ImpactCard
+                showFires={showFires}
                 fireCount={impactStats.fireCount}
                 affectedCities={impactStats.affectedCities}
                 affectedCityLabels={impactStats.affectedCityLabels}

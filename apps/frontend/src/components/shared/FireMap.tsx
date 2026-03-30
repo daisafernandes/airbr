@@ -35,15 +35,6 @@ function escapePopupText(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-function getAQIColor(aqi: number): string {
-  if (aqi <= 50) return '#22c55e'
-  if (aqi <= 100) return '#eab308'
-  if (aqi <= 150) return '#f97316'
-  if (aqi <= 200) return '#ef4444'
-  if (aqi <= 300) return '#a855f7'
-  return '#7f1d1d'
-}
-
 function getFireColor(intensity: number | null): string {
   if (intensity === null) return '#facc15'
   if (intensity >= 70) return '#ef4444'
@@ -68,17 +59,15 @@ function getFireLabel(intensity: number | null): string {
 interface FireMapProps {
   showFires: boolean
   showDeforestation: boolean
-  showStations: boolean
   stateFilter: string
   fires?: FireFocusApi[]
 }
 
-export const FireMap = ({ showFires, showDeforestation, showStations, stateFilter, fires = [] }: FireMapProps) => {
+export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [] }: FireMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const fireLayerRef = useRef<L.LayerGroup>(L.layerGroup())
   const deforestLayerRef = useRef<L.LayerGroup>(L.layerGroup())
-  const stationsLayerRef = useRef<L.LayerGroup>(L.layerGroup())
 
   const { data: cities = [] } = useCities()
   const { data: deforestationAlerts = [] } = useDeforestation(
@@ -201,36 +190,6 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
     else deforestLayerRef.current.remove()
   }, [showDeforestation])
 
-  // Redraw stations layer when city API data loads
-  useEffect(() => {
-    stationsLayerRef.current.clearLayers()
-    const map = mapInstanceRef.current
-    if (!map) return
-
-    cities.forEach(city => {
-      const aqi = city.latestAqi?.aqi ?? 0
-      const color = getAQIColor(aqi)
-      L.circleMarker([city.lat, city.lng], {
-        radius: 5,
-        fillColor: color,
-        fillOpacity: 0.8,
-        color: '#fff',
-        weight: 1,
-        opacity: 0.5,
-      })
-        .bindPopup(
-          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            <strong style="font-family:'Bebas Neue',sans-serif;font-size:15px">${city.name}, ${city.state}</strong><br/>
-            <span style="font-family:'DM Mono',monospace;font-size:18px;color:${color}">AQI ${aqi}</span><br/>
-            <span style="font-size:11px">Estação oficial · ${city.source}</span>
-          </div>`,
-        )
-        .addTo(stationsLayerRef.current)
-    })
-
-    if (showStations) stationsLayerRef.current.addTo(map)
-  }, [cities, showStations])
-
   // Toggle fire layer
   useEffect(() => {
     const map = mapInstanceRef.current
@@ -238,14 +197,6 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
     if (showFires) fireLayerRef.current.addTo(map)
     else fireLayerRef.current.remove()
   }, [showFires])
-
-  // Toggle stations layer
-  useEffect(() => {
-    const map = mapInstanceRef.current
-    if (!map) return
-    if (showStations) stationsLayerRef.current.addTo(map)
-    else stationsLayerRef.current.remove()
-  }, [showStations])
 
   // Fly to state when filter changes
   useEffect(() => {

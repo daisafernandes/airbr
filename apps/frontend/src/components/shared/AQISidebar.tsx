@@ -87,7 +87,7 @@ export const AQISidebar = () => {
   ] as const
 
   return (
-    <div className="w-80 flex-shrink-0 space-y-4 overflow-y-auto max-h-[calc(100vh-140px)] pr-1">
+    <div className="w-80 flex-shrink-0 space-y-4 pr-1">
       <RankingCard
         title={t('ranking.sidebarMostPolluted')}
         icon={<TrendingUp className="w-4 h-4 text-accent" />}

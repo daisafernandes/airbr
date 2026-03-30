@@ -2,12 +2,14 @@
   "nav": {
     "dashboard": "Dashboard",
     "ranking": "Ranking",
-    "fireMap": "Mapa Queimadas",
-    "guide": "Guia"
+    "fireMap": "Mapa Queimadas/Desmatamentos",
+    "guide": "Guia",
+    "methodology": "Metodologia"
   },
   "header": {
     "detectLocation": "Detectar minha localização",
-    "location": "Localização"
+    "location": "Localização",
+    "live": "AO VIVO"
   },
   "aqi": {
     "bands": {
@@ -257,11 +259,21 @@
     "recommendation": "Recomendação",
     "dataSources": "FONTES DE DADOS",
     "dataSourcesSubtitle": "Referências científicas e institucionais utilizadas",
-    "footer": "RespirA · AirBR — dados atualizados continuamente via INPE, IQAir, CETESB e parceiros."
+    "footer": "RespirA · AirBR — dados atualizados continuamente via INPE, IQAir, CETESB e parceiros.",
+    "tocTitle": "Nesta página",
+    "tocAqi": "IQAr / AQI",
+    "tocPollutants": "Poluentes",
+    "tocUv": "Índice UV",
+    "tocPollen": "Pólen",
+    "tocStations": "Estações oficiais",
+    "tocSources": "Fontes",
+    "officialStationsTitle": "ESTAÇÕES OFICIAIS",
+    "officialStationsSubtitle": "O que significam no mapa e no ranking",
+    "officialStationsDesc": "As estações oficiais são pontos fixos de medição de qualidade do ar: sensores e redes públicas ou parceiras que informam concentrações de poluentes e calculam o IQAr exibido no RespirA. Exemplos incluem a rede CETESB (São Paulo), estações IQAir e outras fontes agregadas pela plataforma. Cada cidade monitorada corresponde a um desses pontos — não confundir com focos de queimada ou desmatamento, que são camadas diferentes baseadas em dados do INPE e PRODES."
   },
   "firemap": {
-    "title": "MAPA DE QUEIMADAS",
-    "subtitle": "Focos ativos · INPE/BDQueimadas",
+    "title": "MAPA QUEIMADAS / DESMATAMENTO",
+    "subtitle": "Focos de queimada (INPE/BDQueimadas) e alertas de desmatamento (PRODES/INPE)",
     "activeFires": "focos ativos estão afetando a qualidade do ar em {{cities}} cidades",
     "andMoreCities": "e mais {{count}} cidades",
     "period": "Período",
@@ -278,7 +290,28 @@
     "filtersAndLayers": "Filtros e Camadas",
     "today": "Hoje",
     "days7": "7 dias",
-    "days30": "30 dias"
+    "days30": "30 dias",
+    "noFireFoci": "Nenhum foco de queimada registrado no período e filtros selecionados. Isso é um bom sinal para o ar nesta visão — ajuste o estado ou o período se quiser explorar outras regiões.",
+    "fireLayerOffHint": "Ative a camada \"Focos de Queimada\" para ver a contagem e as cidades potencialmente afetadas."
+  },
+  "methodology": {
+    "title": "METODOLOGIA E FONTES",
+    "subtitle": "Como o RespirA obtém, trata e exibe os dados de qualidade do ar e meio ambiente.",
+    "sections": {
+      "overview": {
+        "title": "Visão geral",
+        "body": "O aplicativo web consome uma API REST. O backend agrega leituras de várias origens, normaliza e persiste em PostgreSQL. Respostas frequentes usam cache em memória com TTL para reduzir carga e latência — o mesmo padrão aplicado aos serviços de cidades e IQAr."
+      },
+      "collectors": {
+        "title": "Coleta e atualização",
+        "body": "Rotinas agendadas e coletores alimentam o sistema com dados de provedores como OpenWeatherMap, AQICN (IQAir), Open-Meteo, CETESB, IEMA, IAT, INPE (focos de queimada), PRODES (desmatamento), DATASUS, IBGE e outros integrados ao pipeline. Os dados passam por um normalizador antes de serem armazenados e disponibilizados pela API."
+      },
+      "sources": {
+        "title": "Referências e glossário",
+        "body": "Para descrições dos índices, poluentes e instituições citadas, use o Guia da plataforma.",
+        "guideCta": "Abrir o Guia"
+      }
+    }
   },
   "oms": {
     "compliance": "CONFORMIDADE OMS — PM2.5",

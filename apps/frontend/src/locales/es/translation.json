@@ -2,12 +2,14 @@
   "nav": {
     "dashboard": "Dashboard",
     "ranking": "Ranking",
-    "fireMap": "Mapa de Incendios",
-    "guide": "Guía"
+    "fireMap": "Mapa incendios/deforestacións",
+    "guide": "Guía",
+    "methodology": "Metodología"
   },
   "header": {
     "detectLocation": "Detectar mi ubicación",
-    "location": "Ubicación"
+    "location": "Ubicación",
+    "live": "EN VIVO"
   },
   "aqi": {
     "bands": {
@@ -257,11 +259,21 @@
     "recommendation": "Recomendación",
     "dataSources": "FUENTES DE DATOS",
     "dataSourcesSubtitle": "Referencias científicas e institucionales utilizadas",
-    "footer": "RespirA · AirBR — datos actualizados continuamente vía INPE, IQAir, CETESB y socios."
+    "footer": "RespirA · AirBR — datos actualizados continuamente vía INPE, IQAir, CETESB y socios.",
+    "tocTitle": "En esta página",
+    "tocAqi": "AQI / IQAr",
+    "tocPollutants": "Contaminantes",
+    "tocUv": "Índice UV",
+    "tocPollen": "Polen",
+    "tocStations": "Estaciones oficiales",
+    "tocSources": "Fuentes",
+    "officialStationsTitle": "ESTACIONES OFICIALES",
+    "officialStationsSubtitle": "Qué significan en el mapa y el ranking",
+    "officialStationsDesc": "Las estaciones oficiales son puntos fijos de medición de calidad del aire: sensores y redes públicas o asociadas que informan concentraciones de contaminantes y el AQI mostrado en RespirA. Ejemplos incluyen la red CETESB (São Paulo), estaciones IQAir y otras fuentes agregadas por la plataforma. Cada ciudad monitoreada corresponde a uno de esos puntos; no deben confundirse con focos de incendio o deforestación, que son capas distintas basadas en datos del INPE y PRODES."
   },
   "firemap": {
-    "title": "MAPA DE INCENDIOS",
-    "subtitle": "Focos activos · INPE/BDQueimadas",
+    "title": "MAPA INCENDIOS / DEFORESTACIÓN",
+    "subtitle": "Focos de incendio (INPE/BDQueimadas) y alertas de deforestación (PRODES/INPE)",
     "activeFires": "focos activos están afectando la calidad del aire en {{cities}} ciudades",
     "andMoreCities": "y {{count}} ciudades más",
     "period": "Período",
@@ -278,7 +290,28 @@
     "filtersAndLayers": "Filtros y Capas",
     "today": "Hoy",
     "days7": "7 días",
-    "days30": "30 días"
+    "days30": "30 días",
+    "noFireFoci": "No hay focos de incendio para el período y filtros seleccionados — buena señal para el aire en esta vista. Cambie el estado o el período para explorar otras regiones.",
+    "fireLayerOffHint": "Active la capa \"Focos de incendio\" para ver el conteo y las ciudades potencialmente afectadas."
+  },
+  "methodology": {
+    "title": "METODOLOGÍA Y FUENTES",
+    "subtitle": "Cómo RespirA obtiene, procesa y muestra datos de calidad del aire y medio ambiente.",
+    "sections": {
+      "overview": {
+        "title": "Visión general",
+        "body": "La aplicación web consume una API REST. El backend agrega lecturas de varias fuentes, las normaliza y las guarda en PostgreSQL. Las respuestas frecuentes usan caché en memoria con TTL para reducir carga y latencia — el mismo patrón que en los servicios de ciudades y AQI."
+      },
+      "collectors": {
+        "title": "Recolección y actualización",
+        "body": "Tareas programadas y colectores alimentan el sistema con datos de proveedores como OpenWeatherMap, AQICN (IQAir), Open-Meteo, CETESB, IEMA, IAT, INPE (focos de incendio), PRODES (deforestación), DATASUS, IBGE y otros integrados en el pipeline. Los datos pasan por un normalizador antes de almacenarse y exponerse por la API."
+      },
+      "sources": {
+        "title": "Referencias y glosario",
+        "body": "Para descripciones de índices, contaminantes e instituciones, consulte la Guía de la plataforma.",
+        "guideCta": "Abrir la Guía"
+      }
+    }
   },
   "oms": {
     "compliance": "CONFORMIDAD OMS — PM2.5",

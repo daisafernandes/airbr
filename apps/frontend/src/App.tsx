@@ -4,6 +4,7 @@ import { CityPage } from '@pages/CityPage'
 import { DashboardPage } from '@pages/DashboardPage'
 import { FireMapPage } from '@pages/FireMapPage'
 import { GlossaryPage } from '@pages/GlossaryPage'
+import { MethodologyPage } from '@pages/MethodologyPage'
 import { NotFoundPage } from '@pages/NotFoundPage'
 import { RankingPage } from '@pages/RankingPage'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -37,6 +38,7 @@ export const App = () => {
               <Route path="/mapa-queimadas" element={<FireMapPage />} />
               <Route path="/cidade/:id" element={<CityPage />} />
               <Route path="/guia" element={<GlossaryPage />} />
+              <Route path="/metodologia" element={<MethodologyPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </BrowserRouter>

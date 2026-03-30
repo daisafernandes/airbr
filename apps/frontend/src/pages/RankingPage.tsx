@@ -91,6 +91,9 @@ export const RankingPage = () => {
             <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
               {t('nav.guide')}
             </Link>
+            <Link to="/metodologia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
+              {t('nav.methodology')}
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">

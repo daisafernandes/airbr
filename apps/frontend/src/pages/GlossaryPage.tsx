@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Wind, ExternalLink, Info, Droplets, Sun, Flower2 } from 'lucide-react'
+import { Wind, ExternalLink, Info, Droplets, Sun, Flower2, Radio } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { LiveIndicator } from '@components/shared/LiveIndicator'
@@ -22,6 +22,7 @@ export const GlossaryPage = () => {
     { to: '/ranking', label: t('nav.ranking') },
     { to: '/mapa-queimadas', label: t('nav.fireMap') },
     { to: '/guia', label: t('nav.guide') },
+    { to: '/metodologia', label: t('nav.methodology') },
   ]
 
   return (
@@ -69,6 +70,30 @@ export const GlossaryPage = () => {
           <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">{t('glossary.title')}</h1>
           <p className="text-sm text-muted-foreground font-body mt-2">{t('glossary.subtitle')}</p>
         </div>
+
+        <nav aria-label={t('glossary.tocTitle')} className="mb-10">
+          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{t('glossary.tocTitle')}</p>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['#aqi', 'glossary.tocAqi'],
+                ['#poluentes', 'glossary.tocPollutants'],
+                ['#uv', 'glossary.tocUv'],
+                ['#polen', 'glossary.tocPollen'],
+                ['#estacoes-oficiais', 'glossary.tocStations'],
+                ['#fontes', 'glossary.tocSources'],
+              ] as const
+            ).map(([hash, labelKey]) => (
+              <a
+                key={hash}
+                href={hash}
+                className="text-xs font-body text-primary hover:underline px-2 py-1 rounded-md border border-border/60 bg-card/50 hover:bg-muted/50 transition-colors"
+              >
+                {t(labelKey)}
+              </a>
+            ))}
+          </div>
+        </nav>
 
         {/* AQI Section */}
         <section className="mb-10" id="aqi">
@@ -247,6 +272,16 @@ export const GlossaryPage = () => {
               </tbody>
             </table>
           </div>
+        </section>
+
+        {/* Official stations */}
+        <section className="mb-10" id="estacoes-oficiais">
+          <div className="flex items-center gap-2 mb-1">
+            <Radio className="w-4 h-4 text-primary" />
+            <h2 className="font-heading text-2xl tracking-wide text-foreground">{t('glossary.officialStationsTitle')}</h2>
+          </div>
+          <p className="text-xs font-mono text-muted-foreground mb-4">{t('glossary.officialStationsSubtitle')}</p>
+          <p className="text-sm font-body text-muted-foreground leading-relaxed">{t('glossary.officialStationsDesc')}</p>
         </section>
 
         {/* Sources Section */}
