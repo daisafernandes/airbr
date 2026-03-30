@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 
 import { useSearchCities } from '@hooks/useSearchCities'
 
@@ -18,6 +19,7 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
   const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300)
@@ -56,19 +58,76 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+      const t = e.target as Node
+      if (containerRef.current?.contains(t)) return
+      if (dropdownRef.current?.contains(t)) return
+      setOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   useLayoutEffect(() => {
-    if (!useFixedDropdown || !open || !inputRef.current) return
-    const rect = inputRef.current.getBoundingClientRect()
-    setDropdownRect({ top: rect.bottom, left: rect.left, width: rect.width })
-  }, [open, useFixedDropdown])
+    if (!useFixedDropdown || !open || !inputRef.current) {
+      setDropdownRect(null)
+      return
+    }
+    const update = () => {
+      if (!inputRef.current) return
+      const rect = inputRef.current.getBoundingClientRect()
+      setDropdownRect({ top: rect.bottom, left: rect.left, width: rect.width })
+    }
+    update()
+    window.addEventListener('scroll', update, true)
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update, true)
+      window.removeEventListener('resize', update)
+    }
+  }, [open, useFixedDropdown, debouncedQuery])
+
+  const listClass =
+    'w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between gap-2'
+
+  const dropdownList = filtered.map((city, i) => (
+    <button
+      key={city.id}
+      type="button"
+      onMouseDown={e => {
+        e.preventDefault()
+        handleSelect(city.id, city.name)
+      }}
+      className={`${listClass} ${i === activeIdx ? 'bg-primary/10 text-foreground' : 'hover:bg-muted text-foreground'}`}
+    >
+      <span className="font-body">{city.name}</span>
+      <span className="text-xs font-mono text-muted-foreground shrink-0">
+        {city.state} · {city.region}
+        {city.latestAqi && <span className="ml-2 font-semibold">IQAr {city.latestAqi.aqi}</span>}
+      </span>
+    </button>
+  ))
+
+  const showDropdown = open && filtered.length > 0
+  const fixedPortal =
+    showDropdown &&
+    useFixedDropdown &&
+    dropdownRect &&
+    typeof document !== 'undefined' &&
+    createPortal(
+      <div
+        ref={dropdownRef}
+        className="bg-card border border-border rounded shadow-2xl overflow-hidden z-[300]"
+        style={{
+          position: 'fixed',
+          top: dropdownRect.top + 4,
+          left: dropdownRect.left,
+          width: dropdownRect.width,
+        }}
+      >
+        {dropdownList}
+      </div>,
+      document.body,
+    )
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -88,34 +147,12 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
         autoComplete="off"
         className="bg-muted border border-border rounded pl-9 pr-4 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full"
       />
-      {open && filtered.length > 0 && (
-        <div
-          className="bg-card border border-border rounded shadow-2xl overflow-hidden z-[200]"
-          style={
-            useFixedDropdown && dropdownRect
-              ? { position: 'fixed', top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width }
-              : { position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px' }
-          }
-        >
-          {filtered.map((city, i) => (
-            <button
-              key={city.id}
-              onMouseDown={() => handleSelect(city.id, city.name)}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between gap-2 ${
-                i === activeIdx ? 'bg-primary/10 text-foreground' : 'hover:bg-muted text-foreground'
-              }`}
-            >
-              <span className="font-body">{city.name}</span>
-              <span className="text-xs font-mono text-muted-foreground shrink-0">
-                {city.state} · {city.region}
-                {city.latestAqi && (
-                  <span className="ml-2 font-semibold">IQAr {city.latestAqi.aqi}</span>
-                )}
-              </span>
-            </button>
-          ))}
+      {showDropdown && !useFixedDropdown && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded shadow-2xl overflow-hidden z-[200]">
+          {dropdownList}
         </div>
       )}
+      {fixedPortal}
     </div>
   )
 }

@@ -33,6 +33,26 @@ function getAQILabel(aqi: number): string {
   return 'Perigoso'
 }
 
+// Colors used only to identify which city row belongs to which city.
+// Pollutant status colors (below/above limit) are handled separately.
+const CITY_A_COLOR = 'hsl(214 100% 65%)' // matches --secondary
+const CITY_B_COLOR = 'hsl(30 100% 65%)' // matches --accent
+
+// Pollutant status colors.
+// Pollutant status colors (used only inside the bars).
+const STATUS_GOOD_COLOR = '#4af0c4' // green-cyan (OK / below moderate range)
+const STATUS_MODERATE_COLOR = '#eab308' // yellow (Moderado)
+const STATUS_LIMIT_EXCEEDED_COLOR = '#ef4444' // red-500
+
+function getPollutantStatusColor(value: number, limit: number): string {
+  if (limit <= 0) return STATUS_GOOD_COLOR
+  // Define "Moderado" as being close to the WHO limit (tunable threshold).
+  // Example: value >= 70% of limit => Moderado (yellow)
+  if (value > limit) return STATUS_LIMIT_EXCEEDED_COLOR
+  if (value >= limit * 0.7) return STATUS_MODERATE_COLOR
+  return STATUS_GOOD_COLOR
+}
+
 function MiniGauge({ aqi }: { aqi: number }) {
   const color = getAQIColor(aqi)
   const label = getAQILabel(aqi)
@@ -89,8 +109,8 @@ function PollutantBar({ label, valueA, valueB, unit, limit }: { label: string; v
   const vA = valueA ?? 0
   const vB = valueB ?? 0
   const max = Math.max(vA, vB, limit) * 1.2
-  const colorA = vA > limit ? '#ef4444' : '#4af0c4'
-  const colorB = vB > limit ? '#ef4444' : '#facc15'
+  const statusColorA = getPollutantStatusColor(vA, limit)
+  const statusColorB = getPollutantStatusColor(vB, limit)
 
   return (
     <div className="space-y-1">
@@ -99,15 +119,19 @@ function PollutantBar({ label, valueA, valueB, unit, limit }: { label: string; v
         <span className="text-[9px]">OMS: {limit} {unit}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="w-10 text-right font-mono text-xs" style={{ color: colorA }}>{vA > 0 ? vA.toFixed(1) : '—'}</span>
+        <span className="w-4 flex justify-center">
+          <span className="w-2 h-2 rounded-full" style={{ background: CITY_A_COLOR }} />
+        </span>
         <div className="flex-1 h-2 bg-border rounded-full overflow-hidden relative">
-          <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${(vA / max) * 100}%`, background: colorA, opacity: 0.7 }} />
+          <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${(vA / max) * 100}%`, background: statusColorA, opacity: 0.7 }} />
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <span className="w-10 text-right font-mono text-xs" style={{ color: colorB }}>{vB > 0 ? vB.toFixed(1) : '—'}</span>
+        <span className="w-4 flex justify-center">
+          <span className="w-2 h-2 rounded-full" style={{ background: CITY_B_COLOR }} />
+        </span>
         <div className="flex-1 h-2 bg-border rounded-full overflow-hidden relative">
-          <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${(vB / max) * 100}%`, background: colorB, opacity: 0.7 }} />
+          <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${(vB / max) * 100}%`, background: statusColorB, opacity: 0.7 }} />
         </div>
       </div>
     </div>
@@ -134,9 +158,9 @@ function TemperatureCompareRow({
         <span className="text-[9px]">{unit}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="w-10 text-right font-mono text-xs text-primary">{fmt(valueA)}</span>
+        <span className="w-10 text-right font-mono text-xs" style={{ color: CITY_A_COLOR }}>{fmt(valueA)}</span>
         <div className="flex-1 h-px bg-border" />
-        <span className="w-10 text-right font-mono text-xs text-yellow-400">{fmt(valueB)}</span>
+        <span className="w-10 text-right font-mono text-xs" style={{ color: CITY_B_COLOR }}>{fmt(valueB)}</span>
       </div>
     </div>
   )
@@ -166,7 +190,7 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
   ]
 
   return (
-    <div className="w-[360px] flex-shrink-0 flex flex-col overflow-y-auto max-h-[calc(100vh-140px)] space-y-3 animate-fade-in">
+    <div className="w-[360px] flex-shrink-0 flex flex-col space-y-3 animate-fade-in">
       {/* Header */}
       <div className="bg-card border border-border rounded p-4">
         <div className="flex items-center justify-between mb-3">
@@ -177,11 +201,11 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <p className="text-[10px] font-mono text-primary uppercase tracking-wider mb-1.5">Cidade A</p>
+            <p className="text-[10px] font-mono uppercase tracking-wider mb-1.5" style={{ color: CITY_A_COLOR }}>Cidade A</p>
             <CitySearchBar onSelect={(id) => onChangeCityA(id)} placeholder="Selecionar..." useFixedDropdown />
           </div>
           <div>
-            <p className="text-[10px] font-mono text-yellow-400 uppercase tracking-wider mb-1.5">Cidade B</p>
+            <p className="text-[10px] font-mono uppercase tracking-wider mb-1.5" style={{ color: CITY_B_COLOR }}>Cidade B</p>
             <CitySearchBar onSelect={(id) => onChangeCityB(id)} placeholder="Selecionar..." useFixedDropdown />
           </div>
         </div>
@@ -235,8 +259,14 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
         <div className="bg-card border border-border rounded p-4 space-y-3">
           <h3 className="font-heading text-lg tracking-wide text-foreground">POLUENTES</h3>
           <div className="flex items-center gap-4 text-[10px] font-mono">
-            <span className="flex items-center gap-1"><span className="w-3 h-1.5 rounded-full bg-primary inline-block" />{colA.city.name}</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-1.5 rounded-full bg-yellow-400 inline-block" />{colB.city.name}</span>
+            <span className="flex items-center gap-2">
+              <span className="w-3 h-1.5 rounded-full" style={{ background: CITY_A_COLOR }} />
+              {colA.city.name}
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="w-3 h-1.5 rounded-full" style={{ background: CITY_B_COLOR }} />
+              {colB.city.name}
+            </span>
           </div>
           {pollutants.map(p => (
             <PollutantBar

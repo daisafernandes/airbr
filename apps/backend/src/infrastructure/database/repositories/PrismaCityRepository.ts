@@ -1,6 +1,10 @@
 import { prisma } from '../prisma'
 import type { CityData, ICityRepository, NearbyCity } from '@domain/repositories/ICityRepository'
 
+/** PostgreSQL translate maps for accent/cedilla-insensitive match (PT-BR city names). */
+const ACCENT_FROM = 'áàâãäéèêëíìîïóòôõöúùûüçñ'
+const ACCENT_TO = 'aaaaaeeeeiiiiooooouuuucn'
+
 export class PrismaCityRepository implements ICityRepository {
   async findAll(): Promise<CityData[]> {
     return prisma.city.findMany({ orderBy: { name: 'asc' } })
@@ -11,11 +15,28 @@ export class PrismaCityRepository implements ICityRepository {
   }
 
   async findByName(name: string): Promise<CityData[]> {
-    return prisma.city.findMany({
-      where: { name: { contains: name, mode: 'insensitive' } },
-      orderBy: { name: 'asc' },
-      take: 20,
-    })
+    const q = name.trim()
+    if (q.length === 0) return []
+
+    return prisma.$queryRaw<CityData[]>`
+      SELECT
+        id,
+        name,
+        state,
+        region,
+        lat,
+        lng,
+        source,
+        "populationTotal",
+        "elderlyPct",
+        "childrenPct",
+        "createdAt"
+      FROM cities
+      WHERE translate(lower(name), ${ACCENT_FROM}, ${ACCENT_TO})
+        LIKE '%' || translate(lower(${q}), ${ACCENT_FROM}, ${ACCENT_TO}) || '%'
+      ORDER BY name ASC
+      LIMIT 20
+    `
   }
 
   /**

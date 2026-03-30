@@ -2,7 +2,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "ranking": "Ranking",
-    "fireMap": "Wildfires / Deforestation Maps",
+    "fireMap": "Wildfires / Deforestation Map",
     "guide": "Guide",
     "methodology": "Methodology"
   },
@@ -272,7 +272,7 @@
     "officialStationsDesc": "Official stations are fixed air quality monitoring points: sensors and public or partner networks that report pollutant concentrations and the AQI shown in RespirA. Examples include the CETESB network (São Paulo), IQAir stations and other sources aggregated by the platform. Each monitored city corresponds to one of these points — do not confuse them with wildfire or deforestation layers, which use separate INPE and PRODES data."
   },
   "firemap": {
-    "title": "WILDFIRE / DEFORESTATION MAP",
+    "title": "WILDFIRES / DEFORESTATIONS MAP",
     "subtitle": "Wildfire foci (INPE/BDQueimadas) and deforestation alerts (PRODES/INPE)",
     "activeFires": "active fire foci are affecting air quality in {{cities}} cities",
     "andMoreCities": "and {{count}} more cities",

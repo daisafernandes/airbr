@@ -2,7 +2,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "ranking": "Ranking",
-    "fireMap": "Mapa Queimadas/Desmatamentos",
+    "fireMap": "Mapa Queimadas / Desmatamentos",
     "guide": "Guia",
     "methodology": "Metodologia"
   },
@@ -272,7 +272,7 @@
     "officialStationsDesc": "As estações oficiais são pontos fixos de medição de qualidade do ar: sensores e redes públicas ou parceiras que informam concentrações de poluentes e calculam o IQAr exibido no RespirA. Exemplos incluem a rede CETESB (São Paulo), estações IQAir e outras fontes agregadas pela plataforma. Cada cidade monitorada corresponde a um desses pontos — não confundir com focos de queimada ou desmatamento, que são camadas diferentes baseadas em dados do INPE e PRODES."
   },
   "firemap": {
-    "title": "MAPA QUEIMADAS / DESMATAMENTO",
+    "title": "MAPA QUEIMADAS / DESMATAMENTOS",
     "subtitle": "Focos de queimada (INPE/BDQueimadas) e alertas de desmatamento (PRODES/INPE)",
     "activeFires": "focos ativos estão afetando a qualidade do ar em {{cities}} cidades",
     "andMoreCities": "e mais {{count}} cidades",
