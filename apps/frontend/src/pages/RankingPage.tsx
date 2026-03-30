@@ -56,7 +56,8 @@ export const RankingPage = () => {
       : 0
     const compliant = withAqi.filter(c => (c.latestAqi?.pm25 ?? 9999) <= 5).length
     const worst = [...withAqi].sort((a, b) => (b.latestAqi?.aqi ?? 0) - (a.latestAqi?.aqi ?? 0))[0]
-    return { avg, compliant, total: cities.length, worst }
+    const best = [...withAqi].sort((a, b) => (a.latestAqi?.aqi ?? 9999) - (b.latestAqi?.aqi ?? 9999))[0]
+    return { avg, compliant, total: cities.length, worst, best }
   }, [cities])
 
   const lastUpdate = formatDateTime(new Date(), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -110,7 +111,7 @@ export const RankingPage = () => {
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="bg-card border border-border rounded p-3">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">{t('ranking.avgAqi')}</p>
             {isLoading ? (
@@ -130,7 +131,7 @@ export const RankingPage = () => {
               </p>
             )}
           </div>
-          <div className="bg-card border border-border rounded p-3 col-span-2 sm:col-span-1">
+          <div className="bg-card border border-border rounded p-3">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">{t('ranking.mostPolluted')}</p>
             {isLoading ? (
               <div className="h-6 bg-muted animate-pulse rounded w-32" />
@@ -139,6 +140,19 @@ export const RankingPage = () => {
                 {stats?.worst?.name ?? '—'}
                 {stats?.worst && (
                   <span className="text-sm text-muted-foreground font-normal ml-1.5">AQI {stats.worst.latestAqi?.aqi}</span>
+                )}
+              </p>
+            )}
+          </div>
+          <div className="bg-card border border-border rounded p-3">
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">{t('ranking.cleanest')}</p>
+            {isLoading ? (
+              <div className="h-6 bg-muted animate-pulse rounded w-32" />
+            ) : (
+              <p className="font-body font-semibold text-foreground">
+                {stats?.best?.name ?? '—'}
+                {stats?.best && (
+                  <span className="text-sm text-muted-foreground font-normal ml-1.5">AQI {stats.best.latestAqi?.aqi}</span>
                 )}
               </p>
             )}

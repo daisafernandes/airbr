@@ -216,6 +216,7 @@
     "avgAqi": "National Average AQI",
     "omsCompliant": "WHO Compliant",
     "mostPolluted": "Most Polluted",
+    "cleanest": "Cleanest",
     "morePolluted": "Most Polluted",
     "cleanerAir": "Cleanest Air",
     "all": "All",
