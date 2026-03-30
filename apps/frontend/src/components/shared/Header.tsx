@@ -80,7 +80,9 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
         </nav>
 
         {/* Search + geolocate + language + live */}
+
         <div className="flex items-center gap-2 flex-1 md:flex-none justify-end">
+          <LiveIndicator />
           <CitySearchBar
             onSelect={(cityId) => onCitySelect(cityId)}
             className="w-48 sm:w-64 md:w-56 lg:w-72"
@@ -106,8 +108,7 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
               >
                 {t('auth.login')}
               </Link>
-            ))}
-          <LiveIndicator />
+            ))}          
         </div>
       </div>
     </header>
