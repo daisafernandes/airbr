@@ -118,6 +118,15 @@ export class Normalizer {
     )
   }
 
+  /** Runs all five collectors in sequence (AQI → fire → PRODES → DATASUS → IBGE). */
+  async runAllCollections(): Promise<void> {
+    await this.runAqi()
+    await this.runFire()
+    await this.runProdes()
+    await this.runDatasus()
+    await this.runIbge()
+  }
+
   private async runSpecialized(
     collectorName: string,
     cachePrefix: string,

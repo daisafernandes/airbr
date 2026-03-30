@@ -62,28 +62,6 @@ const outdoorSafetyService = new OutdoorSafetyService(aqiRepository, cacheServic
 const healthService = new HealthService(healthRepository, aqiRepository, cityRepository, cacheService)
 const deforestationService = new DeforestationService(deforestationRepository, cacheService)
 
-// Controllers
-const cityController = new CityController(cityService, aqiService, windSmokeService, outdoorSafetyService, healthService)
-const fireController = new FireController(fireService)
-const adminController = new AdminController(jobLogRepository)
-const deforestationController = new DeforestationController(deforestationService)
-
-// Health check (registered before main router to ensure priority)
-app.get('/api/v1/health', async (_req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`
-    res.json({ status: 'ok', db: 'connected' })
-  } catch {
-    res.status(503).json({ status: 'error', db: 'disconnected' })
-  }
-})
-
-// API routes
-app.use('/api/v1', buildRoutes({ cityController, fireController, adminController, deforestationController }))
-
-app.use(errorHandler)
-
-// Data collectors & scheduler
 const aqiCollectors = [
   new OpenWeatherMapCollector(cityRepository),
   new AQICNCollector(cityRepository),
@@ -107,6 +85,28 @@ const normalizer = new Normalizer(
   datasusCollector,
   ibgeCollector,
 )
+
+// Controllers
+const cityController = new CityController(cityService, aqiService, windSmokeService, outdoorSafetyService, healthService)
+const fireController = new FireController(fireService)
+const adminController = new AdminController(jobLogRepository, normalizer)
+const deforestationController = new DeforestationController(deforestationService)
+
+// Health check (registered before main router to ensure priority)
+app.get('/api/v1/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    res.json({ status: 'ok', db: 'connected' })
+  } catch {
+    res.status(503).json({ status: 'error', db: 'disconnected' })
+  }
+})
+
+// API routes
+app.use('/api/v1', buildRoutes({ cityController, fireController, adminController, deforestationController }))
+
+app.use(errorHandler)
+
 const scheduler = new JobScheduler(normalizer)
 scheduler.start()
 

@@ -1,6 +1,5 @@
-import { Router } from 'express'
-
 import type { CityController } from '@infrastructure/http/controllers/CityController'
+import { Router } from 'express'
 import { asyncHandler } from '@shared/utils/asyncHandler'
 
 export const buildCityRoutes = (controller: CityController): Router => {

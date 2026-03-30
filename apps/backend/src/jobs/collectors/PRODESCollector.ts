@@ -1,5 +1,4 @@
 import axios from 'axios'
-
 import type { IDeforestationRepository } from '@domain/repositories/IDeforestationRepository'
 
 /**
