@@ -2,6 +2,7 @@ import 'dotenv/config'
 
 import cors from 'cors'
 import express from 'express'
+import helmet from 'helmet'
 
 import { AqiService } from '@application/services/AqiService'
 import { CityService } from '@application/services/CityService'
@@ -24,6 +25,7 @@ import { CityController } from '@infrastructure/http/controllers/CityController'
 import { DeforestationController } from '@infrastructure/http/controllers/DeforestationController'
 import { FireController } from '@infrastructure/http/controllers/FireController'
 import { errorHandler } from '@infrastructure/http/middlewares/errorHandler'
+import { apiRateLimiter } from '@infrastructure/http/middlewares/rateLimit'
 import { buildRoutes } from '@infrastructure/http/routes'
 import { AQICNCollector } from '@jobs/collectors/AQICNCollector'
 import { CETESBCollector } from '@jobs/collectors/CETESBCollector'
@@ -39,8 +41,15 @@ import { JobScheduler } from '@jobs/JobScheduler'
 import { Normalizer } from '@jobs/Normalizer'
 
 const app = express()
+
+if (env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1)
+}
+
+app.use(helmet({ contentSecurityPolicy: false }))
 app.use(cors({ origin: env.CORS_ORIGIN.split(',').map((o) => o.trim()), credentials: true }))
-app.use(express.json())
+app.use(express.json({ limit: '256kb' }))
+app.use('/api/v1', apiRateLimiter)
 
 // Cache
 export const cacheService = new NodeCacheService()

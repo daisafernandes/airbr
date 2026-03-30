@@ -14,7 +14,18 @@ const envSchema = z.object({
   CETESB_PASSWORD: z.string().optional(),
   IEMA_API_KEY: z.string().optional(),
   IAT_API_KEY: z.string().optional(),
+  /** Required when NODE_ENV is production; optional in development (admin routes open without key). */
+  ADMIN_API_KEY: z.string().min(1).optional(),
 })
+  .superRefine((data, ctx) => {
+    if (data.NODE_ENV === 'production' && !data.ADMIN_API_KEY) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'ADMIN_API_KEY is required when NODE_ENV is production',
+        path: ['ADMIN_API_KEY'],
+      })
+    }
+  })
 
 export type Env = z.infer<typeof envSchema>
 

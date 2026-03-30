@@ -122,3 +122,9 @@ Copie os `.env.example` de cada app:
 cp apps/backend/.env.example apps/backend/.env
 cp apps/frontend/.env.example apps/frontend/.env
 ```
+
+### Segurança da API (backend)
+
+- **`ADMIN_API_KEY`**: protege `GET /api/v1/admin/jobs` e `POST /api/v1/admin/jobs/run`. Em produção é obrigatória. Use `Authorization: Bearer <chave>` ou `X-Admin-Key: <chave>`.
+- O servidor usa **Helmet**, **rate limiting** em `/api/v1` (limite global) e limite mais restrito em `/api/v1/admin`, e limite de **256kb** no body JSON.
+- Em produção, **`trust proxy`** fica ativo (`1`) para que o rate limit use o IP real atrás de proxy reverso; configure só se o deploy estiver atrás de um proxy confiável.

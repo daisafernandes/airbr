@@ -4,6 +4,7 @@ import type { DeforestationController } from '@infrastructure/http/controllers/D
 import type { FireController } from '@infrastructure/http/controllers/FireController'
 import { Router } from 'express'
 
+import { adminRateLimiter } from '@infrastructure/http/middlewares/rateLimit'
 import { buildAdminRoutes } from './admin.routes'
 import { buildCityRoutes } from './city.routes'
 import { buildDeforestationRoutes } from './deforestation.routes'
@@ -21,7 +22,7 @@ export const buildRoutes = (controllers: Controllers): Router => {
   router.use('/cities', buildCityRoutes(controllers.cityController))
   router.use('/fires', buildFireRoutes(controllers.fireController))
   router.use('/deforestation', buildDeforestationRoutes(controllers.deforestationController))
-  router.use('/admin', buildAdminRoutes(controllers.adminController))
+  router.use('/admin', adminRateLimiter, buildAdminRoutes(controllers.adminController))
 
   return router
 }
