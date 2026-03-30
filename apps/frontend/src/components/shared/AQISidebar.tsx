@@ -84,7 +84,7 @@ export const AQISidebar = () => {
     { labelKey: 'aqi.bands.unhealthy.label',      range: '151–200', color: 'bg-red-500' },
     { labelKey: 'aqi.bands.veryUnhealthy.label',  range: '201–300', color: 'bg-purple-500' },
     { labelKey: 'aqi.bands.hazardous.label',      range: '300+',   color: 'bg-rose-900' },
-  ]
+  ] as const
 
   return (
     <div className="w-80 flex-shrink-0 space-y-4 overflow-y-auto max-h-[calc(100vh-140px)] pr-1">
@@ -108,7 +108,7 @@ export const AQISidebar = () => {
           {aqiLegend.map(item => (
             <div key={item.labelKey} className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-sm ${item.color}`} />
-              <span className="text-muted-foreground">{t(item.labelKey as Parameters<typeof t>[0])}</span>
+              <span className="text-muted-foreground">{t(item.labelKey)}</span>
               <span className="font-mono text-muted-foreground ml-auto">{item.range}</span>
             </div>
           ))}

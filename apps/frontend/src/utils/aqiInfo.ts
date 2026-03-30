@@ -75,14 +75,14 @@ const POLLUTANT_BASES = [
   { key: 'co',   label: 'CO',   unit: 'mg/m³', whoLimit: 4 },
 ] as const
 
-const DATA_SOURCE_URLS: Record<string, string> = {
+const DATA_SOURCE_URLS = {
   who:    'https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health',
   inpe:   'https://queimadas.dgi.inpe.br',
   cetesb: 'https://cetesb.sp.gov.br/ar/',
   iqair:  'https://www.iqair.com/br/brazil',
   epa:    'https://www.airnow.gov/aqi/aqi-basics/',
   ibama:  'https://www.gov.br/ibama/pt-br',
-}
+} as const
 
 // ─── Translated factory functions ──────────────────────────────────────────
 
@@ -135,10 +135,11 @@ export function getPollutantInfo(t: TFunction): Record<string, PollutantInfo> {
 }
 
 export function getDataSources(t: TFunction): DataSource[] {
-  return Object.entries(DATA_SOURCE_URLS).map(([key, url]) => ({
+  const keys = Object.keys(DATA_SOURCE_URLS) as Array<keyof typeof DATA_SOURCE_URLS>
+  return keys.map((key) => ({
     name:        t(`dataSources.${key}.name`),
     description: t(`dataSources.${key}.description`),
-    url,
+    url:         DATA_SOURCE_URLS[key],
   }))
 }
 
