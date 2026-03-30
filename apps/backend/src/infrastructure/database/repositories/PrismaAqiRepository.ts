@@ -15,17 +15,49 @@ const PERIOD_TO_HOURS: Record<HistoryPeriod, number> = {
   '1y': 365 * 24,
 }
 
+/** Hourly runs insert one row per collector; only Open-Meteo rows have temperature/wind. Merge from the newest Open-Meteo row when the timestamp-latest row is from another source. */
+const OPEN_METEO_SUPPLEMENT_MAX_AGE_MS = 48 * 60 * 60 * 1000
+
+function mergeLatestWithOpenMeteoWeather(
+  latest: AqiReadingData,
+  openMeteo: AqiReadingData | undefined,
+): AqiReadingData {
+  if (!openMeteo) return latest
+  return {
+    ...latest,
+    temperature: latest.temperature ?? openMeteo.temperature,
+    windDirection: latest.windDirection ?? openMeteo.windDirection,
+    windSpeed: latest.windSpeed ?? openMeteo.windSpeed,
+    uv: latest.uv ?? openMeteo.uv,
+  }
+}
+
 export class PrismaAqiRepository implements IAqiRepository {
   async findLatestByCity(cityId: string): Promise<AqiReadingData | null> {
-    return prisma.aqiReading.findFirst({
+    const since = new Date(Date.now() - OPEN_METEO_SUPPLEMENT_MAX_AGE_MS)
+
+    const latest = await prisma.aqiReading.findFirst({
       where: { cityId },
       orderBy: { timestamp: 'desc' },
     })
+    if (!latest) return null
+
+    const openMeteo = await prisma.aqiReading.findFirst({
+      where: {
+        cityId,
+        source: 'open-meteo',
+        temperature: { not: null },
+        timestamp: { gte: since },
+      },
+      orderBy: { timestamp: 'desc' },
+    })
+
+    return mergeLatestWithOpenMeteoWeather(latest, openMeteo ?? undefined)
   }
 
   async findLatestForAllCities(): Promise<AqiReadingData[]> {
-    // For each city, select the most recent reading using a subquery via groupBy + join
     const cities = await prisma.city.findMany({ select: { id: true } })
+    const since = new Date(Date.now() - OPEN_METEO_SUPPLEMENT_MAX_AGE_MS)
 
     const latest = await Promise.all(
       cities.map((c: { id: string }) =>
@@ -36,7 +68,31 @@ export class PrismaAqiRepository implements IAqiRepository {
       ),
     )
 
-    return latest.filter((r): r is AqiReadingData => r !== null)
+    const cityIds = cities.map((c: { id: string }) => c.id)
+    const openMeteoCandidates = await prisma.aqiReading.findMany({
+      where: {
+        cityId: { in: cityIds },
+        source: 'open-meteo',
+        temperature: { not: null },
+        timestamp: { gte: since },
+      },
+      orderBy: { timestamp: 'desc' },
+    })
+
+    const newestOpenMeteoByCity = new Map<string, AqiReadingData>()
+    for (const row of openMeteoCandidates) {
+      if (!newestOpenMeteoByCity.has(row.cityId)) {
+        newestOpenMeteoByCity.set(row.cityId, row)
+      }
+    }
+
+    return latest
+      .map((r, i): AqiReadingData | null => {
+        if (!r) return null
+        const om = newestOpenMeteoByCity.get(cities[i].id)
+        return mergeLatestWithOpenMeteoWeather(r, om)
+      })
+      .filter((r): r is AqiReadingData => r !== null)
   }
 
   async findHistoryByCity(cityId: string, period: HistoryPeriod): Promise<AqiReadingData[]> {

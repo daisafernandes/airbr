@@ -2,13 +2,13 @@ import { X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import type { AqiReadingApi } from '@app-types/airQuality.types'
+import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
 import { useCity } from '@hooks/useCity'
 import { useCityHistory } from '@hooks/useCityHistory'
 import { useHealthData } from '@hooks/useHealthData'
 import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
 import { useWindSmoke } from '@hooks/useWindSmoke'
-import type { AqiReadingApi } from '@app-types/airQuality.types'
-import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
 import { getAQILabel, getHealthAlerts } from '@utils/aqiInfo'
 import { formatDateTime } from '@utils/formatters'
 
@@ -18,7 +18,7 @@ import { HealthAlertsCard } from './HealthAlertsCard'
 import { OutdoorSafetyCard } from './OutdoorSafetyCard'
 import { PollutantCards } from './PollutantCards'
 import { PublicHealthCard } from './PublicHealthCard'
-import { SmokeSourceCard } from './SmokeSourceCard'
+import { SmokeSourceCard, EMPTY_NEARBY_FIRES } from './SmokeSourceCard'
 
 type Period = '7d' | '30d'
 
@@ -199,9 +199,10 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
       <SmokeSourceCard
         lat={city.lat}
         lng={city.lng}
-        windDirection={windSmoke?.wind.direction ?? 0}
-        windSpeed={windSmoke?.wind.speed ?? 0}
-        nearbyFires={windSmoke?.nearbyFires ?? []}
+        windDirection={windSmoke?.wind.direction ?? null}
+        windSpeed={windSmoke?.wind.speed ?? null}
+        windCompassLabel={windSmoke?.wind.compassLabel ?? null}
+        nearbyFires={windSmoke?.nearbyFires ?? EMPTY_NEARBY_FIRES}
       />
 
       {healthData && healthData.monthlyData.length > 0 && (

@@ -1,24 +1,25 @@
-import { useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Wind, ArrowLeft, ExternalLink } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 
-import { useCity } from '@hooks/useCity'
-import { useCityHistory } from '@hooks/useCityHistory'
-import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
-import { LiveIndicator } from '@components/shared/LiveIndicator'
-import { AQIGauge } from '@components/shared/CityDashboard/AQIGauge'
-import { PollutantCards } from '@components/shared/CityDashboard/PollutantCards'
-import { AQIHistoryChart } from '@components/shared/CityDashboard/AQIHistoryChart'
-import { OutdoorSafetyCard } from '@components/shared/CityDashboard/OutdoorSafetyCard'
-import { HealthAlertsCard } from '@components/shared/CityDashboard/HealthAlertsCard'
-import { SmokeSourceCard } from '@components/shared/CityDashboard/SmokeSourceCard'
-import { OmsComplianceBadge } from '@components/shared/OmsComplianceBadge'
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
-import { getAQILabel, getHealthAlerts, getPollutantInfo } from '@utils/aqiInfo'
 import { formatDateTime } from '@/utils/formatters'
 import type { AqiReadingApi } from '@app-types/airQuality.types'
 import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
+import { AQIGauge } from '@components/shared/CityDashboard/AQIGauge'
+import { AQIHistoryChart } from '@components/shared/CityDashboard/AQIHistoryChart'
+import { HealthAlertsCard } from '@components/shared/CityDashboard/HealthAlertsCard'
+import { OutdoorSafetyCard } from '@components/shared/CityDashboard/OutdoorSafetyCard'
+import { PollutantCards } from '@components/shared/CityDashboard/PollutantCards'
+import { SmokeSourceCard, EMPTY_NEARBY_FIRES } from '@components/shared/CityDashboard/SmokeSourceCard'
+import { LiveIndicator } from '@components/shared/LiveIndicator'
+import { OmsComplianceBadge } from '@components/shared/OmsComplianceBadge'
+import { useCity } from '@hooks/useCity'
+import { useCityHistory } from '@hooks/useCityHistory'
+import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
+import { useWindSmoke } from '@hooks/useWindSmoke'
+import { getAQILabel, getHealthAlerts, getPollutantInfo } from '@utils/aqiInfo'
 
 type Period = '7d' | '30d' | '1y'
 
@@ -68,6 +69,7 @@ export const CityPage = () => {
   const { data: city, isLoading, isError } = useCity(id ?? null)
   const { data: historyReadings = [], isLoading: historyLoading } = useCityHistory(id ?? null, period === '1y' ? '1y' : period)
   const { data: outdoorSafety } = useOutdoorSafety(id ?? null)
+  const { data: windSmoke, isLoading: windSmokeLoading } = useWindSmoke(id ?? null)
 
   const pollutantInfo = getPollutantInfo(t)
   const aqi = city?.latestAqi?.aqi ?? 0
@@ -248,14 +250,23 @@ export const CityPage = () => {
                   temperature={temperature}
                 />
 
-                {/* Smoke source */}
-                <SmokeSourceCard
-                  lat={city.lat}
-                  lng={city.lng}
-                  windDirection={45}
-                  windSpeed={0}
-                  nearbyFires={[]}
-                />
+                {/* Smoke source — vento e focos próximos (API wind-smoke) */}
+                {windSmokeLoading ? (
+                  <div className="bg-card border border-border rounded p-4 space-y-3">
+                    <div className="h-5 bg-muted animate-pulse rounded w-2/3" />
+                    <div className="h-3 bg-muted animate-pulse rounded w-full" />
+                    <div className="h-[130px] bg-muted animate-pulse rounded border border-border/50" />
+                  </div>
+                ) : (
+                  <SmokeSourceCard
+                    lat={city.lat}
+                    lng={city.lng}
+                    windDirection={windSmoke?.wind.direction ?? null}
+                    windSpeed={windSmoke?.wind.speed ?? null}
+                    windCompassLabel={windSmoke?.wind.compassLabel ?? null}
+                    nearbyFires={windSmoke?.nearbyFires ?? EMPTY_NEARBY_FIRES}
+                  />
+                )}
 
                 {/* Metadata */}
                 <div className="bg-card border border-border rounded p-4">
