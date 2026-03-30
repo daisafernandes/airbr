@@ -127,7 +127,7 @@ export const AQIGauge = ({ aqi, label }: AQIGaugeProps) => {
           fill="rgba(255,255,255,0.5)"
           letterSpacing="0.08em"
         >
-          AQI
+          IQAr
         </text>
       </svg>
 
@@ -144,11 +144,11 @@ export const AQIGauge = ({ aqi, label }: AQIGaugeProps) => {
         <TooltipTrigger asChild>
           <button className="mt-2 flex items-center gap-1 text-[10px] font-mono text-muted-foreground/50 hover:text-muted-foreground transition-colors">
             <Info className="w-3 h-3" />
-            O que é AQI?
+            O que é IQAr/AQI?
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-[260px] p-3 space-y-2">
-          <p className="text-xs font-body font-semibold text-foreground">Índice de Qualidade do Ar (AQI)</p>
+          <p className="text-xs font-body font-semibold text-foreground">Índice de Qualidade do Ar (IQAr)</p>
           <p className="text-xs font-body text-muted-foreground">
             Escala de 0 a 500 que resume a concentração dos principais poluentes. Quanto maior, pior a qualidade do ar.
           </p>

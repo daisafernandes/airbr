@@ -19,7 +19,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
     return (
       <div className="bg-card border border-border rounded px-2 py-1.5 text-xs">
         <p className="text-muted-foreground">{label}</p>
-        <p className="font-mono font-bold text-foreground">AQI {payload[0]?.value}</p>
+        <p className="font-mono font-bold text-foreground">IQAr {payload[0]?.value}</p>
       </div>
     )
   }

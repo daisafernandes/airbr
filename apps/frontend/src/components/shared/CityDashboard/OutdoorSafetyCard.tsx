@@ -180,7 +180,7 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi, temperatur
           icon={<Wind className="w-3.5 h-3.5" />}
           label={t('cityDashboard.airQuality')}
           value={aqi}
-          sublabel="AQI"
+          sublabel="IQAr"
           barFill={Math.min((aqi / 300) * 100, 100)}
           color={aqi <= 50 ? '#4af0c4' : aqi <= 100 ? '#facc15' : aqi <= 150 ? '#ff9f4a' : '#ef4444'}
         />

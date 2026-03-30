@@ -214,6 +214,6 @@ export const DATA_SOURCES: DataSource[] = [
   { name: 'INPE – Monitoramento de Queimadas',                  description: 'Dados de focos de calor e queimadas detectados por satélites no território brasileiro.',                                                       url: DATA_SOURCE_URLS.inpe },
   { name: 'CETESB – Qualidade do Ar no Estado de SP',           description: 'Agência ambiental do Estado de São Paulo. Referência brasileira em monitoramento da qualidade do ar.',                                         url: DATA_SOURCE_URLS.cetesb },
   { name: 'IQAir – World Air Quality Report',                   description: 'Plataforma global de dados de qualidade do ar em tempo real e relatórios anuais por país.',                                                    url: DATA_SOURCE_URLS.iqair },
-  { name: 'EPA – AirNow (EUA)',                                 description: 'Agência de Proteção Ambiental dos EUA. Base do cálculo do índice AQI utilizado internacionalmente.',                                          url: DATA_SOURCE_URLS.epa },
+  { name: 'EPA – AirNow (EUA)',                                 description: 'Agência de Proteção Ambiental dos EUA. Base do cálculo do índice IQAr utilizado internacionalmente.',                                          url: DATA_SOURCE_URLS.epa },
   { name: 'IBAMA – Programa de Controle da Poluição do Ar',    description: 'Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis — fiscalização ambiental.',                                          url: DATA_SOURCE_URLS.ibama },
 ]
