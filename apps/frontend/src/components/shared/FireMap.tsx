@@ -31,6 +31,10 @@ function getNearestCity(lat: number, lng: number, cities: CityApiData[]): CityAp
   return nearest
 }
 
+function escapePopupText(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 function getAQIColor(aqi: number): string {
   if (aqi <= 50) return '#22c55e'
   if (aqi <= 100) return '#eab308'
@@ -113,6 +117,15 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
       const color = getFireColor(spot.intensity)
       const radius = getFireRadius(spot.intensity)
       const label = getFireLabel(spot.intensity)
+      const stateLine = spot.state
+        ? `<span style="font-size:12px">Estado: <b>${escapePopupText(spot.state)}</b></span><br/>`
+        : ''
+      const nearestLine = nearestCity
+        ? `<span style="font-size:12px">Cidade próxima: <b>${escapePopupText(nearestCity.name)}</b></span><br/>`
+        : ''
+      const biomeLine = spot.biome
+        ? `<span style="font-size:11px">Bioma: ${escapePopupText(spot.biome)}</span><br/>`
+        : ''
       L.circleMarker([spot.lat, spot.lng], {
         radius,
         fillColor: color,
@@ -126,10 +139,10 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
             <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.05em">
               🔥 Foco de Queimada
             </strong><br/>
-            ${spot.state ? `<span style="font-size:12px">Estado: <b>${spot.state}</b></span><br/>` : ''}
-            ${nearestCity ? `<span style="font-size:12px">Cidade próxima: <b>${nearestCity.name}</b></span><br/>` : ''}
+            ${stateLine}
+            ${nearestLine}
             <span style="font-size:12px">Intensidade: <b>${label}</b></span><br/>
-            ${spot.biome ? `<span style="font-size:11px">Bioma: ${spot.biome}</span><br/>` : ''}
+            ${biomeLine}
             <span style="font-size:11px;color:#666">Fonte: INPE/BDQueimadas</span>
           </div>`,
         )
@@ -158,7 +171,11 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
         .bindPopup(
           `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
             <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">🌳 Área Desmatada</strong><br/>
-            ${nearestCity ? `<span style="font-size:11px">Estado: <b>${nearestCity.state}</b> · Cidade próxima: <b>${nearestCity.name}</b></span><br/>` : ''}
+            ${
+              nearestCity
+                ? `<span style="font-size:11px">Estado: <b>${escapePopupText(nearestCity.state)}</b> · Cidade próxima: <b>${escapePopupText(nearestCity.name)}</b></span><br/>`
+                : ''
+            }
             <span style="font-size:11px">Fonte: PRODES/INPE</span>
           </div>`,
         )

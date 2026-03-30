@@ -50,8 +50,8 @@ function ImpactCard({
             </p>
             {preview.length > 0 && (
               <ul className="mt-1.5 space-y-0.5 text-[11px] text-muted-foreground border-t border-border/60 pt-1.5">
-                {preview.map(label => (
-                  <li key={label} className="truncate" title={label}>
+                {preview.map((label, i) => (
+                  <li key={`${label}-${i}`} className="truncate" title={label}>
                     {label}
                   </li>
                 ))}
@@ -184,14 +184,16 @@ function FilterControls({
       <div>
         <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{t('firemap.fireIntensity')}</p>
         <div className="space-y-1.5">
-          {[
-            { labelKey: 'firemap.intensityHigh',   color: '#ef4444' },
-            { labelKey: 'firemap.intensityMedium', color: '#ff9f4a' },
-            { labelKey: 'firemap.intensityLow',    color: '#facc15' },
-          ].map(({ labelKey, color }) => (
+          {(
+            [
+              ['firemap.intensityHigh', '#ef4444'],
+              ['firemap.intensityMedium', '#ff9f4a'],
+              ['firemap.intensityLow', '#facc15'],
+            ] as const
+          ).map(([labelKey, color]) => (
             <div key={labelKey} className="flex items-center gap-2 text-xs font-body text-muted-foreground">
               <span className="w-3 h-3 rounded-full shrink-0" style={{ background: color }} />
-              {t(labelKey as Parameters<typeof t>[0])}
+              {t(labelKey)}
             </div>
           ))}
         </div>

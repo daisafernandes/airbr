@@ -1,5 +1,5 @@
-import { prisma } from '@infrastructure/database/prisma'
 import type { IJobLogRepository, JobLogEntry } from '@domain/repositories/IJobLogRepository'
+import { prisma } from '@infrastructure/database/prisma'
 
 export class PrismaJobLogRepository implements IJobLogRepository {
   async findRecent(limit: number): Promise<JobLogEntry[]> {

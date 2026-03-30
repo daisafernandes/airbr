@@ -1,6 +1,5 @@
-import type { Request, Response } from 'express'
-
 import type { IJobLogRepository } from '@domain/repositories/IJobLogRepository'
+import type { Request, Response } from 'express'
 
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 200
