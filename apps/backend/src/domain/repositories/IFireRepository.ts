@@ -21,7 +21,7 @@ export interface FireUpsertInput {
 
 export interface IFireRepository {
   findActive(sinceHours?: number): Promise<FireFocusData[]>
-  findByState(state: string): Promise<FireFocusData[]>
-  findByBiome(biome: string): Promise<FireFocusData[]>
+  findByState(state: string, sinceHours?: number): Promise<FireFocusData[]>
+  findByBiome(biome: string, sinceHours?: number): Promise<FireFocusData[]>
   upsert(input: FireUpsertInput): Promise<FireFocusData>
 }

@@ -61,6 +61,7 @@ export type HistoryPeriod = '24h' | '7d' | '30d' | '1y'
 export interface FireFilters {
   state?: string
   biome?: string
+  days?: number
 }
 
 export interface RankingFilters {

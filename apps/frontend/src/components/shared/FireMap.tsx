@@ -2,9 +2,9 @@ import L from 'leaflet'
 import { useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
 
-import type { CityApiData, FireFocusApi } from '@app-types/airQuality.types'
-import { GLOBAL_DEFORESTATION_AREAS } from '@data/mockCities'
+import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 import { useCities } from '@hooks/useCities'
+import { useDeforestation } from '@hooks/useDeforestation'
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371
@@ -70,7 +70,6 @@ interface FireMapProps {
   showDeforestation: boolean
   showStations: boolean
   stateFilter: string
-  periodDays: number
   fires?: FireFocusApi[]
 }
 
@@ -82,6 +81,9 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
   const stationsLayerRef = useRef<L.LayerGroup>(L.layerGroup())
 
   const { data: cities = [] } = useCities()
+  const { data: deforestationAlerts = [] } = useDeforestation(
+    stateFilter ? { state: stateFilter } : undefined,
+  )
 
   // Initialise map once
   useEffect(() => {
@@ -152,38 +154,49 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
     if (showFires) fireLayerRef.current.addTo(map)
   }, [fires, showFires, cities])
 
-  // Deforestation layer — static mock (TODO Fase 4: PRODES API); popups need city list for nearest city
+  // Deforestation — PRODES alerts from API (same source as dashboard)
   useEffect(() => {
-    const map = mapInstanceRef.current
-    if (!map) return
     deforestLayerRef.current.clearLayers()
-    GLOBAL_DEFORESTATION_AREAS.forEach(area => {
-      const nearestCity = getNearestCity(area.lat, area.lng, cities)
-      L.circle([area.lat, area.lng], {
-        radius: area.radius,
-        fillColor: '#22c55e',
-        fillOpacity: 0.12,
-        color: '#22c55e',
-        weight: 1.5,
+    deforestationAlerts.forEach((alert: DeforestationAlertApi) => {
+      if (alert.lat == null || alert.lng == null) return
+      const nearestCity = getNearestCity(alert.lat, alert.lng, cities)
+      const radiusM = Math.sqrt(alert.areaHa * 10_000 / Math.PI)
+      const intensity = Math.min(1, alert.areaHa / 50_000)
+      const green = Math.round(180 + 75 * (1 - intensity))
+      const color = `rgb(0, ${green}, 0)`
+      const detectedLabel = new Date(alert.detectedAt).toLocaleDateString('pt-BR')
+      const nearestLine = nearestCity
+        ? `<span style="font-size:11px">Cidade próxima: <b>${escapePopupText(nearestCity.name)}</b> (${escapePopupText(nearestCity.state)})</span><br/>`
+        : ''
+      L.circle([alert.lat, alert.lng], {
+        radius: Math.max(radiusM, 5000),
+        fillColor: color,
+        fillOpacity: 0.15 + 0.25 * intensity,
+        color,
+        weight: 1,
         opacity: 0.4,
-        dashArray: '5 5',
+        dashArray: '4 4',
       })
         .bindPopup(
           `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">🌳 Área Desmatada</strong><br/>
-            ${
-              nearestCity
-                ? `<span style="font-size:11px">Estado: <b>${escapePopupText(nearestCity.state)}</b> · Cidade próxima: <b>${escapePopupText(nearestCity.name)}</b></span><br/>`
-                : ''
-            }
-            <span style="font-size:11px">Fonte: PRODES/INPE</span>
+            🌳 <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">Desmatamento · ${escapePopupText(alert.state)}</strong><br/>
+            ${alert.biome ? `<span style="font-size:11px">Bioma: ${escapePopupText(alert.biome)}</span><br/>` : ''}
+            <span style="font-size:11px">Área: <strong>${alert.areaHa.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} ha</strong></span><br/>
+            <span style="font-size:10px;color:#666">Referência: ${escapePopupText(detectedLabel)}</span><br/>
+            ${nearestLine}
+            <span style="font-size:10px;color:#666">Fonte: PRODES/INPE</span>
           </div>`,
         )
         .addTo(deforestLayerRef.current)
     })
+  }, [deforestationAlerts, cities])
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
     if (showDeforestation) deforestLayerRef.current.addTo(map)
     else deforestLayerRef.current.remove()
-  }, [cities, showDeforestation])
+  }, [showDeforestation])
 
   // Redraw stations layer when city API data loads
   useEffect(() => {

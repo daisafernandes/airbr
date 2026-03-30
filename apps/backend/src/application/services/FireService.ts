@@ -9,15 +9,16 @@ export class FireService {
     private readonly cache: ICacheService,
   ) {}
 
-  async listFires(options?: { state?: string; biome?: string }): Promise<FireFocusData[]> {
-    const key = `fires:${options?.state ?? 'all'}:${options?.biome ?? 'all'}`
+  async listFires(options?: { state?: string; biome?: string; days?: number }): Promise<FireFocusData[]> {
+    const sinceHours = options?.days != null ? options.days * 24 : 48
+    const key = `fires:${options?.state ?? 'all'}:${options?.biome ?? 'all'}:${sinceHours}`
     const cached = this.cache.get<FireFocusData[]>(key)
     if (cached) return cached
 
     let result: FireFocusData[]
-    if (options?.state) result = await this.fireRepository.findByState(options.state)
-    else if (options?.biome) result = await this.fireRepository.findByBiome(options.biome)
-    else result = await this.fireRepository.findActive()
+    if (options?.state) result = await this.fireRepository.findByState(options.state, sinceHours)
+    else if (options?.biome) result = await this.fireRepository.findByBiome(options.biome, sinceHours)
+    else result = await this.fireRepository.findActive(sinceHours)
 
     this.cache.set(key, result, TTL_3_HOURS)
     return result

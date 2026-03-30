@@ -11,16 +11,18 @@ export class PrismaFireRepository implements IFireRepository {
     })
   }
 
-  async findByState(state: string): Promise<FireFocusData[]> {
+  async findByState(state: string, sinceHours = 48): Promise<FireFocusData[]> {
+    const since = new Date(Date.now() - sinceHours * 60 * 60 * 1000)
     return prisma.fireFocus.findMany({
-      where: { state },
+      where: { state, detectedAt: { gte: since } },
       orderBy: { detectedAt: 'desc' },
     })
   }
 
-  async findByBiome(biome: string): Promise<FireFocusData[]> {
+  async findByBiome(biome: string, sinceHours = 48): Promise<FireFocusData[]> {
+    const since = new Date(Date.now() - sinceHours * 60 * 60 * 1000)
     return prisma.fireFocus.findMany({
-      where: { biome },
+      where: { biome, detectedAt: { gte: since } },
       orderBy: { detectedAt: 'desc' },
     })
   }

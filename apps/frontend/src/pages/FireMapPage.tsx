@@ -19,6 +19,12 @@ import { useFires } from '@hooks/useFires'
 
 type Period = 'hoje' | '7d' | '30d'
 
+const PERIOD_DAYS: Record<Period, number> = {
+  hoje: 1,
+  '7d': 7,
+  '30d': 30,
+}
+
 const AFFECTED_CITIES_PREVIEW = 6
 
 function ImpactCard({
@@ -211,9 +217,10 @@ export const FireMapPage = () => {
   const [period, setPeriod] = useState<Period>('hoje')
   const { t } = useTranslation()
 
-  const { data: fires = [], isLoading: firesLoading } = useFires(
-    stateFilter ? { state: stateFilter } : undefined,
-  )
+  const { data: fires = [], isLoading: firesLoading } = useFires({
+    ...(stateFilter ? { state: stateFilter } : {}),
+    days: PERIOD_DAYS[period],
+  })
   const { data: cities = [] } = useCities()
 
   const states = useMemo(() => {
@@ -316,7 +323,6 @@ export const FireMapPage = () => {
             showDeforestation={showDeforestation}
             showStations={showStations}
             stateFilter={stateFilter}
-            periodDays={period === 'hoje' ? 1 : period === '7d' ? 7 : 30}
             fires={fires}
           />
 

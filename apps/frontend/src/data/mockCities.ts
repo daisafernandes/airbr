@@ -180,21 +180,6 @@ export const GLOBAL_FIRE_SPOTS: FireSpot[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// Global deforestation areas (source: PRODES/INPE mock)
-// ---------------------------------------------------------------------------
-
-export const GLOBAL_DEFORESTATION_AREAS: DeforestationArea[] = [
-  { lat: -3.0, lng: -59.0, radius: 55000 },
-  { lat: -5.5, lng: -55.0, radius: 42000 },
-  { lat: -8.0, lng: -63.5, radius: 38000 },
-  { lat: -4.0, lng: -49.5, radius: 32000 },
-  { lat: -10.0, lng: -56.0, radius: 40000 },
-  { lat: -12.5, lng: -54.0, radius: 35000 },
-  { lat: -9.5, lng: -65.0, radius: 28000 },
-  { lat: -11.0, lng: -51.0, radius: 22000 },
-]
-
-// ---------------------------------------------------------------------------
 // Build full CityData from base
 // ---------------------------------------------------------------------------
 
