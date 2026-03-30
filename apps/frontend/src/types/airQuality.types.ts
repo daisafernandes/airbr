@@ -28,6 +28,13 @@ export interface AqiReadingApi {
   source: string
 }
 
+export interface NearestMunicipalityApi {
+  name: string
+  state: string
+  /** Distance from fire point to municipal seat (km). */
+  distanceKm: number
+}
+
 export interface FireFocusApi {
   id: string
   lat: number
@@ -37,6 +44,8 @@ export interface FireFocusApi {
   biome: string | null
   state: string | null
   detectedAt: string
+  /** Nearest IBGE municipality (sede); from backend PostGIS when available. */
+  nearestMunicipality?: NearestMunicipalityApi | null
 }
 
 export interface RankedCityApi {

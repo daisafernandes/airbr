@@ -1,5 +1,6 @@
-import { prisma } from '../prisma'
 import type { IMunicipalityRepository, NearestMunicipality } from '@domain/repositories/IMunicipalityRepository'
+
+import { prisma } from '../prisma'
 
 const EARTH_RADIUS_KM = 6371
 
@@ -39,7 +40,7 @@ export class PrismaMunicipalityRepository implements IMunicipalityRepository {
       .map((p, i) => `(${i}::int, ${Number(p.lat)}::float8, ${Number(p.lng)}::float8)`)
       .join(', ')
 
-    type RawRow = { ord: number; name: string; state: string; distance_km: number }
+    type RawRow = { ord: number; name: string | null; state: string | null; distance_km: number | null }
     const rows = await prisma.$queryRawUnsafe<RawRow[]>(
       `
       WITH pts(ord, lat, lng) AS (VALUES ${values})
@@ -69,7 +70,7 @@ export class PrismaMunicipalityRepository implements IMunicipalityRepository {
 
     const out: Array<NearestMunicipality | null> = points.map(() => null)
     for (const r of rows) {
-      if (r.name != null && r.distance_km != null) {
+      if (r.name != null && r.state != null && r.distance_km != null) {
         out[r.ord] = {
           name: r.name,
           state: r.state,

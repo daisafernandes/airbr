@@ -4,20 +4,24 @@ import 'leaflet/dist/leaflet.css'
 
 import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
-import type { CityApiData, DeforestationAlertApi } from '@app-types/airQuality.types'
+import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 
-function findNearestCity(
-  lat: number,
-  lng: number,
+function nearestCityLabelFromSpot(
+  spot: Pick<FireFocusApi, 'nearestMunicipality' | 'lat' | 'lng'>,
   cities: Array<{ name: string; lat: number; lng: number }>,
 ): string {
+  const nm = spot.nearestMunicipality
+  if (nm) return `${nm.name} (${nm.state}) · ${Math.round(nm.distanceKm)} km`
   if (cities.length === 0) return '—'
   let nearest = cities[0]!
-  let minDist = (lat - nearest.lat) ** 2 + (lng - nearest.lng) ** 2
+  let minDist = (spot.lat - nearest.lat) ** 2 + (spot.lng - nearest.lng) ** 2
   for (let i = 1; i < cities.length; i++) {
     const c = cities[i]!
-    const d = (lat - c.lat) ** 2 + (lng - c.lng) ** 2
-    if (d < minDist) { minDist = d; nearest = c }
+    const d = (spot.lat - c.lat) ** 2 + (spot.lng - c.lng) ** 2
+    if (d < minDist) {
+      minDist = d
+      nearest = c
+    }
   }
   return nearest.name
 }
@@ -45,7 +49,7 @@ interface BrazilMapProps {
   showFires: boolean
   showDeforestation: boolean
   showStations: boolean
-  fires?: Array<{ lat: number; lng: number; intensity?: number | null; state?: string | null }>
+  fires?: FireFocusApi[]
 }
 
 export const BrazilMap = ({
@@ -195,12 +199,12 @@ export const BrazilMap = ({
         .bindPopup(
           `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
             🔥 Foco de queimada${spot.state ? ` · ${spot.state}` : ''} · ${label}<br/>
-            <span style="font-size:11px">📍 Cidade mais próxima: <strong>${findNearestCity(spot.lat, spot.lng, cities)}</strong></span>
+            <span style="font-size:11px">📍 Cidade mais próxima: <strong>${nearestCityLabelFromSpot(spot, cities)}</strong></span>
           </div>`,
         )
         .addTo(fireLayerRef.current)
     })
-  }, [fires])
+  }, [fires, cities])
 
   // Toggle layer visibility
   useEffect(() => {

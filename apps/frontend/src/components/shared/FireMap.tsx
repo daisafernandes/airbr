@@ -115,16 +115,19 @@ export const FireMap = ({ showFires, showDeforestation, showStations, stateFilte
     if (!map) return
 
     fires.forEach(spot => {
-      const nearestCity = getNearestCity(spot.lat, spot.lng, cities)
+      const fallbackCity = getNearestCity(spot.lat, spot.lng, cities)
       const color = getFireColor(spot.intensity)
       const radius = getFireRadius(spot.intensity)
       const label = getFireLabel(spot.intensity)
       const stateLine = spot.state
         ? `<span style="font-size:12px">Estado: <b>${escapePopupText(spot.state)}</b></span><br/>`
         : ''
-      const nearestLine = nearestCity
-        ? `<span style="font-size:12px">Cidade próxima: <b>${escapePopupText(nearestCity.name)}</b></span><br/>`
-        : ''
+      const nm = spot.nearestMunicipality
+      const nearestLine = nm
+        ? `<span style="font-size:12px">Cidade próxima: <b>${escapePopupText(nm.name)}</b> (${escapePopupText(nm.state)}) · ${Math.round(nm.distanceKm)} km</span><br/>`
+        : fallbackCity
+          ? `<span style="font-size:12px">Cidade próxima: <b>${escapePopupText(fallbackCity.name)}</b></span><br/>`
+          : ''
       const biomeLine = spot.biome
         ? `<span style="font-size:11px">Bioma: ${escapePopupText(spot.biome)}</span><br/>`
         : ''

@@ -128,7 +128,7 @@ export const DashboardPage = () => {
             showFires={showFires}
             showDeforestation={showDeforestation}
             showStations={showStations}
-            fires={fires.map(f => ({ lat: f.lat, lng: f.lng, intensity: f.intensity, state: f.state }))}
+            fires={fires}
           />
           <div className="hidden lg:block">
             {viewMode === 'compare' ? (
