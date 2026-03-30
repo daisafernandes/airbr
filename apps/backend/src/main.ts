@@ -4,7 +4,9 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 
+import { AlertService } from '@application/services/AlertService'
 import { AqiService } from '@application/services/AqiService'
+import { AuthService } from '@application/services/AuthService'
 import { CityService } from '@application/services/CityService'
 import { DeforestationService } from '@application/services/DeforestationService'
 import { FireService } from '@application/services/FireService'
@@ -14,6 +16,7 @@ import { WindSmokeService } from '@application/services/WindSmokeService'
 import { NodeCacheService } from '@infrastructure/cache/NodeCacheService'
 import { env } from '@infrastructure/config/env'
 import { prisma } from '@infrastructure/database/prisma'
+import { PrismaAlertRepository } from '@infrastructure/database/repositories/PrismaAlertRepository'
 import { PrismaAqiRepository } from '@infrastructure/database/repositories/PrismaAqiRepository'
 import { PrismaCityRepository } from '@infrastructure/database/repositories/PrismaCityRepository'
 import { PrismaDeforestationRepository } from '@infrastructure/database/repositories/PrismaDeforestationRepository'
@@ -21,13 +24,19 @@ import { PrismaFireRepository } from '@infrastructure/database/repositories/Pris
 import { PrismaHealthRepository } from '@infrastructure/database/repositories/PrismaHealthRepository'
 import { PrismaJobLogRepository } from '@infrastructure/database/repositories/PrismaJobLogRepository'
 import { PrismaMunicipalityRepository } from '@infrastructure/database/repositories/PrismaMunicipalityRepository'
+import { PrismaPushSubscriptionRepository } from '@infrastructure/database/repositories/PrismaPushSubscriptionRepository'
+import { PrismaUserRepository } from '@infrastructure/database/repositories/PrismaUserRepository'
 import { AdminController } from '@infrastructure/http/controllers/AdminController'
+import { AlertController } from '@infrastructure/http/controllers/AlertController'
+import { AuthController } from '@infrastructure/http/controllers/AuthController'
 import { CityController } from '@infrastructure/http/controllers/CityController'
 import { DeforestationController } from '@infrastructure/http/controllers/DeforestationController'
 import { FireController } from '@infrastructure/http/controllers/FireController'
+import { PushController } from '@infrastructure/http/controllers/PushController'
 import { errorHandler } from '@infrastructure/http/middlewares/errorHandler'
 import { apiRateLimiter } from '@infrastructure/http/middlewares/rateLimit'
 import { buildRoutes } from '@infrastructure/http/routes'
+import { AlertChecker } from '@jobs/AlertChecker'
 import { AQICNCollector } from '@jobs/collectors/AQICNCollector'
 import { CETESBCollector } from '@jobs/collectors/CETESBCollector'
 import { DATASUSCollector } from '@jobs/collectors/DATASUSCollector'
@@ -63,6 +72,9 @@ const municipalityRepository = new PrismaMunicipalityRepository()
 const jobLogRepository = new PrismaJobLogRepository()
 const deforestationRepository = new PrismaDeforestationRepository()
 const healthRepository = new PrismaHealthRepository()
+const userRepository = new PrismaUserRepository()
+const alertRepository = new PrismaAlertRepository()
+const pushSubscriptionRepository = new PrismaPushSubscriptionRepository()
 
 // Services
 const cityService = new CityService(cityRepository, aqiRepository, cacheService)
@@ -72,6 +84,9 @@ const windSmokeService = new WindSmokeService(aqiRepository, fireRepository, cac
 const outdoorSafetyService = new OutdoorSafetyService(aqiRepository, cacheService)
 const healthService = new HealthService(healthRepository, aqiRepository, cityRepository, cacheService)
 const deforestationService = new DeforestationService(deforestationRepository, cacheService)
+
+const authService = new AuthService(userRepository)
+const alertService = new AlertService(alertRepository, cityRepository)
 
 const aqiCollectors = [
   new OpenWeatherMapCollector(cityRepository),
@@ -102,6 +117,9 @@ const cityController = new CityController(cityService, aqiService, windSmokeServ
 const fireController = new FireController(fireService)
 const adminController = new AdminController(jobLogRepository, normalizer)
 const deforestationController = new DeforestationController(deforestationService)
+const authController = new AuthController(authService)
+const alertController = new AlertController(alertService)
+const pushController = new PushController(pushSubscriptionRepository)
 
 // Health check (registered before main router to ensure priority)
 app.get('/api/v1/health', async (_req, res) => {
@@ -114,11 +132,22 @@ app.get('/api/v1/health', async (_req, res) => {
 })
 
 // API routes
-app.use('/api/v1', buildRoutes({ cityController, fireController, adminController, deforestationController }))
+app.use(
+  '/api/v1',
+  buildRoutes({
+    cityController,
+    fireController,
+    adminController,
+    deforestationController,
+    authController,
+    alertController,
+    pushController,
+  }),
+)
 
 app.use(errorHandler)
 
-const scheduler = new JobScheduler(normalizer)
+const scheduler = new JobScheduler(normalizer, new AlertChecker(alertRepository, aqiRepository, pushSubscriptionRepository))
 scheduler.start()
 
 const server = app.listen(env.PORT, () => {

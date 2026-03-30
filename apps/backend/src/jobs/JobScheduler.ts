@@ -1,6 +1,7 @@
 import cron from 'node-cron'
 
 import { prisma } from '@infrastructure/database/prisma'
+import type { AlertChecker } from './AlertChecker'
 import type { Normalizer } from './Normalizer'
 
 /**
@@ -8,7 +9,10 @@ import type { Normalizer } from './Normalizer'
  * Rates are chosen to stay within free-tier API limits.
  */
 export class JobScheduler {
-  constructor(private readonly normalizer: Normalizer) {}
+  constructor(
+    private readonly normalizer: Normalizer,
+    private readonly alertChecker: AlertChecker,
+  ) {}
 
   start(): void {
     // AQI (OWM + AQICN + OpenMeteo): every hour
@@ -47,7 +51,15 @@ export class JobScheduler {
       void this.cleanOldReadings()
     })
 
-    console.info('[Scheduler] All jobs scheduled (AQI=1h, Fire=3h, PRODES=24h, DATASUS=weekly, IBGE=monthly, Cleanup=24h)')
+    // User AQI alerts (email / push): every 15 minutes
+    cron.schedule('*/15 * * * *', () => {
+      console.info('[Scheduler] Starting alert checker')
+      void this.alertChecker.run().catch((err) => console.error('[Scheduler] Alert checker failed', err))
+    })
+
+    console.info(
+      '[Scheduler] All jobs scheduled (AQI=1h, Fire=3h, PRODES=24h, DATASUS=weekly, IBGE=monthly, Cleanup=24h, Alerts=15m)',
+    )
   }
 
   private async cleanOldReadings(): Promise<void> {

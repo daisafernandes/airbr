@@ -1,12 +1,15 @@
 import { Wind, MapPin } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useLocation } from 'react-router-dom'
 
+import { Button } from '@/components/ui/button'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { useAuth } from '@contexts/AuthContext'
 import { airQualityService } from '@services/airQualityService'
+
 import { CitySearchBar } from './CitySearchBar'
 import { LiveIndicator } from './LiveIndicator'
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
 
 interface HeaderProps {
   onCitySelect: (cityId: string) => void
@@ -15,6 +18,7 @@ interface HeaderProps {
 export const Header = ({ onCitySelect }: HeaderProps) => {
   const location = useLocation()
   const { t } = useTranslation()
+  const { isAuthenticated, authReady, signOut } = useAuth()
 
   const handleLocation = useCallback(() => {
     if (!navigator.geolocation) return
@@ -40,6 +44,7 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
     { to: '/mapa-queimadas', label: t('nav.fireMap') },
     { to: '/guia', label: t('nav.guide') },
     { to: '/metodologia', label: t('nav.methodology') },
+    { to: '/alerts', label: t('nav.alerts') },
   ]
 
   return (
@@ -89,6 +94,19 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
             <span className="hidden sm:inline">{t('header.location')}</span>
           </button>
           <LanguageSelector />
+          {authReady &&
+            (isAuthenticated ? (
+              <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => signOut()}>
+                {t('auth.logout')}
+              </Button>
+            ) : (
+              <Link
+                to="/login"
+                className="text-xs font-body px-3 py-2 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+              >
+                {t('auth.login')}
+              </Link>
+            ))}
           <LiveIndicator />
         </div>
       </div>
