@@ -5,7 +5,7 @@ import type { IMunicipalityRepository, NearestMunicipality } from '@domain/repos
 const TTL_3_HOURS = 60 * 60 * 3
 
 export type FireFocusWithNearest = FireFocusData & {
-  nearestMunicipality: NearestMunicipality | null
+  nearestMunicipalities: NearestMunicipality[]
 }
 
 export class FireService {
@@ -32,7 +32,17 @@ export class FireService {
     const nearest = await this.municipalityRepository.findNearestBatch(result.map(r => ({ lat: r.lat, lng: r.lng })))
     return result.map((r, i) => ({
       ...r,
-      nearestMunicipality: nearest[i] ?? null,
+      nearestMunicipalities: nearest[i] ?? [],
     }))
+  }
+
+  async getFireById(id: string): Promise<FireFocusWithNearest | null> {
+    const focus = await this.fireRepository.findById(id)
+    if (!focus) return null
+    const nearest = await this.municipalityRepository.findNearestBatch([{ lat: focus.lat, lng: focus.lng }])
+    return {
+      ...focus,
+      nearestMunicipalities: nearest[0] ?? [],
+    }
   }
 }

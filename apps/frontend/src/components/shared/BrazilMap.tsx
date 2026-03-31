@@ -1,29 +1,40 @@
 import L from 'leaflet'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import 'leaflet/dist/leaflet.css'
 
+import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
-import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
+import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
 
-function nearestCityLabelFromSpot(
-  spot: Pick<FireFocusApi, 'nearestMunicipality' | 'lat' | 'lng'>,
-  cities: Array<{ name: string; lat: number; lng: number }>,
+function escapePopupHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+}
+
+function nearestCitiesSummaryHtml(
+  spot: Pick<FireFocusApi, 'nearestMunicipalities' | 'lat' | 'lng'>,
+  cities: CityApiData[],
 ): string {
-  const nm = spot.nearestMunicipality
-  if (nm) return `${nm.name} (${nm.state}) · ${Math.round(nm.distanceKm)} km`
-  if (cities.length === 0) return '—'
-  let nearest = cities[0]!
-  let minDist = (spot.lat - nearest.lat) ** 2 + (spot.lng - nearest.lng) ** 2
-  for (let i = 1; i < cities.length; i++) {
-    const c = cities[i]!
-    const d = (spot.lat - c.lat) ** 2 + (spot.lng - c.lng) ** 2
-    if (d < minDist) {
-      minDist = d
-      nearest = c
-    }
+  const api = spot.nearestMunicipalities ?? []
+  if (api.length > 0) {
+    return api
+      .slice(0, 3)
+      .map(m => `${escapePopupHtml(m.name)} (${escapePopupHtml(m.state)}) · ${Math.round(m.distanceKm)} km`)
+      .join('; ')
   }
-  return nearest.name
+  const top = getTopNearestByHaversine(spot.lat, spot.lng, cities, 3)
+  if (top.length === 0) return '—'
+  return top
+    .map(c => {
+      const d = Math.round(haversineKm(spot.lat, spot.lng, c.lat, c.lng))
+      return `${escapePopupHtml(c.name)} (${escapePopupHtml(c.state)}) · ${d} km`
+    })
+    .join('; ')
 }
 
 function getAQIColor(aqi: number): string {
@@ -50,6 +61,8 @@ interface BrazilMapProps {
   showDeforestation: boolean
   showStations: boolean
   fires?: FireFocusApi[]
+  /** Opens fire detail in a modal on the parent page. */
+  onOpenFireDetail?: (fireId: string) => void
 }
 
 export const BrazilMap = ({
@@ -58,7 +71,9 @@ export const BrazilMap = ({
   showDeforestation,
   showStations,
   fires = [],
+  onOpenFireDetail,
 }: BrazilMapProps) => {
+  const { t, i18n } = useTranslation()
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const cityLayerRef = useRef<L.LayerGroup>(L.layerGroup())
@@ -187,8 +202,13 @@ export const BrazilMap = ({
       const intensity = spot.intensity ?? 0
       const color = intensity >= 70 ? '#ef4444' : intensity >= 40 ? '#ff9f4a' : '#facc15'
       const radius = intensity >= 70 ? 8 : intensity >= 40 ? 6 : 4
-      const label = intensity >= 70 ? 'Alta intensidade' : intensity >= 40 ? 'Média intensidade' : 'Baixa intensidade'
-      L.circleMarker([spot.lat, spot.lng], {
+      const label =
+        intensity >= 70 ? t('firemap.intensityHigh') : intensity >= 40 ? t('firemap.intensityMedium') : t('firemap.intensityLow')
+      const nearSummary = nearestCitiesSummaryHtml(spot, cities)
+      const detailLink = onOpenFireDetail
+        ? `<button type="button" class="airbr-fire-detail-btn" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px;cursor:pointer;background:none;border:none;padding:0;font-family:inherit" data-airbr-fire-id="${escapeAttr(spot.id)}">${escapePopupHtml(t('firemap.viewFireDetailLink'))}</button>`
+        : `<a href="/mapa-queimadas?foco=${encodeURIComponent(spot.id)}" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px">${escapePopupHtml(t('firemap.viewFireDetailLink'))}</a>`
+      const marker = L.circleMarker([spot.lat, spot.lng], {
         radius,
         fillColor: color,
         fillOpacity: 0.8,
@@ -196,15 +216,32 @@ export const BrazilMap = ({
         weight: 0.5,
         opacity: 0.5,
       })
-        .bindPopup(
-          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            🔥 Foco de queimada${spot.state ? ` · ${spot.state}` : ''} · ${label}<br/>
-            <span style="font-size:11px">📍 Cidade mais próxima: <strong>${nearestCityLabelFromSpot(spot, cities)}</strong></span>
+      marker.bindPopup(
+        `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
+            🔥 ${escapePopupHtml(t('firemap.popupFireTitle'))}${spot.state ? ` · ${escapePopupHtml(spot.state)}` : ''} · ${escapePopupHtml(label)}<br/>
+            <span style="font-size:11px">📍 ${escapePopupHtml(t('firemap.popupNearestHeading'))}: <strong>${nearSummary}</strong></span><br/>
+            ${detailLink}
           </div>`,
-        )
-        .addTo(fireLayerRef.current)
+      )
+
+      if (onOpenFireDetail) {
+        marker.on('popupopen', () => {
+          const btn = marker.getPopup()?.getElement()?.querySelector('button.airbr-fire-detail-btn')
+          if (!btn) return
+          const id = btn.getAttribute('data-airbr-fire-id')
+          if (!id) return
+          const handler = (e: Event) => {
+            e.preventDefault()
+            onOpenFireDetail(id)
+          }
+          btn.addEventListener('click', handler)
+          marker.once('popupremove', () => btn.removeEventListener('click', handler))
+        })
+      }
+
+      marker.addTo(fireLayerRef.current)
     })
-  }, [fires, cities])
+  }, [fires, cities, t, i18n.language, onOpenFireDetail])
 
   // Toggle layer visibility
   useEffect(() => {

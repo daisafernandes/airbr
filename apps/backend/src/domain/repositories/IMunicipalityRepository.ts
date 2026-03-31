@@ -6,6 +6,6 @@ export interface NearestMunicipality {
 
 export interface IMunicipalityRepository {
   findNearest(lat: number, lng: number): Promise<NearestMunicipality | null>
-  /** Same order as input points; null if table empty or lookup fails. */
-  findNearestBatch(points: Array<{ lat: number; lng: number }>): Promise<Array<NearestMunicipality | null>>
+  /** Same order as input points; up to 3 nearest municipalities per point, by distance. */
+  findNearestBatch(points: Array<{ lat: number; lng: number }>): Promise<NearestMunicipality[][]>
 }

@@ -55,18 +55,22 @@ export class AlertChecker {
       if (row.channels.includes('PUSH')) {
         const subs = await this.pushSubs.findByUserId(row.userId)
         const payload = JSON.stringify({ title, body, url: '/' })
+        let pushSent = false
         for (const sub of subs) {
           try {
             await this.pushSender.send(
               { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
               payload,
             )
-            await this.alerts.recordDispatch(row.alertId, 'PUSH', reading.aqi)
+            pushSent = true
             // eslint-disable-next-line no-console -- job audit log
             console.info(`[AlertChecker] Push sent for alert ${row.alertId}`)
           } catch (err) {
             console.error(`[AlertChecker] Push failed for subscription ${sub.id}`, err)
           }
+        }
+        if (pushSent) {
+          await this.alerts.recordDispatch(row.alertId, 'PUSH', reading.aqi)
         }
       }
     }

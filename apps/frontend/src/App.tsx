@@ -9,6 +9,7 @@ import { AuthProvider } from '@contexts/AuthContext'
 import { AlertsPage } from '@pages/AlertsPage'
 import { CityPage } from '@pages/CityPage'
 import { DashboardPage } from '@pages/DashboardPage'
+import { FireFocusRedirectPage } from '@pages/FireFocusRedirectPage'
 import { FireMapPage } from '@pages/FireMapPage'
 import { GlossaryPage } from '@pages/GlossaryPage'
 import { LoginPage } from '@pages/LoginPage'
@@ -40,6 +41,7 @@ export const App = () => {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/mapa-queimadas" element={<FireMapPage />} />
+              <Route path="/mapa-queimadas/foco/:id" element={<FireFocusRedirectPage />} />
               <Route path="/cidade/:id" element={<CityPage />} />
               <Route path="/guia" element={<GlossaryPage />} />
               <Route path="/metodologia" element={<MethodologyPage />} />

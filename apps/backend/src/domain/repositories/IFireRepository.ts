@@ -20,6 +20,7 @@ export interface FireUpsertInput {
 }
 
 export interface IFireRepository {
+  findById(id: string): Promise<FireFocusData | null>
   findActive(sinceHours?: number): Promise<FireFocusData[]>
   findByState(state: string, sinceHours?: number): Promise<FireFocusData[]>
   findByBiome(biome: string, sinceHours?: number): Promise<FireFocusData[]>

@@ -22,4 +22,18 @@ export class FireController {
 
     res.json(fires)
   }
+
+  getFireById = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params
+    if (typeof id !== 'string' || id.length === 0) {
+      res.status(400).json({ message: 'Invalid id' })
+      return
+    }
+    const fire = await this.fireService.getFireById(id)
+    if (!fire) {
+      res.status(404).json({ message: 'Fire focus not found' })
+      return
+    }
+    res.json(fire)
+  }
 }

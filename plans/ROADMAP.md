@@ -221,24 +221,27 @@ Integrar as fontes que fazem o diferencial do produto: dados oficiais brasileiro
 
 Sistema de alertas proativo: o usuário define limites e é notificado quando o AQI ultrapassa o threshold em sua cidade favorita.
 
-### Agente A — Sistema de Alertas
+### Agente A — Sistema de Alertas ✅ CONCLUÍDO
 
-- Adicionar modelo `Alert` ao schema Prisma: `email`, `cityId`, `threshold`, `channels` (email | push), `active`
-- `POST /api/v1/alerts` — cadastrar alerta por e-mail
-- `GET /api/v1/alerts` — listar alertas por e-mail
-- `DELETE /api/v1/alerts/:id` — remover alerta
-- Criar `AlertCheckerJob` que roda a cada hora: verifica AQI das cidades monitoradas e dispara notificações quando threshold é ultrapassado
-- Integrar **Resend** (ou Nodemailer como fallback) para envio de e-mail de alerta
-- Integrar **Web Push API** com chaves VAPID para notificações push no browser
+- ✅ Modelo `Alert` no Prisma vinculado a **conta autenticada** (`userId`), com `cityId`, `thresholdAqi`, `channels` (EMAIL | PUSH) e `active`
+- ✅ `POST /api/v1/alerts` — cadastrar alerta para o usuário logado
+- ✅ `GET /api/v1/alerts` — listar alertas do usuário logado
+- ✅ `DELETE /api/v1/alerts/:id` — remover alerta
+- ✅ `PATCH /api/v1/alerts/:id` — ativar/desativar alerta (incremento além do plano inicial)
+- ✅ `AlertChecker` em cron `*/15 * * * *` (a cada 15 minutos): verifica AQI e dispara notificações quando o threshold é ultrapassado
+- ✅ Integração de e-mail com **Resend** (preferencial) e **Nodemailer/SMTP** como fallback
+- ✅ Integração com **Web Push API** via chaves VAPID
 
-### Agente C — UI de Alertas
+### Agente C — UI de Alertas ✅ CONCLUÍDO
 
-- Criar `apps/frontend/src/pages/AlertsPage.tsx`: escolher cidade, definir threshold de AQI, selecionar canal (e-mail e/ou push)
-- Listar alertas ativos com botão de remoção
-- Solicitar permissão de Push Notification ao usuário no browser
-- Registrar Service Worker para receber push mesmo com o app fechado
+- ✅ `apps/frontend/src/pages/AlertsPage.tsx`: escolher cidade, definir threshold de AQI e selecionar canal (e-mail e/ou push)
+- ✅ Listagem de alertas ativos com remoção e toggle de ativo/inativo
+- ✅ Solicitação de permissão de Push Notification no browser
+- ✅ Registro de Service Worker para receber push mesmo com o app fechado
 
-**Entregas:** `POST/GET/DELETE /alerts`, AlertCheckerJob, e-mail de alerta, Web Push (VAPID), UI de gerenciamento, Service Worker.
+**Entregas:** `POST/GET/DELETE/PATCH /alerts` ✅, AlertChecker ✅, e-mail de alerta ✅, Web Push (VAPID) ✅, UI de gerenciamento ✅, Service Worker ✅.
+
+> **Fase 5 concluída integralmente.**
 
 ---
 

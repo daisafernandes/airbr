@@ -20,10 +20,10 @@ export class PrismaMunicipalityRepository implements IMunicipalityRepository {
 
   async findNearest(lat: number, lng: number): Promise<NearestMunicipality | null> {
     const batch = await this.findNearestBatch([{ lat, lng }])
-    return batch[0] ?? null
+    return batch[0]?.[0] ?? null
   }
 
-  async findNearestBatch(points: Array<{ lat: number; lng: number }>): Promise<Array<NearestMunicipality | null>> {
+  async findNearestBatch(points: Array<{ lat: number; lng: number }>): Promise<NearestMunicipality[][]> {
     if (points.length === 0) return []
 
     try {
@@ -35,7 +35,7 @@ export class PrismaMunicipalityRepository implements IMunicipalityRepository {
 
   private async findNearestBatchPostgis(
     points: Array<{ lat: number; lng: number }>,
-  ): Promise<Array<NearestMunicipality | null>> {
+  ): Promise<NearestMunicipality[][]> {
     const values = points
       .map((p, i) => `(${i}::int, ${Number(p.lat)}::float8, ${Number(p.lng)}::float8)`)
       .join(', ')
@@ -62,48 +62,47 @@ export class PrismaMunicipalityRepository implements IMunicipalityRepository {
         ORDER BY
           ST_SetSRID(ST_MakePoint(mu.lng, mu.lat), 4326)::geography
           <-> ST_SetSRID(ST_MakePoint(pts.lng, pts.lat), 4326)::geography
-        LIMIT 1
+        LIMIT 3
       ) m ON true
-      ORDER BY pts.ord
+      ORDER BY pts.ord, distance_km ASC NULLS LAST
       `,
     )
 
-    const out: Array<NearestMunicipality | null> = points.map(() => null)
+    const byOrd = new Map<number, NearestMunicipality[]>()
     for (const r of rows) {
       if (r.name != null && r.state != null && r.distance_km != null) {
-        out[r.ord] = {
+        const list = byOrd.get(r.ord) ?? []
+        list.push({
           name: r.name,
           state: r.state,
           distanceKm: Number(r.distance_km),
-        }
+        })
+        byOrd.set(r.ord, list)
       }
     }
-    return out
+    return points.map((_, i) => byOrd.get(i) ?? [])
   }
 
   private async findNearestBatchMemory(
     points: Array<{ lat: number; lng: number }>,
-  ): Promise<Array<NearestMunicipality | null>> {
+  ): Promise<NearestMunicipality[][]> {
     if (!this.memoryCache) {
       this.memoryCache = await prisma.municipality.findMany({
         select: { name: true, state: true, lat: true, lng: true },
       })
     }
     const rows = this.memoryCache
-    if (rows.length === 0) return points.map(() => null)
+    if (rows.length === 0) return points.map(() => [])
 
+    const TOP = 3
     return points.map(pt => {
-      let best: MunRow = rows[0]!
-      let bestD = haversineKm(pt.lat, pt.lng, best.lat, best.lng)
-      for (let i = 1; i < rows.length; i++) {
-        const r = rows[i]!
-        const d = haversineKm(pt.lat, pt.lng, r.lat, r.lng)
-        if (d < bestD) {
-          bestD = d
-          best = r
-        }
-      }
-      return { name: best.name, state: best.state, distanceKm: bestD }
+      const scored = rows.map(r => ({
+        name: r.name,
+        state: r.state,
+        distanceKm: haversineKm(pt.lat, pt.lng, r.lat, r.lng),
+      }))
+      scored.sort((a, b) => a.distanceKm - b.distanceKm)
+      return scored.slice(0, TOP)
     })
   }
 }

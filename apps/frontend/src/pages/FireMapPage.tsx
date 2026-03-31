@@ -1,9 +1,10 @@
 import { Flame, Trees, SlidersHorizontal, Wind } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { FireFocusDetailDialog } from '@components/shared/FireFocusDetailDialog'
 import { FireMap } from '@components/shared/FireMap'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
 import {
@@ -204,11 +205,24 @@ function FilterControls({
 
 export const FireMapPage = () => {
   const isMobile = useIsMobile()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const fireDetailId = searchParams.get('foco')
   const [showFires, setShowFires] = useState(true)
   const [showDeforestation, setShowDeforestation] = useState(false)
   const [stateFilter, setStateFilter] = useState('')
   const [period, setPeriod] = useState<Period>('hoje')
   const { t } = useTranslation()
+
+  const openFireDetail = (id: string) => {
+    setSearchParams(
+      prev => {
+        const next = new URLSearchParams(prev)
+        next.set('foco', id)
+        return next
+      },
+      { replace: true },
+    )
+  }
 
   const { data: fires = [], isLoading: firesLoading } = useFires({
     ...(stateFilter ? { state: stateFilter } : {}),
@@ -313,11 +327,28 @@ export const FireMapPage = () => {
 
         {/* Map */}
         <div className="flex-1 relative">
+          <FireFocusDetailDialog
+            open={fireDetailId !== null && fireDetailId.length > 0}
+            onOpenChange={open => {
+              if (!open) {
+                setSearchParams(
+                  prev => {
+                    const next = new URLSearchParams(prev)
+                    next.delete('foco')
+                    return next
+                  },
+                  { replace: true },
+                )
+              }
+            }}
+            fireId={fireDetailId}
+          />
           <FireMap
             showFires={showFires}
             showDeforestation={showDeforestation}
             stateFilter={stateFilter}
             fires={fires}
+            onOpenFireDetail={openFireDetail}
           />
 
           {/* Mobile: floating impact card */}

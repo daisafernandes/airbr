@@ -44,8 +44,8 @@ export interface FireFocusApi {
   biome: string | null
   state: string | null
   detectedAt: string
-  /** Nearest IBGE municipality (sede); from backend PostGIS when available. */
-  nearestMunicipality?: NearestMunicipalityApi | null
+  /** Up to 3 nearest IBGE municipalities (sede), by distance; from backend PostGIS when available. */
+  nearestMunicipalities?: NearestMunicipalityApi[]
 }
 
 export interface RankedCityApi {

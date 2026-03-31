@@ -3,6 +3,10 @@ import type { FireFocusData, FireUpsertInput, IFireRepository } from '@domain/re
 import { prisma } from '../prisma'
 
 export class PrismaFireRepository implements IFireRepository {
+  async findById(id: string): Promise<FireFocusData | null> {
+    return prisma.fireFocus.findUnique({ where: { id } })
+  }
+
   async findActive(sinceHours = 48): Promise<FireFocusData[]> {
     const since = new Date(Date.now() - sinceHours * 60 * 60 * 1000)
     return prisma.fireFocus.findMany({

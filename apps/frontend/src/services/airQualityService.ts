@@ -1,4 +1,3 @@
-import { api } from './api'
 import type {
   CityApiData,
   AqiReadingApi,
@@ -16,6 +15,8 @@ import type {
   OMSComplianceApi,
 } from '@app-types/airQuality.types'
 
+import { api } from './api'
+
 export const airQualityService = {
   getCities(): Promise<CityApiData[]> {
     return api.get<CityApiData[]>('/cities').then(r => r.data)
@@ -31,6 +32,10 @@ export const airQualityService = {
 
   getFires(filters?: FireFilters): Promise<FireFocusApi[]> {
     return api.get<FireFocusApi[]>('/fires', { params: filters }).then(r => r.data)
+  },
+
+  getFireById(id: string): Promise<FireFocusApi> {
+    return api.get<FireFocusApi>(`/fires/${encodeURIComponent(id)}`).then(r => r.data)
   },
 
   getRanking(filters?: RankingFilters): Promise<RankingResponse> {
