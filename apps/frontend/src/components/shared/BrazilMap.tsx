@@ -324,7 +324,7 @@ export const BrazilMap = ({
           <span className="text-xs font-mono text-muted-foreground animate-pulse">Carregando cidades...</span>
         </div>
       )}
-      <div ref={mapRef} className="w-full" style={{ minHeight: 'calc(100vh - 140px)' }} />
+      <div ref={mapRef} data-testid="brazil-map" className="w-full" style={{ minHeight: 'calc(100vh - 140px)' }} />
     </div>
   )
 }

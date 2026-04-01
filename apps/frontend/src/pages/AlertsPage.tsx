@@ -157,6 +157,7 @@ const AlertsContent = () => {
                 }}
                 placeholder={t('common.search')}
                 className="w-full max-w-md"
+                testId="alerts-city-search"
               />
               {cityLabel && (
                 <p className="text-xs text-muted-foreground mt-2">
@@ -194,6 +195,7 @@ const AlertsContent = () => {
               )}
             </div>
             <Button
+              data-testid="alerts-save-button"
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !cityId}
             >

@@ -42,6 +42,8 @@ Thumbs.db
 # Coverage
 coverage
 *.lcov
+playwright-report
+test-results
 
 # Cache
 .eslintcache

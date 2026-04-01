@@ -9,9 +9,16 @@ interface CitySearchBarProps {
   placeholder?: string
   className?: string
   useFixedDropdown?: boolean
+  testId?: string
 }
 
-export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', className = '', useFixedDropdown = false }: CitySearchBarProps) => {
+export const CitySearchBar = ({
+  onSelect,
+  placeholder = 'Buscar cidade...',
+  className = '',
+  useFixedDropdown = false,
+  testId,
+}: CitySearchBarProps) => {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -134,6 +141,7 @@ export const CitySearchBar = ({ onSelect, placeholder = 'Buscar cidade...', clas
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
       <input
         ref={inputRef}
+        data-testid={testId}
         type="text"
         value={query}
         onChange={e => {

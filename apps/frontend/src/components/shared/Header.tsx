@@ -98,6 +98,7 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
           <CitySearchBar
             onSelect={(cityId) => onCitySelect(cityId)}
             className="w-48 sm:w-64 md:w-56 lg:w-72"
+            testId="header-city-search"
           />
           <button
             onClick={handleLocation}
