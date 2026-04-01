@@ -132,7 +132,7 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 min-h-0 items-stretch">
           <BrazilMap
             selectedCityId={selectedCityId}
             showFires={showFires}

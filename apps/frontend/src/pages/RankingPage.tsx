@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useMemo, useCallback } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowDownUp, Wind } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -17,7 +17,21 @@ const REGIONS = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'] as const
 
 export const RankingPage = () => {
   const isMobile = useIsMobile()
-  const [sortMode, setSortMode] = useState<SortMode>('polluted')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const sortMode: SortMode = searchParams.get('sort') === 'clean' ? 'clean' : 'polluted'
+  const setSortMode = useCallback(
+    (mode: SortMode) => {
+      setSearchParams(
+        prev => {
+          const next = new URLSearchParams(prev)
+          next.set('sort', mode === 'clean' ? 'clean' : 'polluted')
+          return next
+        },
+        { replace: true },
+      )
+    },
+    [setSearchParams],
+  )
   const [regionFilter, setRegionFilter] = useState<string>('all')
   const [stateFilter, setStateFilter] = useState<string>('all')
   const { t } = useTranslation()

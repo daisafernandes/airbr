@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 
 import { useCities } from '@hooks/useCities'
 import { useFire } from '@hooks/useFire'
+import { formatStateLabel } from '@utils/brazilStates'
 import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
 
 const MONITORED_RADIUS_KM = 200
@@ -39,14 +40,21 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
       distanceKm: haversineKm(fire.lat, fire.lng, c.lat, c.lng),
     }))
   }, [fire, ibgeFromApi.length, cities])
+  
+  const nearestMonitored = useMemo(() => {
+    if (!fire) return null
+    return getTopNearestByHaversine(fire.lat, fire.lng, cities, 1)[0] ?? null
+  }, [fire, cities])
 
   const monitoredWithin200 = useMemo(() => {
     if (!fire) return []
+    const nearestId = nearestMonitored?.id
     return cities
       .map(c => ({ c, d: haversineKm(fire.lat, fire.lng, c.lat, c.lng) }))
       .filter(x => x.d <= MONITORED_RADIUS_KM)
+      .filter(x => !nearestId || x.c.id !== nearestId)
       .sort((a, b) => a.d - b.d)
-  }, [fire, cities])
+  }, [fire, cities, nearestMonitored])
 
   const notFound = isAxiosError(error) && error.response?.status === 404
 
@@ -87,6 +95,9 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
   })
 
   const ibgeRows = ibgeFromApi.length > 0 ? ibgeFromApi : (ibgeApproximate ?? [])
+  //const ibgeRows = ibgeFromApi.slice(0, 1)
+  const nearestMonitoredDistanceKm =
+    nearestMonitored != null ? haversineKm(fire.lat, fire.lng, nearestMonitored.lat, nearestMonitored.lng) : null
 
   return (
     <div className="space-y-6 p-6 pt-10">
@@ -111,7 +122,7 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
           {fire.state && (
             <div>
               <dt className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.state')}</dt>
-              <dd className="text-foreground mt-0.5">{fire.state}</dd>
+              <dd className="text-foreground mt-0.5">{formatStateLabel(fire.state) ?? fire.state}</dd>
             </div>
           )}
           {fire.biome && (
@@ -138,15 +149,28 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.ibgeSection')}</h3>
-        {ibgeFromApi.length === 0 && ibgeApproximate != null && ibgeApproximate.length > 0 && (
-          <p className="text-xs text-muted-foreground font-body leading-relaxed">{t('fireFocus.ibgeApproximateNote')}</p>
+        <h3 className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.nearestMonitoredHighlight')}</h3>
+        {nearestMonitored && nearestMonitoredDistanceKm != null ? (
+          <Link
+            to={`/cidade/${nearestMonitored.id}`}
+            className="flex justify-between gap-4 items-center rounded-md border border-border bg-card/40 px-4 py-3 hover:bg-muted/40 transition-colors no-underline"
+          >
+            <span>
+              <span className="font-medium text-foreground">{nearestMonitored.name}</span>
+              <span className="text-muted-foreground"> ({nearestMonitored.state})</span>
+            </span>
+            <span className="font-mono text-muted-foreground shrink-0">{Math.round(nearestMonitoredDistanceKm)} km</span>
+          </Link>
+        ) : (
+          <p className="text-sm text-muted-foreground">{t('common.noData')}</p>
         )}
-        <ul className="rounded-lg border border-border bg-card/40 divide-y divide-border">
-          {ibgeRows.length === 0 ? (
-            <li className="px-4 py-3 text-sm text-muted-foreground">{t('common.noData')}</li>
-          ) : (
-            ibgeRows.map((m, i) => (
+      </section>
+
+      {ibgeRows.length > 0 ? (
+        <section className="space-y-3">
+          <h3 className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.ibgeSection')}</h3>
+          <ul className="rounded-lg border border-border bg-card/40 divide-y divide-border">
+            {ibgeRows.map((m, i) => (
               <li key={`${m.name}-${m.state}-${i}`} className="px-4 py-3 text-sm font-body flex justify-between gap-4">
                 <span>
                   <span className="font-medium text-foreground">{m.name}</span>
@@ -154,10 +178,10 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
                 </span>
                 <span className="font-mono text-muted-foreground shrink-0">{Math.round(m.distanceKm)} km</span>
               </li>
-            ))
-          )}
-        </ul>
-      </section>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <h3 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.monitoredSection')}</h3>

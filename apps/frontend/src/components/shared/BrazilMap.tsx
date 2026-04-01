@@ -128,6 +128,19 @@ export const BrazilMap = ({
 
       cityLayerRef.current.addTo(map)
       mapInstanceRef.current = map
+      requestAnimationFrame(() => map?.invalidateSize())
+
+      const ro = new ResizeObserver(() => {
+        map?.invalidateSize()
+      })
+      ro.observe(container)
+      const cleanupRo = () => ro.disconnect()
+
+      return () => {
+        cleanupRo()
+        map?.remove()
+        mapInstanceRef.current = null
+      }
     } catch (error) {
       console.error('Failed to initialize map', error)
     }
@@ -318,13 +331,13 @@ export const BrazilMap = ({
   }, [selectedCityId, cities])
 
   return (
-    <div className="flex-1 rounded border border-border overflow-hidden relative">
+    <div className="flex-1 min-h-0 h-[calc(100vh-140px)] rounded border border-border overflow-hidden relative">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/40 pointer-events-none">
           <span className="text-xs font-mono text-muted-foreground animate-pulse">Carregando cidades...</span>
         </div>
       )}
-      <div ref={mapRef} data-testid="brazil-map" className="w-full" style={{ minHeight: 'calc(100vh - 140px)' }} />
+      <div ref={mapRef} data-testid="brazil-map" className="absolute inset-0 w-full h-full z-0" />
     </div>
   )
 }
