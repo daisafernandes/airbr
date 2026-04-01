@@ -1,12 +1,16 @@
 import { Wind, MapPin } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useCallback } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 
+import { Button } from '@/components/ui/button'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { useAuth } from '@contexts/AuthContext'
+import { usePwaInstall } from '@hooks/usePwaInstall'
 import { airQualityService } from '@services/airQualityService'
+
 import { CitySearchBar } from './CitySearchBar'
 import { LiveIndicator } from './LiveIndicator'
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
 
 interface HeaderProps {
   onCitySelect: (cityId: string) => void
@@ -15,6 +19,18 @@ interface HeaderProps {
 export const Header = ({ onCitySelect }: HeaderProps) => {
   const location = useLocation()
   const { t } = useTranslation()
+  const { isAuthenticated, authReady, signOut } = useAuth()
+  const { canInstall, install } = usePwaInstall()
+  const [installBusy, setInstallBusy] = useState(false)
+
+  const handleInstall = async () => {
+    setInstallBusy(true)
+    try {
+      await install()
+    } finally {
+      setInstallBusy(false)
+    }
+  }
 
   const handleLocation = useCallback(() => {
     if (!navigator.geolocation) return
@@ -40,6 +56,7 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
     { to: '/mapa-queimadas', label: t('nav.fireMap') },
     { to: '/guia', label: t('nav.guide') },
     { to: '/metodologia', label: t('nav.methodology') },
+    { to: '/alerts', label: t('nav.alerts') },
   ]
 
   return (
@@ -75,10 +92,13 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
         </nav>
 
         {/* Search + geolocate + language + live */}
+
         <div className="flex items-center gap-2 flex-1 md:flex-none justify-end">
+          <LiveIndicator />
           <CitySearchBar
             onSelect={(cityId) => onCitySelect(cityId)}
             className="w-48 sm:w-64 md:w-56 lg:w-72"
+            testId="header-city-search"
           />
           <button
             onClick={handleLocation}
@@ -89,7 +109,31 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
             <span className="hidden sm:inline">{t('header.location')}</span>
           </button>
           <LanguageSelector />
-          <LiveIndicator />
+          {canInstall && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="text-xs shrink-0 hidden sm:inline-flex"
+              disabled={installBusy}
+              onClick={() => void handleInstall()}
+            >
+              {installBusy ? t('pwa.installing') : t('pwa.install')}
+            </Button>
+          )}
+          {authReady &&
+            (isAuthenticated ? (
+              <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => signOut()}>
+                {t('auth.logout')}
+              </Button>
+            ) : (
+              <Link
+                to="/login"
+                className="text-xs font-body px-3 py-2 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+              >
+                {t('auth.login')}
+              </Link>
+            ))}          
         </div>
       </div>
     </header>

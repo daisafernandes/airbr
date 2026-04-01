@@ -8,6 +8,68 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id                 String             @id @default(cuid())
+  email              String             @unique
+  passwordHash       String
+  name               String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  alerts             Alert[]
+  pushSubscriptions  PushSubscription[]
+
+  @@map("users")
+}
+
+enum AlertChannel {
+  EMAIL
+  PUSH
+}
+
+model Alert {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cityId       String
+  city         City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  thresholdAqi Int
+  channels     AlertChannel[]
+  active       Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  dispatches   AlertDispatch[]
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([cityId, active])
+  @@map("alerts")
+}
+
+model AlertDispatch {
+  id        String        @id @default(cuid())
+  alertId   String
+  alert     Alert         @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  channel   AlertChannel
+  aqiValue  Int
+  sentAt    DateTime      @default(now())
+
+  @@index([alertId, sentAt(sort: Desc)])
+  @@map("alert_dispatches")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
 model City {
   id              String       @id @default(cuid())
   name            String
@@ -22,6 +84,7 @@ model City {
   createdAt       DateTime     @default(now())
   aqiReadings     AqiReading[]
   healthData      HealthData[]
+  alerts          Alert[]
 
   @@unique([name, state])
   @@map("cities")
@@ -74,6 +137,8 @@ model FireFocus {
 
   @@unique([lat, lng, detectedAt])
   @@index([detectedAt])
+  @@index([state, detectedAt(sort: Desc)])
+  @@index([biome, detectedAt(sort: Desc)])
   @@map("fire_focuses")
 }
 
@@ -89,6 +154,8 @@ model DeforestationAlert {
   createdAt  DateTime @default(now())
 
   @@index([detectedAt])
+  @@index([state, detectedAt(sort: Desc)])
+  @@index([biome, detectedAt(sort: Desc)])
   @@map("deforestation_alerts")
 }
 

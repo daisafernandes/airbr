@@ -1,9 +1,10 @@
 import { Flame, Trees, SlidersHorizontal, Wind } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { FireFocusDetailDialog } from '@components/shared/FireFocusDetailDialog'
 import { FireMap } from '@components/shared/FireMap'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
 import {
@@ -16,6 +17,7 @@ import {
 import { useIsMobile } from '@hooks/use-mobile'
 import { useCities } from '@hooks/useCities'
 import { useFires } from '@hooks/useFires'
+import type { CityApiData, FireFocusApi } from '@app-types/airQuality.types'
 
 type Period = 'hoje' | '7d' | '30d'
 
@@ -26,6 +28,17 @@ const PERIOD_DAYS: Record<Period, number> = {
 }
 
 const AFFECTED_CITIES_PREVIEW = 6
+
+function toArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[]
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    if (Array.isArray(record.items)) return record.items as T[]
+    if (Array.isArray(record.data)) return record.data as T[]
+    if (Array.isArray(record.results)) return record.results as T[]
+  }
+  return []
+}
 
 function ImpactCard({
   showFires,
@@ -204,17 +217,32 @@ function FilterControls({
 
 export const FireMapPage = () => {
   const isMobile = useIsMobile()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const fireDetailId = searchParams.get('foco')
   const [showFires, setShowFires] = useState(true)
   const [showDeforestation, setShowDeforestation] = useState(false)
   const [stateFilter, setStateFilter] = useState('')
   const [period, setPeriod] = useState<Period>('hoje')
   const { t } = useTranslation()
 
-  const { data: fires = [], isLoading: firesLoading } = useFires({
+  const openFireDetail = (id: string) => {
+    setSearchParams(
+      prev => {
+        const next = new URLSearchParams(prev)
+        next.set('foco', id)
+        return next
+      },
+      { replace: true },
+    )
+  }
+
+  const { data: firesData = [], isLoading: firesLoading } = useFires({
     ...(stateFilter ? { state: stateFilter } : {}),
     days: PERIOD_DAYS[period],
   })
-  const { data: cities = [] } = useCities()
+  const { data: citiesData = [] } = useCities()
+  const fires = useMemo(() => toArray<FireFocusApi>(firesData), [firesData])
+  const cities = useMemo(() => toArray<CityApiData>(citiesData), [citiesData])
 
   const states = useMemo(() => {
     const set = new Set(cities.map(c => c.state))
@@ -313,11 +341,28 @@ export const FireMapPage = () => {
 
         {/* Map */}
         <div className="flex-1 relative">
+          <FireFocusDetailDialog
+            open={fireDetailId !== null && fireDetailId.length > 0}
+            onOpenChange={open => {
+              if (!open) {
+                setSearchParams(
+                  prev => {
+                    const next = new URLSearchParams(prev)
+                    next.delete('foco')
+                    return next
+                  },
+                  { replace: true },
+                )
+              }
+            }}
+            fireId={fireDetailId}
+          />
           <FireMap
             showFires={showFires}
             showDeforestation={showDeforestation}
             stateFilter={stateFilter}
             fires={fires}
+            onOpenFireDetail={openFireDetail}
           />
 
           {/* Mobile: floating impact card */}

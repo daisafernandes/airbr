@@ -18,6 +18,7 @@ export interface NearbyCity extends CityData {
 
 export interface ICityRepository {
   findAll(): Promise<CityData[]>
+  findAllPaginated(params: { page: number; limit: number }): Promise<{ data: CityData[]; total: number }>
   findById(id: string): Promise<CityData | null>
   findByName(name: string): Promise<CityData[]>
   findNearby(lat: number, lng: number, radiusKm: number): Promise<NearbyCity[]>

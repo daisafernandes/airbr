@@ -1,6 +1,7 @@
 import type { ICacheService } from '@domain/cache/ICacheService'
 import type { AqiReadingData, IAqiRepository } from '@domain/repositories/IAqiRepository'
 import type { CityData, ICityRepository, NearbyCity } from '@domain/repositories/ICityRepository'
+import { buildPaginatedResult, type PaginatedResult, sanitizePagination } from '@shared/utils/pagination'
 
 const TTL_15_MIN = 60 * 15
 
@@ -35,6 +36,29 @@ export class CityService {
       ...city,
       latestAqi: readingsByCity.get(city.id) ?? null,
     }))
+
+    this.cache.set(key, result, TTL_15_MIN)
+    return result
+  }
+
+  async listCitiesPaginated(params: { page?: number; limit?: number }): Promise<PaginatedResult<CityWithAqi>> {
+    const pagination = sanitizePagination(params)
+    const key = `cities:all:${pagination.page}:${pagination.limit}`
+    const cached = this.cache.get<PaginatedResult<CityWithAqi>>(key)
+    if (cached) return cached
+
+    const { data, total } = await this.cityRepository.findAllPaginated(pagination)
+    const readings = await this.aqiRepository.findLatestForCityIds(data.map((city) => city.id))
+
+    const readingsByCity = new Map(readings.map((r) => [r.cityId, r]))
+    const result = buildPaginatedResult(
+      data.map((city) => ({
+        ...city,
+        latestAqi: readingsByCity.get(city.id) ?? null,
+      })),
+      total,
+      pagination,
+    )
 
     this.cache.set(key, result, TTL_15_MIN)
     return result

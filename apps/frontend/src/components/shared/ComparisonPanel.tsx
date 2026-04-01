@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -24,13 +25,13 @@ function getAQIColor(aqi: number): string {
   return '#7f1d1d'
 }
 
-function getAQILabel(aqi: number): string {
-  if (aqi <= 50) return 'Bom'
-  if (aqi <= 100) return 'Moderado'
-  if (aqi <= 150) return 'Sensíveis'
-  if (aqi <= 200) return 'Ruim'
-  if (aqi <= 300) return 'Muito ruim'
-  return 'Perigoso'
+function getAQILabel(aqi: number, t: TFunction): string {
+  if (aqi <= 50) return t('aqi.bands.good.label')
+  if (aqi <= 100) return t('aqi.bands.moderate.label')
+  if (aqi <= 150) return t('aqi.sensitiveShortAlt')
+  if (aqi <= 200) return t('aqi.bands.unhealthy.label')
+  if (aqi <= 300) return t('aqi.bands.veryUnhealthy.label')
+  return t('aqi.bands.hazardous.label')
 }
 
 // Colors used only to identify which city row belongs to which city.
@@ -53,9 +54,9 @@ function getPollutantStatusColor(value: number, limit: number): string {
   return STATUS_GOOD_COLOR
 }
 
-function MiniGauge({ aqi }: { aqi: number }) {
+function MiniGauge({ aqi, t }: { aqi: number; t: TFunction }) {
   const color = getAQIColor(aqi)
-  const label = getAQILabel(aqi)
+  const label = getAQILabel(aqi, t)
   const size = 120
   const cx = size / 2
   const cy = size / 2 + 8
@@ -95,7 +96,7 @@ function MiniGauge({ aqi }: { aqi: number }) {
           {aqi}
         </text>
         <text x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="middle" fontSize={9} fontFamily="'DM Sans',sans-serif" fill="rgba(255,255,255,0.4)" letterSpacing="0.08em">
-          IQAr
+          {t('comparisonPanel.aqiAbbr')}
         </text>
       </svg>
       <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: `${color}20`, color }}>
@@ -105,7 +106,19 @@ function MiniGauge({ aqi }: { aqi: number }) {
   )
 }
 
-function PollutantBar({ label, valueA, valueB, unit, limit }: { label: string; valueA: number | null; valueB: number | null; unit: string; limit: number }) {
+function PollutantBar({
+  label,
+  valueA,
+  valueB,
+  limit,
+  whoLabel,
+}: {
+  label: string
+  valueA: number | null
+  valueB: number | null
+  limit: number
+  whoLabel: string
+}) {
   const vA = valueA ?? 0
   const vB = valueB ?? 0
   const max = Math.max(vA, vB, limit) * 1.2
@@ -116,7 +129,7 @@ function PollutantBar({ label, valueA, valueB, unit, limit }: { label: string; v
     <div className="space-y-1">
       <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
         <span className="uppercase tracking-wider">{label}</span>
-        <span className="text-[9px]">OMS: {limit} {unit}</span>
+        <span className="text-[9px]">{whoLabel}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="w-4 flex justify-center">
@@ -194,19 +207,19 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
       {/* Header */}
       <div className="bg-card border border-border rounded p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-heading text-xl tracking-wide text-foreground">COMPARAR CIDADES</h2>
+          <h2 className="font-heading text-xl tracking-wide text-foreground">{t('comparisonPanel.title')}</h2>
           <button onClick={onClose} className="p-1.5 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <p className="text-[10px] font-mono uppercase tracking-wider mb-1.5" style={{ color: CITY_A_COLOR }}>Cidade A</p>
-            <CitySearchBar onSelect={(id) => onChangeCityA(id)} placeholder="Selecionar..." useFixedDropdown />
+            <p className="text-[10px] font-mono uppercase tracking-wider mb-1.5" style={{ color: CITY_A_COLOR }}>{t('comparisonPanel.cityA')}</p>
+            <CitySearchBar onSelect={(id) => onChangeCityA(id)} placeholder={t('common.selectPlaceholder')} useFixedDropdown />
           </div>
           <div>
-            <p className="text-[10px] font-mono uppercase tracking-wider mb-1.5" style={{ color: CITY_B_COLOR }}>Cidade B</p>
-            <CitySearchBar onSelect={(id) => onChangeCityB(id)} placeholder="Selecionar..." useFixedDropdown />
+            <p className="text-[10px] font-mono uppercase tracking-wider mb-1.5" style={{ color: CITY_B_COLOR }}>{t('comparisonPanel.cityB')}</p>
+            <CitySearchBar onSelect={(id) => onChangeCityB(id)} placeholder={t('common.selectPlaceholder')} useFixedDropdown />
           </div>
         </div>
       </div>
@@ -214,39 +227,39 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
       {/* AQI gauges side by side */}
       {(colA || colB || loadingA || loadingB) && (
         <div className="bg-card border border-border rounded p-4">
-          <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">ÍNDICE DE QUALIDADE DO AR</h3>
+          <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">{t('comparisonPanel.airQualityIndex')}</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col items-center gap-2">
               {loadingA ? (
                 <div className="h-32 flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground font-mono animate-pulse">Carregando...</span>
+                  <span className="text-xs text-muted-foreground font-mono animate-pulse">{t('common.loading')}</span>
                 </div>
               ) : colA ? (
                 <>
                   <p className="text-xs font-body font-semibold text-foreground text-center truncate w-full">{colA.city.name}</p>
-                  <MiniGauge aqi={colA.aqi} />
+                  <MiniGauge aqi={colA.aqi} t={t} />
                   <OmsComplianceBadge compliant={colA.omsCompliant} size="md" />
                 </>
               ) : (
                 <div className="h-32 flex items-center justify-center">
-                  <p className="text-xs text-muted-foreground text-center">Selecione a cidade A</p>
+                  <p className="text-xs text-muted-foreground text-center">{t('comparisonPanel.pickCityA')}</p>
                 </div>
               )}
             </div>
             <div className="flex flex-col items-center gap-2">
               {loadingB ? (
                 <div className="h-32 flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground font-mono animate-pulse">Carregando...</span>
+                  <span className="text-xs text-muted-foreground font-mono animate-pulse">{t('common.loading')}</span>
                 </div>
               ) : colB ? (
                 <>
                   <p className="text-xs font-body font-semibold text-foreground text-center truncate w-full">{colB.city.name}</p>
-                  <MiniGauge aqi={colB.aqi} />
+                  <MiniGauge aqi={colB.aqi} t={t} />
                   <OmsComplianceBadge compliant={colB.omsCompliant} size="md" />
                 </>
               ) : (
                 <div className="h-32 flex items-center justify-center">
-                  <p className="text-xs text-muted-foreground text-center">Selecione a cidade B</p>
+                  <p className="text-xs text-muted-foreground text-center">{t('comparisonPanel.pickCityB')}</p>
                 </div>
               )}
             </div>
@@ -257,7 +270,7 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
       {/* Pollutants comparison */}
       {colA && colB && (
         <div className="bg-card border border-border rounded p-4 space-y-3">
-          <h3 className="font-heading text-lg tracking-wide text-foreground">POLUENTES</h3>
+          <h3 className="font-heading text-lg tracking-wide text-foreground">{t('comparisonPanel.pollutantsHeading')}</h3>
           <div className="flex items-center gap-4 text-[10px] font-mono">
             <span className="flex items-center gap-2">
               <span className="w-3 h-1.5 rounded-full" style={{ background: CITY_A_COLOR }} />
@@ -274,8 +287,8 @@ export const ComparisonPanel = ({ cityA, cityB, onChangeCityA, onChangeCityB, on
               label={p.label}
               valueA={colA.city.latestAqi?.[p.key] ?? null}
               valueB={colB.city.latestAqi?.[p.key] ?? null}
-              unit={p.unit}
               limit={p.limit}
+              whoLabel={t('comparisonPanel.whoLimit', { limit: p.limit, unit: p.unit })}
             />
           ))}
           <TemperatureCompareRow

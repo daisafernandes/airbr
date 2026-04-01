@@ -27,18 +27,30 @@ const RankingCard = ({
   icon,
   data,
   loading,
+  titleLinkTo,
 }: {
   title: string
   icon: React.ReactNode
   data: RankedCityApi[]
   loading: boolean
+  titleLinkTo?: string
 }) => (
   <div className="bg-card border border-border rounded p-4">
     <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        {icon}
-        <h3 className="font-heading text-lg tracking-wide text-foreground">{title}</h3>
-      </div>
+      {titleLinkTo ? (
+        <Link
+          to={titleLinkTo}
+          className="flex items-center gap-2 min-w-0 rounded-sm text-foreground hover:text-primary focus-visible:outline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-colors no-underline group"
+        >
+          {icon}
+          <h3 className="font-heading text-lg tracking-wide group-hover:underline">{title}</h3>
+        </Link>
+      ) : (
+        <div className="flex items-center gap-2">
+          {icon}
+          <h3 className="font-heading text-lg tracking-wide text-foreground">{title}</h3>
+        </div>
+      )}
     </div>
     <div className="space-y-2">
       {loading
@@ -93,12 +105,14 @@ export const AQISidebar = () => {
         icon={<TrendingUp className="w-4 h-4 text-accent" />}
         data={mostPolluted}
         loading={isLoading}
+        titleLinkTo="/ranking?sort=polluted"
       />
       <RankingCard
         title={t('ranking.sidebarCleanAir')}
         icon={<TrendingDown className="w-4 h-4 text-primary" />}
         data={leastPolluted}
         loading={isLoading}
+        titleLinkTo="/ranking?sort=clean"
       />
 
       {/* AQI legend */}

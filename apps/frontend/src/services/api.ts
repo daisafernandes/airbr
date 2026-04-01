@@ -20,8 +20,11 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   response => response,
   (error: AxiosError<ApiError>) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url ?? ''
+    const isAuthAttempt = url.includes('/auth/login') || url.includes('/auth/register')
+    if (error.response?.status === 401 && !isAuthAttempt) {
       localStorage.removeItem('@airbr:token')
+      localStorage.removeItem('@airbr:user')
       window.location.href = '/login'
     }
     return Promise.reject(error)

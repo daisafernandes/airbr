@@ -1,38 +1,20 @@
+import type { TFunction } from 'i18next'
 import L from 'leaflet'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import 'leaflet/dist/leaflet.css'
 
 import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
-
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLng = ((lng2 - lng1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
-function getNearestCity(lat: number, lng: number, cities: CityApiData[]): CityApiData | null {
-  if (cities.length === 0) return null
-  let nearest: CityApiData = cities[0]!
-  let best = haversineKm(lat, lng, nearest.lat, nearest.lng)
-  for (let i = 1; i < cities.length; i++) {
-    const c = cities[i]!
-    const d = haversineKm(lat, lng, c.lat, c.lng)
-    if (d < best) {
-      best = d
-      nearest = c
-    }
-  }
-  return nearest
-}
+import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
 
 function escapePopupText(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
 
 function getFireColor(intensity: number | null): string {
@@ -49,11 +31,22 @@ function getFireRadius(intensity: number | null): number {
   return 5
 }
 
-function getFireLabel(intensity: number | null): string {
-  if (intensity === null) return 'Não informada'
-  if (intensity >= 70) return 'Alta'
-  if (intensity >= 40) return 'Média'
-  return 'Baixa'
+function fireIntensityLabel(intensity: number | null, t: TFunction): string {
+  if (intensity === null) return t('firemap.intensityUnknown')
+  if (intensity >= 70) return t('firemap.intensityHigh')
+  if (intensity >= 40) return t('firemap.intensityMedium')
+  return t('firemap.intensityLow')
+}
+
+function toArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[]
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    if (Array.isArray(record.items)) return record.items as T[]
+    if (Array.isArray(record.data)) return record.data as T[]
+    if (Array.isArray(record.results)) return record.results as T[]
+  }
+  return []
 }
 
 interface FireMapProps {
@@ -61,17 +54,26 @@ interface FireMapProps {
   showDeforestation: boolean
   stateFilter: string
   fires?: FireFocusApi[]
+  /** Opens fire detail in a modal on the parent page instead of navigating away. */
+  onOpenFireDetail?: (fireId: string) => void
 }
 
-export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [] }: FireMapProps) => {
+export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [], onOpenFireDetail }: FireMapProps) => {
+  const { t, i18n } = useTranslation()
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const fireLayerRef = useRef<L.LayerGroup>(L.layerGroup())
   const deforestLayerRef = useRef<L.LayerGroup>(L.layerGroup())
 
-  const { data: cities = [] } = useCities()
-  const { data: deforestationAlerts = [] } = useDeforestation(
+  const { data: citiesData = [] } = useCities()
+  const { data: deforestationData = [] } = useDeforestation(
     stateFilter ? { state: stateFilter } : undefined,
+  )
+  const normalizedFires = useMemo(() => toArray<FireFocusApi>(fires), [fires])
+  const cities = useMemo(() => toArray<CityApiData>(citiesData), [citiesData])
+  const deforestationAlerts = useMemo(
+    () => toArray<DeforestationAlertApi>(deforestationData),
+    [deforestationData],
   )
 
   // Initialise map once
@@ -103,24 +105,44 @@ export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [] 
     const map = mapInstanceRef.current
     if (!map) return
 
-    fires.forEach(spot => {
-      const fallbackCity = getNearestCity(spot.lat, spot.lng, cities)
+    normalizedFires.forEach(spot => {
+      const apiMun = spot.nearestMunicipalities ?? []
+      const fallbackTop = getTopNearestByHaversine(spot.lat, spot.lng, cities, 3)
       const color = getFireColor(spot.intensity)
       const radius = getFireRadius(spot.intensity)
-      const label = getFireLabel(spot.intensity)
+      const label = fireIntensityLabel(spot.intensity, t)
       const stateLine = spot.state
-        ? `<span style="font-size:12px">Estado: <b>${escapePopupText(spot.state)}</b></span><br/>`
+        ? `<span style="font-size:12px">${escapePopupText(t('firemap.popupState'))}: <b>${escapePopupText(spot.state)}</b></span><br/>`
         : ''
-      const nm = spot.nearestMunicipality
-      const nearestLine = nm
-        ? `<span style="font-size:12px">Cidade próxima: <b>${escapePopupText(nm.name)}</b> (${escapePopupText(nm.state)}) · ${Math.round(nm.distanceKm)} km</span><br/>`
-        : fallbackCity
-          ? `<span style="font-size:12px">Cidade próxima: <b>${escapePopupText(fallbackCity.name)}</b></span><br/>`
-          : ''
+
+      let nearestBlock = ''
+      if (apiMun.length > 0) {
+        const lines = apiMun
+          .slice(0, 3)
+          .map(
+            m =>
+              `<span style="font-size:12px">· <b>${escapePopupText(m.name)}</b> (${escapePopupText(m.state)}) · ${Math.round(m.distanceKm)} km</span>`,
+          )
+          .join('<br/>')
+        nearestBlock = `<span style="font-size:11px;color:#444">${escapePopupText(t('firemap.popupNearestIbge'))}</span><br/>${lines}<br/>`
+      } else if (fallbackTop.length > 0) {
+        const lines = fallbackTop
+          .map(c => {
+            const d = Math.round(haversineKm(spot.lat, spot.lng, c.lat, c.lng))
+            return `<span style="font-size:12px">· <b>${escapePopupText(c.name)}</b> (${escapePopupText(c.state)}) · ${d} km</span>`
+          })
+          .join('<br/>')
+        nearestBlock = `<span style="font-size:11px;color:#444">${escapePopupText(t('firemap.popupNearestMonitored'))}</span><br/>${lines}<br/>`
+      }
+
       const biomeLine = spot.biome
-        ? `<span style="font-size:11px">Bioma: ${escapePopupText(spot.biome)}</span><br/>`
+        ? `<span style="font-size:11px">${escapePopupText(t('firemap.popupBiome'))}: ${escapePopupText(spot.biome)}</span><br/>`
         : ''
-      L.circleMarker([spot.lat, spot.lng], {
+      const detailLink = onOpenFireDetail
+        ? `<button type="button" class="airbr-fire-detail-btn" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px;cursor:pointer;background:none;border:none;padding:0;font-family:inherit" data-airbr-fire-id="${escapeAttr(spot.id)}">${escapePopupText(t('firemap.viewFireDetailLink'))}</button>`
+        : `<a href="/mapa-queimadas?foco=${encodeURIComponent(spot.id)}" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px">${escapePopupText(t('firemap.viewFireDetailLink'))}</a>`
+
+      const marker = L.circleMarker([spot.lat, spot.lng], {
         radius,
         fillColor: color,
         fillOpacity: 0.85,
@@ -128,37 +150,54 @@ export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [] 
         weight: 0.5,
         opacity: 0.6,
       })
-        .bindPopup(
-          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e;min-width:140px">
+      marker.bindPopup(
+        `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e;min-width:140px">
             <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.05em">
-              🔥 Foco de Queimada
+              🔥 ${escapePopupText(t('firemap.popupFireTitle'))}
             </strong><br/>
             ${stateLine}
-            ${nearestLine}
-            <span style="font-size:12px">Intensidade: <b>${label}</b></span><br/>
+            ${nearestBlock}
+            <span style="font-size:12px">${escapePopupText(t('firemap.popupIntensity'))}: <b>${escapePopupText(label)}</b></span><br/>
             ${biomeLine}
-            <span style="font-size:11px;color:#666">Fonte: INPE/BDQueimadas</span>
+            <span style="font-size:11px;color:#666">${escapePopupText(t('firemap.popupSource'))}</span><br/>
+            ${detailLink}
           </div>`,
-        )
-        .addTo(fireLayerRef.current)
+      )
+
+      if (onOpenFireDetail) {
+        marker.on('popupopen', () => {
+          const btn = marker.getPopup()?.getElement()?.querySelector('button.airbr-fire-detail-btn')
+          if (!btn) return
+          const id = btn.getAttribute('data-airbr-fire-id')
+          if (!id) return
+          const handler = (e: Event) => {
+            e.preventDefault()
+            onOpenFireDetail(id)
+          }
+          btn.addEventListener('click', handler)
+          marker.once('popupremove', () => btn.removeEventListener('click', handler))
+        })
+      }
+
+      marker.addTo(fireLayerRef.current)
     })
 
     if (showFires) fireLayerRef.current.addTo(map)
-  }, [fires, showFires, cities])
+  }, [normalizedFires, showFires, cities, t, i18n.language, onOpenFireDetail])
 
   // Deforestation — PRODES alerts from API (same source as dashboard)
   useEffect(() => {
     deforestLayerRef.current.clearLayers()
     deforestationAlerts.forEach((alert: DeforestationAlertApi) => {
       if (alert.lat == null || alert.lng == null) return
-      const nearestCity = getNearestCity(alert.lat, alert.lng, cities)
+      const nearestCity = getTopNearestByHaversine(alert.lat, alert.lng, cities, 1)[0] ?? null
       const radiusM = Math.sqrt(alert.areaHa * 10_000 / Math.PI)
       const intensity = Math.min(1, alert.areaHa / 50_000)
       const green = Math.round(180 + 75 * (1 - intensity))
       const color = `rgb(0, ${green}, 0)`
-      const detectedLabel = new Date(alert.detectedAt).toLocaleDateString('pt-BR')
+      const detectedLabel = new Date(alert.detectedAt).toLocaleDateString(i18n.language)
       const nearestLine = nearestCity
-        ? `<span style="font-size:11px">Cidade próxima: <b>${escapePopupText(nearestCity.name)}</b> (${escapePopupText(nearestCity.state)})</span><br/>`
+        ? `<span style="font-size:11px">${escapePopupText(t('firemap.popupDeforestNearest'))}: <b>${escapePopupText(nearestCity.name)}</b> (${escapePopupText(nearestCity.state)})</span><br/>`
         : ''
       L.circle([alert.lat, alert.lng], {
         radius: Math.max(radiusM, 5000),
@@ -171,17 +210,17 @@ export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [] 
       })
         .bindPopup(
           `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            🌳 <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">Desmatamento · ${escapePopupText(alert.state)}</strong><br/>
-            ${alert.biome ? `<span style="font-size:11px">Bioma: ${escapePopupText(alert.biome)}</span><br/>` : ''}
-            <span style="font-size:11px">Área: <strong>${alert.areaHa.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} ha</strong></span><br/>
-            <span style="font-size:10px;color:#666">Referência: ${escapePopupText(detectedLabel)}</span><br/>
+            🌳 <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">${escapePopupText(t('firemap.popupDeforestTitle'))} · ${escapePopupText(alert.state)}</strong><br/>
+            ${alert.biome ? `<span style="font-size:11px">${escapePopupText(t('firemap.popupBiome'))}: ${escapePopupText(alert.biome)}</span><br/>` : ''}
+            <span style="font-size:11px">${escapePopupText(t('firemap.popupArea'))}: <strong>${alert.areaHa.toLocaleString(i18n.language, { maximumFractionDigits: 0 })} ha</strong></span><br/>
+            <span style="font-size:10px;color:#666">${escapePopupText(t('firemap.popupReference'))}: ${escapePopupText(detectedLabel)}</span><br/>
             ${nearestLine}
-            <span style="font-size:10px;color:#666">Fonte: PRODES/INPE</span>
+            <span style="font-size:10px;color:#666">${escapePopupText(t('firemap.popupDeforestSource'))}</span>
           </div>`,
         )
         .addTo(deforestLayerRef.current)
     })
-  }, [deforestationAlerts, cities])
+  }, [deforestationAlerts, cities, t, i18n.language])
 
   useEffect(() => {
     const map = mapInstanceRef.current

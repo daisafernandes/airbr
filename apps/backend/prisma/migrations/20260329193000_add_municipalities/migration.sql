@@ -1,3 +1,6 @@
+-- PostGIS must exist before ST_MakePoint (this migration runs before `phase4_postgis_index` by folder name).
+CREATE EXTENSION IF NOT EXISTS postgis;
+
 -- CreateTable
 CREATE TABLE "municipalities" (
     "id" TEXT NOT NULL,

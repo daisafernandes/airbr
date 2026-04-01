@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Flame, Trees, Radio, GitCompare } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Header } from '@components/shared/Header'
 import { BrazilMap } from '@components/shared/BrazilMap'
+import { FireFocusDetailDialog } from '@components/shared/FireFocusDetailDialog'
+import { Header } from '@components/shared/Header'
 import { AQISidebar } from '@components/shared/AQISidebar'
 import { CityDashboard } from '@components/shared/CityDashboard'
 import { ComparisonPanel } from '@components/shared/ComparisonPanel'
@@ -20,6 +21,7 @@ export const DashboardPage = () => {
   const [showFires, setShowFires] = useState(false)
   const [showDeforestation, setShowDeforestation] = useState(false)
   const [showStations, setShowStations] = useState(false)
+  const [fireDetailId, setFireDetailId] = useState<string | null>(null)
   const { t } = useTranslation()
 
   const { data: fires = [] } = useFires()
@@ -69,6 +71,14 @@ export const DashboardPage = () => {
       <div className="ambient-blob blob-orange" style={{ top: '40%', right: '20%' }} />
 
       <Header onCitySelect={handleCitySelect} />
+
+      <FireFocusDetailDialog
+        open={fireDetailId !== null && fireDetailId.length > 0}
+        onOpenChange={open => {
+          if (!open) setFireDetailId(null)
+        }}
+        fireId={fireDetailId}
+      />
 
       <main className="pt-16 px-4 pb-4 max-w-[1800px] mx-auto relative z-10">
         <div className="flex items-center gap-3 py-3 flex-wrap">
@@ -122,13 +132,14 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 min-h-0 items-stretch">
           <BrazilMap
             selectedCityId={selectedCityId}
             showFires={showFires}
             showDeforestation={showDeforestation}
             showStations={showStations}
             fires={fires}
+            onOpenFireDetail={id => setFireDetailId(id)}
           />
           <div className="hidden lg:block">
             {viewMode === 'compare' ? (
