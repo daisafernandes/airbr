@@ -55,6 +55,22 @@ function getAQILabel(aqi: number): string {
   return 'Perigoso'
 }
 
+function toFiniteNumber(value: unknown): number | null {
+  const n = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
+function toArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[]
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    if (Array.isArray(record.items)) return record.items as T[]
+    if (Array.isArray(record.data)) return record.data as T[]
+    if (Array.isArray(record.results)) return record.results as T[]
+  }
+  return []
+}
+
 interface BrazilMapProps {
   selectedCityId: string | null
   showFires: boolean
@@ -81,29 +97,43 @@ export const BrazilMap = ({
   const deforestLayerRef = useRef<L.LayerGroup>(L.layerGroup())
   const stationsLayerRef = useRef<L.LayerGroup>(L.layerGroup())
 
-  const { data: cities = [], isLoading } = useCities()
-  const { data: deforestationAlerts = [] } = useDeforestation()
+  const { data: citiesData, isLoading } = useCities()
+  const { data: deforestationData } = useDeforestation()
+  const cities = toArray<CityApiData>(citiesData)
+  const deforestationAlerts = toArray<DeforestationAlertApi>(deforestationData)
+  const normalizedFires = toArray<FireFocusApi>(fires)
 
   // Initialise map once
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return
+    let map: L.Map | null = null
 
-    const map = L.map(mapRef.current, {
-      center: [-14.24, -51.93],
-      zoom: 4,
-      zoomControl: true,
-    })
+    try {
+      const container = mapRef.current as HTMLDivElement & { _leaflet_id?: number }
+      // React StrictMode can remount effects; reset stale container id if needed.
+      if (container._leaflet_id) {
+        delete container._leaflet_id
+      }
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-      maxZoom: 18,
-    }).addTo(map)
+      map = L.map(container, {
+        center: [-14.24, -51.93],
+        zoom: 4,
+        zoomControl: true,
+      })
 
-    cityLayerRef.current.addTo(map)
-    mapInstanceRef.current = map
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        maxZoom: 18,
+      }).addTo(map)
+
+      cityLayerRef.current.addTo(map)
+      mapInstanceRef.current = map
+    } catch (error) {
+      console.error('Failed to initialize map', error)
+    }
 
     return () => {
-      map.remove()
+      map?.remove()
       mapInstanceRef.current = null
     }
   }, [])
@@ -114,13 +144,17 @@ export const BrazilMap = ({
     stationsLayerRef.current.clearLayers()
 
     cities.forEach((city: CityApiData) => {
+      const lat = toFiniteNumber(city.lat)
+      const lng = toFiniteNumber(city.lng)
+      if (lat == null || lng == null) return
+
       const aqi = city.latestAqi?.aqi ?? 0
       const color = getAQIColor(aqi)
       const radius = Math.max(6, aqi / 12)
 
       const cityPageUrl = `/cidade/${city.id}`
 
-      L.circleMarker([city.lat, city.lng], {
+      L.circleMarker([lat, lng], {
         radius,
         fillColor: color,
         fillOpacity: 0.75,
@@ -145,7 +179,7 @@ export const BrazilMap = ({
         .addTo(cityLayerRef.current)
 
       // Stations layer uses same coords
-      L.circleMarker([city.lat, city.lng], {
+      L.circleMarker([lat, lng], {
         radius: 4,
         fillColor: '#60a5fa',
         fillOpacity: 0.9,
@@ -169,12 +203,14 @@ export const BrazilMap = ({
   useEffect(() => {
     deforestLayerRef.current.clearLayers()
     deforestationAlerts.forEach((alert: DeforestationAlertApi) => {
-      if (alert.lat == null || alert.lng == null) return
+      const lat = toFiniteNumber(alert.lat)
+      const lng = toFiniteNumber(alert.lng)
+      if (lat == null || lng == null) return
       const radiusM = Math.sqrt(alert.areaHa * 10_000 / Math.PI)
       const intensity = Math.min(1, alert.areaHa / 50_000)
       const green = Math.round(180 + 75 * (1 - intensity))
       const color = `rgb(0, ${green}, 0)`
-      L.circle([alert.lat, alert.lng], {
+      L.circle([lat, lng], {
         radius: Math.max(radiusM, 5000),
         fillColor: color,
         fillOpacity: 0.15 + 0.25 * intensity,
@@ -198,7 +234,11 @@ export const BrazilMap = ({
   // Redraw fire spots when fires prop changes
   useEffect(() => {
     fireLayerRef.current.clearLayers()
-    fires.forEach(spot => {
+    normalizedFires.forEach(spot => {
+      const lat = toFiniteNumber(spot.lat)
+      const lng = toFiniteNumber(spot.lng)
+      if (lat == null || lng == null) return
+
       const intensity = spot.intensity ?? 0
       const color = intensity >= 70 ? '#ef4444' : intensity >= 40 ? '#ff9f4a' : '#facc15'
       const radius = intensity >= 70 ? 8 : intensity >= 40 ? 6 : 4
@@ -208,7 +248,7 @@ export const BrazilMap = ({
       const detailLink = onOpenFireDetail
         ? `<button type="button" class="airbr-fire-detail-btn" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px;cursor:pointer;background:none;border:none;padding:0;font-family:inherit" data-airbr-fire-id="${escapeAttr(spot.id)}">${escapePopupHtml(t('firemap.viewFireDetailLink'))}</button>`
         : `<a href="/mapa-queimadas?foco=${encodeURIComponent(spot.id)}" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px">${escapePopupHtml(t('firemap.viewFireDetailLink'))}</a>`
-      const marker = L.circleMarker([spot.lat, spot.lng], {
+      const marker = L.circleMarker([lat, lng], {
         radius,
         fillColor: color,
         fillOpacity: 0.8,
@@ -241,7 +281,7 @@ export const BrazilMap = ({
 
       marker.addTo(fireLayerRef.current)
     })
-  }, [fires, cities, t, i18n.language, onOpenFireDetail])
+  }, [normalizedFires, cities, t, i18n.language, onOpenFireDetail])
 
   // Toggle layer visibility
   useEffect(() => {
@@ -270,7 +310,10 @@ export const BrazilMap = ({
     if (!selectedCityId || !mapInstanceRef.current) return
     const city = cities.find(c => c.id === selectedCityId)
     if (city) {
-      mapInstanceRef.current.flyTo([city.lat, city.lng], 10, { duration: 1.5 })
+      const lat = toFiniteNumber(city.lat)
+      const lng = toFiniteNumber(city.lng)
+      if (lat == null || lng == null) return
+      mapInstanceRef.current.flyTo([lat, lng], 10, { duration: 1.5 })
     }
   }, [selectedCityId, cities])
 

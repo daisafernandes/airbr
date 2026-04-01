@@ -2,6 +2,7 @@ import type { Alert } from '@domain/entities/Alert'
 import type { IAlertRepository } from '@domain/repositories/IAlertRepository'
 import type { ICityRepository } from '@domain/repositories/ICityRepository'
 import { AppError } from '@shared/errors/AppError'
+import { buildPaginatedResult, type PaginatedResult, sanitizePagination } from '@shared/utils/pagination'
 
 export class AlertService {
   constructor(
@@ -46,6 +47,50 @@ export class AlertService {
         }
       }),
     )
+  }
+
+  async listWithCityPaginated(
+    userId: string,
+    params?: { page?: number; limit?: number },
+  ): Promise<
+    PaginatedResult<
+      ReturnType<Alert['toJSON']> & {
+        cityName: string | null
+        state: string | null
+        recentDispatches: Array<{
+          channel: 'EMAIL' | 'PUSH'
+          aqiValue: number
+          sentAt: string
+        }>
+      }
+    >
+  > {
+    const pagination = sanitizePagination(params)
+    const paged = await this.alerts.findByUserIdPaginated({
+      userId,
+      page: pagination.page,
+      limit: pagination.limit,
+    })
+    const data = await Promise.all(
+      paged.data.map(async (a) => {
+        const [city, recent] = await Promise.all([
+          this.cities.findById(a.cityId),
+          this.alerts.findRecentDispatchesForAlert(a.id, 5),
+        ])
+        return {
+          ...a.toJSON(),
+          cityName: city?.name ?? null,
+          state: city?.state ?? null,
+          recentDispatches: recent.map((d) => ({
+            channel: d.channel,
+            aqiValue: d.aqiValue,
+            sentAt: d.sentAt.toISOString(),
+          })),
+        }
+      }),
+    )
+
+    return buildPaginatedResult(data, paged.total, pagination)
   }
 
   async create(

@@ -56,6 +56,11 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    headers: {
+      // Development-only CSP to allow Vite/React HMR runtime.
+      'Content-Security-Policy':
+        "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com https:; connect-src 'self' ws: wss: http: https:;",
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3333',

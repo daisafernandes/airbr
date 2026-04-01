@@ -1,10 +1,10 @@
 import type { TFunction } from 'i18next'
 import L from 'leaflet'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import 'leaflet/dist/leaflet.css'
 
-import type { DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
+import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
 import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
@@ -38,6 +38,17 @@ function fireIntensityLabel(intensity: number | null, t: TFunction): string {
   return t('firemap.intensityLow')
 }
 
+function toArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[]
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    if (Array.isArray(record.items)) return record.items as T[]
+    if (Array.isArray(record.data)) return record.data as T[]
+    if (Array.isArray(record.results)) return record.results as T[]
+  }
+  return []
+}
+
 interface FireMapProps {
   showFires: boolean
   showDeforestation: boolean
@@ -54,9 +65,15 @@ export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [],
   const fireLayerRef = useRef<L.LayerGroup>(L.layerGroup())
   const deforestLayerRef = useRef<L.LayerGroup>(L.layerGroup())
 
-  const { data: cities = [] } = useCities()
-  const { data: deforestationAlerts = [] } = useDeforestation(
+  const { data: citiesData = [] } = useCities()
+  const { data: deforestationData = [] } = useDeforestation(
     stateFilter ? { state: stateFilter } : undefined,
+  )
+  const normalizedFires = useMemo(() => toArray<FireFocusApi>(fires), [fires])
+  const cities = useMemo(() => toArray<CityApiData>(citiesData), [citiesData])
+  const deforestationAlerts = useMemo(
+    () => toArray<DeforestationAlertApi>(deforestationData),
+    [deforestationData],
   )
 
   // Initialise map once
@@ -88,7 +105,7 @@ export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [],
     const map = mapInstanceRef.current
     if (!map) return
 
-    fires.forEach(spot => {
+    normalizedFires.forEach(spot => {
       const apiMun = spot.nearestMunicipalities ?? []
       const fallbackTop = getTopNearestByHaversine(spot.lat, spot.lng, cities, 3)
       const color = getFireColor(spot.intensity)
@@ -166,7 +183,7 @@ export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [],
     })
 
     if (showFires) fireLayerRef.current.addTo(map)
-  }, [fires, showFires, cities, t, i18n.language, onOpenFireDetail])
+  }, [normalizedFires, showFires, cities, t, i18n.language, onOpenFireDetail])
 
   // Deforestation — PRODES alerts from API (same source as dashboard)
   useEffect(() => {

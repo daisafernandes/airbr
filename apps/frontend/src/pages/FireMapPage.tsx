@@ -17,6 +17,7 @@ import {
 import { useIsMobile } from '@hooks/use-mobile'
 import { useCities } from '@hooks/useCities'
 import { useFires } from '@hooks/useFires'
+import type { CityApiData, FireFocusApi } from '@app-types/airQuality.types'
 
 type Period = 'hoje' | '7d' | '30d'
 
@@ -27,6 +28,17 @@ const PERIOD_DAYS: Record<Period, number> = {
 }
 
 const AFFECTED_CITIES_PREVIEW = 6
+
+function toArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[]
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    if (Array.isArray(record.items)) return record.items as T[]
+    if (Array.isArray(record.data)) return record.data as T[]
+    if (Array.isArray(record.results)) return record.results as T[]
+  }
+  return []
+}
 
 function ImpactCard({
   showFires,
@@ -224,11 +236,13 @@ export const FireMapPage = () => {
     )
   }
 
-  const { data: fires = [], isLoading: firesLoading } = useFires({
+  const { data: firesData = [], isLoading: firesLoading } = useFires({
     ...(stateFilter ? { state: stateFilter } : {}),
     days: PERIOD_DAYS[period],
   })
-  const { data: cities = [] } = useCities()
+  const { data: citiesData = [] } = useCities()
+  const fires = useMemo(() => toArray<FireFocusApi>(firesData), [firesData])
+  const cities = useMemo(() => toArray<CityApiData>(citiesData), [citiesData])
 
   const states = useMemo(() => {
     const set = new Set(cities.map(c => c.state))

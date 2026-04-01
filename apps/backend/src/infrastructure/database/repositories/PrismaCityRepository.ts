@@ -10,6 +10,20 @@ export class PrismaCityRepository implements ICityRepository {
     return prisma.city.findMany({ orderBy: { name: 'asc' } })
   }
 
+  async findAllPaginated(params: { page: number; limit: number }): Promise<{ data: CityData[]; total: number }> {
+    const skip = (params.page - 1) * params.limit
+    const [data, total] = await Promise.all([
+      prisma.city.findMany({
+        orderBy: { name: 'asc' },
+        skip,
+        take: params.limit,
+      }),
+      prisma.city.count(),
+    ])
+
+    return { data, total }
+  }
+
   async findById(id: string): Promise<CityData | null> {
     return prisma.city.findUnique({ where: { id } })
   }

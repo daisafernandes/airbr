@@ -29,4 +29,9 @@ export interface DeforestationFilters {
 export interface IDeforestationRepository {
   upsert(input: DeforestationUpsertInput): Promise<DeforestationAlertData>
   findAll(filters?: DeforestationFilters): Promise<DeforestationAlertData[]>
+  findAllPaginated(params: {
+    filters?: DeforestationFilters
+    page: number
+    limit: number
+  }): Promise<{ data: DeforestationAlertData[]; total: number }>
 }

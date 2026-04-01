@@ -43,6 +43,25 @@ export class PrismaAlertRepository implements IAlertRepository {
     return rows.map(toDomain)
   }
 
+  async findByUserIdPaginated(params: {
+    userId: string
+    page: number
+    limit: number
+  }): Promise<{ data: Alert[]; total: number }> {
+    const skip = (params.page - 1) * params.limit
+    const [rows, total] = await Promise.all([
+      prisma.alert.findMany({
+        where: { userId: params.userId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: params.limit,
+      }),
+      prisma.alert.count({ where: { userId: params.userId } }),
+    ])
+
+    return { data: rows.map(toDomain), total }
+  }
+
   async findByIdForUser(alertId: string, userId: string): Promise<Alert | null> {
     const row = await prisma.alert.findFirst({
       where: { id: alertId, userId },

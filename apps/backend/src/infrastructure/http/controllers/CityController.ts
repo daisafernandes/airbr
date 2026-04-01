@@ -7,6 +7,7 @@ import type { OutdoorSafetyService } from '@application/services/OutdoorSafetySe
 import type { WindSmokeService } from '@application/services/WindSmokeService'
 import type { HistoryPeriod } from '@domain/repositories/IAqiRepository'
 import { AppError } from '@shared/errors/AppError'
+import { sanitizePagination } from '@shared/utils/pagination'
 
 const VALID_PERIODS: HistoryPeriod[] = ['24h', '7d', '30d', '1y']
 
@@ -19,8 +20,13 @@ export class CityController {
     private readonly healthService: HealthService,
   ) {}
 
-  listCities = async (_req: Request, res: Response): Promise<void> => {
-    const cities = await this.cityService.listCities()
+  listCities = async (req: Request, res: Response): Promise<void> => {
+    const cities = await this.cityService.listCitiesPaginated(
+      sanitizePagination({
+        page: Number(req.query['page']),
+        limit: Number(req.query['limit']),
+      }),
+    )
     res.json(cities)
   }
 

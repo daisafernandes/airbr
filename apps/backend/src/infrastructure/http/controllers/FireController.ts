@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 
 import type { FireService } from '@application/services/FireService'
+import { sanitizePagination } from '@shared/utils/pagination'
 
 export class FireController {
   constructor(private readonly fireService: FireService) {}
@@ -14,13 +15,16 @@ export class FireController {
       if (!Number.isNaN(n) && n > 0) daysNum = n
     }
 
-    const fires = await this.fireService.listFires({
+    const paginated = await this.fireService.listFiresPaginated({
       state: typeof state === 'string' ? state : undefined,
       biome: typeof biome === 'string' ? biome : undefined,
       days: daysNum,
+      ...sanitizePagination({
+        page: Number(req.query['page']),
+        limit: Number(req.query['limit']),
+      }),
     })
-
-    res.json(fires)
+    res.json(paginated)
   }
 
   getFireById = async (req: Request, res: Response): Promise<void> => {

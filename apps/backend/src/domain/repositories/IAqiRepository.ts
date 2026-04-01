@@ -55,6 +55,7 @@ export interface OMSComplianceCity {
 export interface IAqiRepository {
   findLatestByCity(cityId: string): Promise<AqiReadingData | null>
   findLatestForAllCities(): Promise<AqiReadingData[]>
+  findLatestForCityIds(cityIds: string[]): Promise<AqiReadingData[]>
   findHistoryByCity(cityId: string, period: HistoryPeriod): Promise<AqiReadingData[]>
   upsert(input: AqiUpsertInput): Promise<AqiReadingData>
   getRanking(options?: { region?: string; state?: string; limit?: number }): Promise<{ mostPolluted: RankedCity[]; leastPolluted: RankedCity[] }>

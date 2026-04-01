@@ -22,8 +22,18 @@ export interface AlertDto {
   recentDispatches?: AlertDispatchDto[]
 }
 
+interface AlertListResponse {
+  data: AlertDto[]
+}
+
 export const alertsService = {
-  list: (): Promise<AlertDto[]> => api.get<AlertDto[]>('/alerts').then(r => r.data),
+  list: (): Promise<AlertDto[]> =>
+    api.get<AlertDto[] | AlertListResponse>('/alerts').then(r => {
+      if (Array.isArray(r.data)) {
+        return r.data
+      }
+      return Array.isArray(r.data.data) ? r.data.data : []
+    }),
 
   create: (payload: {
     cityId: string

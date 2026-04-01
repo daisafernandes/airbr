@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 
 import type { AlertService } from '@application/services/AlertService'
 import { AppError } from '@shared/errors/AppError'
+import { sanitizePagination } from '@shared/utils/pagination'
 
 const CHANNELS = new Set(['EMAIL', 'PUSH'])
 
@@ -11,7 +12,13 @@ export class AlertController {
   list = async (req: Request, res: Response): Promise<void> => {
     const userId = req.userId
     if (!userId) throw new AppError('Unauthorized', 401)
-    const alerts = await this.alertService.listWithCity(userId)
+    const alerts = await this.alertService.listWithCityPaginated(
+      userId,
+      sanitizePagination({
+        page: Number(req.query['page']),
+        limit: Number(req.query['limit']),
+      }),
+    )
     res.json(alerts)
   }
 

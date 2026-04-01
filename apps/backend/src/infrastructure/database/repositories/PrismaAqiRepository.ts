@@ -97,6 +97,35 @@ export class PrismaAqiRepository implements IAqiRepository {
       .filter((r): r is AqiReadingData => r !== null)
   }
 
+  async findLatestForCityIds(cityIds: string[]): Promise<AqiReadingData[]> {
+    if (cityIds.length === 0) return []
+    const since = new Date(Date.now() - OPEN_METEO_SUPPLEMENT_MAX_AGE_MS)
+    const latestByCity = await prisma.aqiReading.findMany({
+      where: { cityId: { in: cityIds } },
+      distinct: ['cityId'],
+      orderBy: [{ cityId: 'asc' }, { timestamp: 'desc' }],
+    })
+
+    const openMeteoCandidates = await prisma.aqiReading.findMany({
+      where: {
+        cityId: { in: cityIds },
+        source: 'open-meteo',
+        temperature: { not: null },
+        timestamp: { gte: since },
+      },
+      orderBy: { timestamp: 'desc' },
+    })
+
+    const newestOpenMeteoByCity = new Map<string, AqiReadingData>()
+    for (const row of openMeteoCandidates) {
+      if (!newestOpenMeteoByCity.has(row.cityId)) {
+        newestOpenMeteoByCity.set(row.cityId, row)
+      }
+    }
+
+    return latestByCity.map((r) => mergeLatestWithOpenMeteoWeather(r, newestOpenMeteoByCity.get(r.cityId)))
+  }
+
   async findHistoryByCity(cityId: string, period: HistoryPeriod): Promise<AqiReadingData[]> {
     const hours = PERIOD_TO_HOURS[period]
     const since = new Date(Date.now() - hours * 60 * 60 * 1000)

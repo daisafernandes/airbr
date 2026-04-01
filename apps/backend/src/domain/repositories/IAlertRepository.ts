@@ -20,6 +20,11 @@ export interface ActiveAlertForJob {
 
 export interface IAlertRepository {
   findByUserId(userId: string): Promise<Alert[]>
+  findByUserIdPaginated(params: {
+    userId: string
+    page: number
+    limit: number
+  }): Promise<{ data: Alert[]; total: number }>
   findByIdForUser(alertId: string, userId: string): Promise<Alert | null>
   create(data: {
     userId: string
