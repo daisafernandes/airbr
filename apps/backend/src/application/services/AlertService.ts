@@ -2,6 +2,7 @@ import type { Alert } from '@domain/entities/Alert'
 import type { IAlertRepository } from '@domain/repositories/IAlertRepository'
 import type { ICityRepository } from '@domain/repositories/ICityRepository'
 import { AppError } from '@shared/errors/AppError'
+import { productMetrics } from '@shared/metrics/productMetrics'
 import { buildPaginatedResult, type PaginatedResult, sanitizePagination } from '@shared/utils/pagination'
 
 export class AlertService {
@@ -109,13 +110,15 @@ export class AlertService {
       throw new AppError('City not found', 404)
     }
 
-    return this.alerts.create({
+    const created = await this.alerts.create({
       userId,
       cityId: input.cityId,
       thresholdAqi: input.thresholdAqi,
       channels: input.channels,
       active: input.active,
     })
+    productMetrics.incAlertCreated()
+    return created
   }
 
   async remove(alertId: string, userId: string): Promise<boolean> {

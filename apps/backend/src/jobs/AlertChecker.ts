@@ -4,6 +4,8 @@ import type { IPushSubscriptionRepository } from '@domain/repositories/IPushSubs
 import { env } from '@infrastructure/config/env'
 import { TransactionalEmailSender } from '@infrastructure/providers/TransactionalEmailSender'
 import { WebPushSender } from '@infrastructure/providers/WebPushSender'
+import { productMetrics } from '@shared/metrics/productMetrics'
+import { logger } from '@shared/utils/logger'
 
 const COOLDOWN_MS = () => env.ALERT_COOLDOWN_HOURS * 60 * 60 * 1_000
 
@@ -20,6 +22,7 @@ export class AlertChecker {
   ) {}
 
   async run(): Promise<void> {
+    productMetrics.incJobRun('alertChecker')
     const active = await this.alerts.findActiveForChecker()
     const now = Date.now()
 
@@ -45,10 +48,10 @@ export class AlertChecker {
         try {
           await this.emailSender.send(row.userEmail, title, body)
           await this.alerts.recordDispatch(row.alertId, 'EMAIL', reading.aqi)
-          // eslint-disable-next-line no-console -- job audit log
-          console.info(`[AlertChecker] Email sent for alert ${row.alertId} (AQI ${reading.aqi})`)
+          productMetrics.incAlertDispatch('EMAIL')
+          logger.info('alert_checker.email_sent', { alertId: row.alertId, aqi: reading.aqi })
         } catch (err) {
-          console.error(`[AlertChecker] Email failed for alert ${row.alertId}`, err)
+          logger.error('alert_checker.email_failed', { alertId: row.alertId, err: String(err) })
         }
       }
 
@@ -63,14 +66,14 @@ export class AlertChecker {
               payload,
             )
             pushSent = true
-            // eslint-disable-next-line no-console -- job audit log
-            console.info(`[AlertChecker] Push sent for alert ${row.alertId}`)
+            logger.info('alert_checker.push_sent', { alertId: row.alertId, subscriptionId: sub.id })
           } catch (err) {
-            console.error(`[AlertChecker] Push failed for subscription ${sub.id}`, err)
+            logger.error('alert_checker.push_failed', { subscriptionId: sub.id, err: String(err) })
           }
         }
         if (pushSent) {
           await this.alerts.recordDispatch(row.alertId, 'PUSH', reading.aqi)
+          productMetrics.incAlertDispatch('PUSH')
         }
       }
     }

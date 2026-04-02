@@ -183,7 +183,7 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
         </section>
       ) : null}
 
-      <section className="space-y-3">
+      {/* <section className="space-y-3">
         <h3 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.monitoredSection')}</h3>
         <p className="text-xs text-muted-foreground font-body">{t('fireFocus.monitoredRadiusNote')}</p>
         {monitoredWithin200.length > 0 ? (
@@ -206,7 +206,7 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
         ) : (
           <p className="text-sm text-muted-foreground font-body">{t('fireFocus.monitoredEmpty')}</p>
         )}
-      </section>
+      </section> */}
     </div>
   )
 }

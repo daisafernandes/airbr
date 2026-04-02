@@ -6,6 +6,7 @@ import { User } from '@domain/entities/User'
 import type { IUserRepository } from '@domain/repositories/IUserRepository'
 import { signAccessToken } from '@infrastructure/auth/jwt'
 import { AppError, ConflictError, UnauthorizedError } from '@shared/errors/AppError'
+import { productMetrics } from '@shared/metrics/productMetrics'
 
 const SALT_ROUNDS = 10
 const MIN_PASSWORD_LENGTH = 8
@@ -41,6 +42,7 @@ export class AuthService {
     })
 
     await this.users.save(user)
+    productMetrics.incUserRegistration()
 
     const token = signAccessToken(user.id)
     return { token, user: user.toJSON() }
@@ -59,6 +61,7 @@ export class AuthService {
     }
 
     const token = signAccessToken(user.id)
+    productMetrics.incLogin()
     return { token, user: user.toJSON() }
   }
 
