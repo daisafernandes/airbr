@@ -2,16 +2,20 @@ import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
 
 import { env } from '@infrastructure/config/env'
+import { logger } from '@shared/utils/logger'
 
 /**
  * Sends transactional email via Resend when RESEND_API_KEY is set,
- * otherwise SMTP when SMTP_* is configured. Logs a warning in development if neither is available.
+ * otherwise SMTP when SMTP_* is configured. Skips with structured logs if misconfigured.
  */
 export class TransactionalEmailSender {
   async send(to: string, subject: string, text: string): Promise<void> {
     const from = env.EMAIL_FROM
     if (!from) {
-      console.warn('[Email] EMAIL_FROM is not set; skipping send')
+      logger.warn('email.send_skipped', {
+        reason: 'missing_email_from',
+        ...(env.NODE_ENV === 'development' && { subject }),
+      })
       return
     }
 
@@ -24,8 +28,8 @@ export class TransactionalEmailSender {
         text,
       })
       if (error) {
-        console.error('[Email] Resend error:', error)
-        await this.trySmtpFallback(to, subject, text, from)
+        logger.error('email.resend_failed', { err: String(error) })
+        await this.trySmtpFallback(to, subject, text, from, { afterResendError: true })
       }
       return
     }
@@ -33,11 +37,19 @@ export class TransactionalEmailSender {
     await this.trySmtpFallback(to, subject, text, from)
   }
 
-  private async trySmtpFallback(to: string, subject: string, text: string, from: string): Promise<void> {
+  private async trySmtpFallback(
+    to: string,
+    subject: string,
+    text: string,
+    from: string,
+    opts?: { afterResendError?: boolean },
+  ): Promise<void> {
     if (!env.SMTP_HOST || !env.SMTP_PORT) {
-      if (env.NODE_ENV === 'development') {
-        console.warn(`[Email] No Resend/SMTP; would send to ${to}: ${subject}`)
-      }
+      logger.warn('email.send_skipped', {
+        reason: 'smtp_not_configured',
+        afterResendError: Boolean(opts?.afterResendError),
+        subject: env.NODE_ENV === 'development' ? subject : undefined,
+      })
       return
     }
 

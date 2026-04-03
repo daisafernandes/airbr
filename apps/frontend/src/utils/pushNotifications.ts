@@ -1,5 +1,32 @@
 import { pushService } from '@services/pushService'
 
+const SW_REGISTRATION_WAIT_MS = 10_000
+
+/**
+ * Waits for the service worker registered by virtual:pwa-register in main.tsx.
+ * Does not call register() — manual /sw.js registration breaks dev (wrong MIME) and duplicates prod.
+ */
+async function getServiceWorkerRegistrationForPush(): Promise<ServiceWorkerRegistration | null> {
+  let reg = await navigator.serviceWorker.getRegistration()
+  if (reg?.active) {
+    return reg
+  }
+
+  try {
+    await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('timeout')), SW_REGISTRATION_WAIT_MS)
+      }),
+    ])
+  } catch {
+    // Timeout: registerSW may not have run (e.g. SW disabled) or SW still installing.
+  }
+
+  reg = await navigator.serviceWorker.getRegistration()
+  return reg?.active ? reg : null
+}
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -12,7 +39,8 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 /**
- * Registers the app service worker and subscribes to Web Push when VAPID keys are configured on the server.
+ * Subscribes to Web Push using the service worker already registered by main (vite-plugin-pwa).
+ * Requires VAPID keys on the server.
  */
 export async function registerPushNotifications(): Promise<{ ok: boolean; reason?: string }> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -24,9 +52,9 @@ export async function registerPushNotifications(): Promise<{ ok: boolean; reason
     return { ok: false, reason: 'no_vapid' }
   }
 
-  let reg = await navigator.serviceWorker.getRegistration()
+  const reg = await getServiceWorkerRegistrationForPush()
   if (!reg) {
-    reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    return { ok: false, reason: 'no_sw' }
   }
 
   const permission = await Notification.requestPermission()

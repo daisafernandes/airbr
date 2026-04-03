@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
+import { isDevelopmentSource } from '@utils/dataSource'
 import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
 
 function escapePopupHtml(s: string): string {
@@ -46,13 +47,19 @@ function getAQIColor(aqi: number): string {
   return '#7f1d1d'
 }
 
-function getAQILabel(aqi: number): string {
-  if (aqi <= 50) return 'Bom'
-  if (aqi <= 100) return 'Moderado'
-  if (aqi <= 150) return 'Ruim p/ sensíveis'
-  if (aqi <= 200) return 'Ruim'
-  if (aqi <= 300) return 'Muito ruim'
-  return 'Perigoso'
+function aqiBandLabelKey(aqi: number):
+  | 'aqi.bands.good.label'
+  | 'aqi.bands.moderate.label'
+  | 'aqi.bands.sensitiveGroup.label'
+  | 'aqi.bands.unhealthy.label'
+  | 'aqi.bands.veryUnhealthy.label'
+  | 'aqi.bands.hazardous.label' {
+  if (aqi <= 50) return 'aqi.bands.good.label'
+  if (aqi <= 100) return 'aqi.bands.moderate.label'
+  if (aqi <= 150) return 'aqi.bands.sensitiveGroup.label'
+  if (aqi <= 200) return 'aqi.bands.unhealthy.label'
+  if (aqi <= 300) return 'aqi.bands.veryUnhealthy.label'
+  return 'aqi.bands.hazardous.label'
 }
 
 function toFiniteNumber(value: unknown): number | null {
@@ -165,7 +172,30 @@ export const BrazilMap = ({
       const color = getAQIColor(aqi)
       const radius = Math.max(6, aqi / 12)
 
-      const cityPageUrl = `/cidade/${city.id}`
+      const cityPageUrl = `/city/${city.id}`
+      const bandLabel = t(aqiBandLabelKey(aqi))
+      const aqiAbbr = t('map.aqiAbbrev')
+      const cityPopup = `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e;min-width:160px">
+            <strong style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.05em">
+              ${escapePopupHtml(city.name)}, ${escapePopupHtml(city.state)}
+            </strong><br/>
+            <span style="font-family:'DM Mono',monospace;font-size:20px;color:${color}">
+              ${escapePopupHtml(aqiAbbr)} ${aqi}
+            </span><br/>
+            <span style="font-size:12px">${escapePopupHtml(bandLabel)}</span><br/>
+            <a href="${cityPageUrl}" style="font-size:11px;color:#3b82f6;text-decoration:underline;margin-top:4px;display:inline-block">
+              → ${escapePopupHtml(t('map.viewFullPage'))}
+            </a>
+          </div>`
+      const stationSourceLine = isDevelopmentSource(city.source)
+        ? t('cityDashboard.sourceDevelopment')
+        : city.source
+      const stationPopup = `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
+            <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">
+              📡 ${escapePopupHtml(t('map.stationOfficialTitle', { city: city.name }))}
+            </strong><br/>
+            <span style="font-size:11px">${escapePopupHtml(stationSourceLine)} · ${escapePopupHtml(aqiAbbr)} ${aqi}</span>
+          </div>`
 
       L.circleMarker([lat, lng], {
         radius,
@@ -175,20 +205,7 @@ export const BrazilMap = ({
         weight: 1,
         opacity: 0.4,
       })
-        .bindPopup(
-          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e;min-width:160px">
-            <strong style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.05em">
-              ${city.name}, ${city.state}
-            </strong><br/>
-            <span style="font-family:'DM Mono',monospace;font-size:20px;color:${color}">
-              IQAr ${aqi}
-            </span><br/>
-            <span style="font-size:12px">${getAQILabel(aqi)}</span><br/>
-            <a href="${cityPageUrl}" style="font-size:11px;color:#3b82f6;text-decoration:underline;margin-top:4px;display:inline-block">
-              → Ver página completa
-            </a>
-          </div>`,
-        )
+        .bindPopup(cityPopup)
         .addTo(cityLayerRef.current)
 
       // Stations layer uses same coords
@@ -200,17 +217,10 @@ export const BrazilMap = ({
         weight: 1.5,
         opacity: 0.7,
       })
-        .bindPopup(
-          `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">
-              📡 Estação Oficial — ${city.name}
-            </strong><br/>
-            <span style="font-size:11px">${city.source} · IQAr ${aqi}</span>
-          </div>`,
-        )
+        .bindPopup(stationPopup)
         .addTo(stationsLayerRef.current)
     })
-  }, [cities])
+  }, [cities, t, i18n.language])
 
   // Redraw deforestation alerts from PRODES when data changes
   useEffect(() => {
@@ -234,15 +244,15 @@ export const BrazilMap = ({
       })
         .bindPopup(
           `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
-            🌳 <strong>Desmatamento · ${alert.state}</strong><br/>
-            ${alert.biome ? `Bioma: ${alert.biome}<br/>` : ''}
-            Área: <strong>${alert.areaHa.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} ha</strong><br/>
-            <span style="font-size:10px;color:#666">Fonte: PRODES/INPE</span>
+            🌳 <strong>${escapePopupHtml(t('firemap.popupDeforestTitle'))} · ${escapePopupHtml(alert.state)}</strong><br/>
+            ${alert.biome ? `${escapePopupHtml(t('firemap.popupBiome'))}: ${escapePopupHtml(alert.biome)}<br/>` : ''}
+            ${escapePopupHtml(t('firemap.popupArea'))}: <strong>${alert.areaHa.toLocaleString(i18n.language === 'en' ? 'en-US' : i18n.language === 'es' ? 'es-ES' : 'pt-BR', { maximumFractionDigits: 0 })} ha</strong><br/>
+            <span style="font-size:10px;color:#666">${escapePopupHtml(t('firemap.popupDeforestSource'))}</span>
           </div>`,
         )
         .addTo(deforestLayerRef.current)
     })
-  }, [deforestationAlerts])
+  }, [deforestationAlerts, t, i18n.language])
 
   // Redraw fire spots when fires prop changes
   useEffect(() => {
@@ -260,7 +270,7 @@ export const BrazilMap = ({
       const nearSummary = nearestCitiesSummaryHtml(spot, cities)
       const detailLink = onOpenFireDetail
         ? `<button type="button" class="airbr-fire-detail-btn" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px;cursor:pointer;background:none;border:none;padding:0;font-family:inherit" data-airbr-fire-id="${escapeAttr(spot.id)}">${escapePopupHtml(t('firemap.viewFireDetailLink'))}</button>`
-        : `<a href="/mapa-queimadas?foco=${encodeURIComponent(spot.id)}" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px">${escapePopupHtml(t('firemap.viewFireDetailLink'))}</a>`
+        : `<a href="/maps?foco=${encodeURIComponent(spot.id)}" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px">${escapePopupHtml(t('firemap.viewFireDetailLink'))}</a>`
       const marker = L.circleMarker([lat, lng], {
         radius,
         fillColor: color,
@@ -334,7 +344,7 @@ export const BrazilMap = ({
     <div className="flex-1 min-h-0 h-[calc(100vh-140px)] rounded border border-border overflow-hidden relative">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/40 pointer-events-none">
-          <span className="text-xs font-mono text-muted-foreground animate-pulse">Carregando cidades...</span>
+          <span className="text-xs font-mono text-muted-foreground animate-pulse">{t('map.loadingCities')}</span>
         </div>
       )}
       <div ref={mapRef} data-testid="brazil-map" className="absolute inset-0 w-full h-full z-0" />

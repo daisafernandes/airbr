@@ -7,6 +7,7 @@ import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import { formatDateTime } from '@/utils/formatters'
 import type { AqiReadingApi } from '@app-types/airQuality.types'
 import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
+import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { AQIGauge } from '@components/shared/CityDashboard/AQIGauge'
 import { AQIHistoryChart } from '@components/shared/CityDashboard/AQIHistoryChart'
 import { HealthAlertsCard } from '@components/shared/CityDashboard/HealthAlertsCard'
@@ -19,6 +20,7 @@ import { useCity } from '@hooks/useCity'
 import { useCityHistory } from '@hooks/useCityHistory'
 import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
 import { useWindSmoke } from '@hooks/useWindSmoke'
+import { isDevelopmentSource } from '@utils/dataSource'
 import { getAQILabel, getHealthAlerts, getPollutantInfo } from '@utils/aqiInfo'
 
 type Period = '7d' | '30d' | '1y'
@@ -55,9 +57,13 @@ function buildHistoryPoints(readings: AqiReadingApi[], locale: string): AQIHisto
 function computeOutdoorSafety(aqi: number, uv: number | null, pollen: number | null) {
   const aqiScore = Math.max(0, 10 - aqi / 50)
   const uvScore = uv !== null ? Math.max(0, 10 - uv) : 5
-  const pollenScore = pollen !== null ? Math.max(0, 10 - pollen) : 5
-  const score = Math.round(((aqiScore + uvScore + pollenScore) / 3) * 10) / 10
-  return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: pollen ?? 0 }
+  if (pollen === null) {
+    const score = Math.round(((aqiScore + uvScore) / 2) * 10) / 10
+    return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: null as number | null }
+  }
+  const pollenPart = Math.max(0, 10 - pollen)
+  const score = Math.round(((aqiScore + uvScore + pollenPart) / 3) * 10) / 10
+  return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: pollen }
 }
 
 export const CityPage = () => {
@@ -86,15 +92,15 @@ export const CityPage = () => {
       ? computeOutdoorSafety(aqi, city.latestAqi?.uv ?? null, city.latestAqi?.pollen ?? null).score
       : 0
   const uvIndex = outdoorSafety?.breakdown.uv ?? city?.latestAqi?.uv ?? 0
-  const pollenLevel = outdoorSafety?.breakdown.pollen ?? city?.latestAqi?.pollen ?? 0
+  const pollenLevel =
+    outdoorSafety?.breakdown.pollen ?? city?.latestAqi?.pollen ?? null
   const temperature = outdoorSafety?.breakdown.temperature ?? city?.latestAqi?.temperature ?? null
 
   const navLinks = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/ranking', label: t('nav.ranking') },
-    { to: '/mapa-queimadas', label: t('nav.fireMap') },
-    { to: '/guia', label: t('nav.guide') },
-    { to: '/metodologia', label: t('nav.methodology') },
+    { to: '/maps', label: t('nav.fireMap') },
+    { to: '/guide', label: t('nav.guide') },
   ]
 
   return (
@@ -128,6 +134,7 @@ export const CityPage = () => {
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <LiveIndicator />
+            <AuthHeaderActions />
           </div>
         </div>
       </header>
@@ -182,7 +189,11 @@ export const CityPage = () => {
                 </div>
               </div>
               <p className="text-[10px] font-mono text-muted-foreground mt-2">
-                {t('cityDashboard.sourceLabel')}: {city.source} · {t('cityDashboard.lastUpdateLabel')}:{' '}
+                {t('cityDashboard.sourceLabel')}:{' '}
+                {isDevelopmentSource(city.source)
+                  ? t('cityDashboard.sourceDevelopment')
+                  : city.source}{' '}
+                · {t('cityDashboard.lastUpdateLabel')}:{' '}
                 {city.latestAqi
                   ? formatDateTime(new Date(city.latestAqi.timestamp), {
                       day: '2-digit',
@@ -285,10 +296,10 @@ export const CityPage = () => {
                       <span className="text-muted-foreground">{t('cityDashboard.region')}</span>
                       <span className="text-foreground">{city.region}</span>
                     </div>
-                    <div className="flex justify-between">
+                    {/* <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('cityDashboard.dataSource')}</span>
                       <span className="text-foreground">{city.source}</span>
-                    </div>
+                    </div> */}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('cityDashboard.temperature')}</span>
                       <span className="text-foreground">
@@ -309,7 +320,10 @@ export const CityPage = () => {
             </div>
 
             <footer className="mt-10 text-xs text-muted-foreground text-center font-mono">
-              {t('dashboard.sources')}: {city.source} · INPE · DATASUS · Open-Meteo · IQAir
+              {t('dashboard.sources')}:{' '}
+              {t('cityPage.sourcesFooter', {
+                source: isDevelopmentSource(city.source) ? t('cityDashboard.sourceDevelopment') : city.source,
+              })}
             </footer>
           </>
         )}

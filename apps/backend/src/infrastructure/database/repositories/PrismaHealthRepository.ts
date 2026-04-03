@@ -47,4 +47,13 @@ export class PrismaHealthRepository implements IHealthRepository {
       orderBy: [{ year: 'asc' }, { month: 'asc' }],
     })
   }
+
+  async findLatestSource(cityId: string): Promise<string | null> {
+    const row = await prisma.healthData.findFirst({
+      where: { cityId },
+      orderBy: { createdAt: 'desc' },
+      select: { source: true },
+    })
+    return row?.source ?? null
+  }
 }

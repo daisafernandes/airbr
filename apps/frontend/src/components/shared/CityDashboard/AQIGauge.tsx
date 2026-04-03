@@ -166,7 +166,7 @@ export const AQIGauge = ({ aqi, label }: AQIGaugeProps) => {
               </div>
             ))}
           </div>
-          <Link to="/guia" className="text-[10px] text-primary hover:underline block pt-1">
+          <Link to="/guide" className="text-[10px] text-primary hover:underline block pt-1">
             Ver guia completo →
           </Link>
         </TooltipContent>

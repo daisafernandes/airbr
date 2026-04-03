@@ -30,6 +30,8 @@ export interface HealthResult {
   populationTotal: number | null
   elderlyPct: number | null
   childrenPct: number | null
+  /** Latest `HealthData.source` for this city (e.g. `datasus-sih`). */
+  dataSource: string | null
   monthlyData: Array<{
     year: number
     month: number
@@ -53,10 +55,11 @@ export class HealthService {
     const cached = this.cache.get<HealthResult>(key)
     if (cached) return cached
 
-    const [city, healthRecords, aqiHistory] = await Promise.all([
+    const [city, healthRecords, aqiHistory, dataSource] = await Promise.all([
       this.cityRepository.findById(cityId),
       this.healthRepository.findByCity(cityId, 12),
       this.aqiRepository.findHistoryByCity(cityId, '1y'),
+      this.healthRepository.findLatestSource(cityId),
     ])
 
     const monthlyAqi = new Map<string, number[]>()
@@ -91,6 +94,7 @@ export class HealthService {
       populationTotal: city?.populationTotal ?? null,
       elderlyPct: city?.elderlyPct ?? null,
       childrenPct: city?.childrenPct ?? null,
+      dataSource,
       monthlyData,
       correlation,
       totalHospitalizations: healthRecords.reduce(

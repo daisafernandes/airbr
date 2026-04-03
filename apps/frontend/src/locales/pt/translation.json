@@ -4,7 +4,6 @@
     "ranking": "Ranking",
     "fireMap": "Mapa Queimadas / Desmatamentos",
     "guide": "Guia",
-    "methodology": "Metodologia",
     "alerts": "Alertas"
   },
   "auth": {
@@ -23,7 +22,25 @@
     "loginSuccess": "Login realizado",
     "registerSuccess": "Conta criada",
     "loginError": "Não foi possível entrar",
-    "registerError": "Não foi possível registrar"
+    "registerError": "Não foi possível registrar",
+    "accountMenu": "Menu da conta",
+    "forgotPasswordLink": "Esqueci a senha",
+    "forgotPasswordTitle": "Redefinir senha",
+    "forgotPasswordDescription": "Informe seu e-mail. Se existir uma conta, enviaremos um link para redefinir a senha.",
+    "forgotPasswordSubmit": "Enviar link",
+    "forgotPasswordToast": "Se existir uma conta com este e-mail, você receberá as instruções em breve.",
+    "forgotPasswordError": "Não foi possível enviar o pedido",
+    "forgotPasswordFollowUp": "Se existir uma conta com este e-mail, você receberá um link em breve.",
+    "resetPasswordTitle": "Nova senha",
+    "resetPasswordDescription": "Escolha uma nova senha para sua conta.",
+    "resetPasswordSubmit": "Salvar senha",
+    "resetPasswordSuccess": "Senha atualizada",
+    "resetPasswordError": "Não foi possível redefinir a senha",
+    "resetPasswordMissingToken": "Link inválido ou expirado. Solicite um novo link em “Esqueci a senha”.",
+    "resetPasswordMismatch": "As senhas não coincidem.",
+    "resetPasswordDone": "Sua senha foi atualizada. Você já pode entrar.",
+    "confirmPassword": "Confirmar senha",
+    "backToLogin": "Voltar ao login"
   },
   "alerts": {
     "title": "Alertas de AQI",
@@ -204,7 +221,17 @@
     "compareCities": "Comparar cidades",
     "exitComparison": "Sair da comparação",
     "lastUpdate": "Última atualização",
-    "sources": "Fontes"
+    "sources": "Fontes",
+    "sourcesFooter": "CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo"
+  },
+  "cityPage": {
+    "sourcesFooter": "{{source}} · INPE · DATASUS · Open-Meteo · IQAir"
+  },
+  "map": {
+    "loadingCities": "Carregando cidades...",
+    "viewFullPage": "Ver página completa",
+    "aqiAbbrev": "IQAr",
+    "stationOfficialTitle": "Estação oficial — {{city}}"
   },
   "cityDashboard": {
     "forecast": "PREVISÃO 3 DIAS",
@@ -240,6 +267,11 @@
     "hospitalizationsMonth": "Internações respiratórias · último mês",
     "vsPrevMonth": "vs mês ant.",
     "simulatedData": "Dados simulados · últimos 12 meses",
+    "sourceDevelopment": "Dados de demonstração",
+    "pollenUnavailable": "Indisponível",
+    "healthFooterDatasus": "Fonte: DATASUS SIH (internações SUS, causas respiratórias J00–J99). Valores são totais estaduais repartidos entre os municípios do estado — não são contagens municipais individuais.",
+    "healthFooterGeneric": "Fonte dos dados de saúde: {{source}}.",
+    "healthFooterUnknown": "Fonte da série de saúde não informada.",
     "safetyLabel": {
       "safe": "Seguro",
       "moderate": "Moderado",
@@ -348,7 +380,7 @@
     "allBrazil": "Todo o Brasil",
     "layers": "Camadas",
     "fireFoci": "Focos de Queimada",
-    "deforestation": "Desmatamento (PRODES)",
+    "deforestation": "Desmatamento",
     "officialStations": "Estações Oficiais",
     "fireIntensity": "Intensidade dos focos",
     "intensityHigh": "Alta",
@@ -363,7 +395,7 @@
     "intensityUnknown": "Não informada",
     "popupFireTitle": "Foco de Queimada",
     "popupState": "Estado",
-    "popupNearestIbge": "Sedes IBGE mais próximas",
+    "popupNearestIbge": "Cidades mais próximas",
     "popupNearestMonitored": "Cidades monitoradas mais próximas (aprox.)",
     "popupBiome": "Bioma",
     "popupIntensity": "Intensidade",
@@ -393,25 +425,6 @@
     "backToMap": "Voltar ao mapa de queimadas",
     "sourceInpe": "Fonte: INPE/BDQueimadas"
   },
-  "methodology": {
-    "title": "METODOLOGIA E FONTES",
-    "subtitle": "Como o RespirA obtém, trata e exibe os dados de qualidade do ar e meio ambiente.",
-    "sections": {
-      "overview": {
-        "title": "Visão geral",
-        "body": "O aplicativo web consome uma API REST. O backend agrega leituras de várias origens, normaliza e persiste em PostgreSQL. Respostas frequentes usam cache em memória com TTL para reduzir carga e latência — o mesmo padrão aplicado aos serviços de cidades e IQAr."
-      },
-      "collectors": {
-        "title": "Coleta e atualização",
-        "body": "Rotinas agendadas e coletores alimentam o sistema com dados de provedores como OpenWeatherMap, AQICN (IQAir), Open-Meteo, CETESB, IEMA, IAT, INPE (focos de queimada), PRODES (desmatamento), DATASUS, IBGE e outros integrados ao pipeline. Os dados passam por um normalizador antes de serem armazenados e disponibilizados pela API."
-      },
-      "sources": {
-        "title": "Referências e glossário",
-        "body": "Para descrições dos índices, poluentes e instituições citadas, use o Guia da plataforma.",
-        "guideCta": "Abrir o Guia"
-      }
-    }
-  },
   "oms": {
     "compliance": "CONFORMIDADE OMS — PM2.5",
     "limit": "Limite OMS",
@@ -438,6 +451,7 @@
     "source": "Fonte",
     "search": "Buscar cidade...",
     "sources": "Fontes",
+    "sourcesFooter": "IQAir · AQICN · CETESB · DATASUS · IBGE · Open-Meteo",
     "selectPlaceholder": "Selecionar..."
   },
   "notFound": {

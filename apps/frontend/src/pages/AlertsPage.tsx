@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, Trash2, Wind } from 'lucide-react'
-import { useState } from 'react'
+import { Bell, Trash2 } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -12,15 +12,22 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { ProtectedRoute } from '@components/layout/ProtectedRoute'
 import { CitySearchBar } from '@components/shared/CitySearchBar'
-import { useAuth } from '@contexts/AuthContext'
+import { Header } from '@components/shared/Header'
 import { alertsService, type AlertChannel } from '@services/alertsService'
 import { formatDateTime } from '@utils/formatters'
 import { registerPushNotifications } from '@utils/pushNotifications'
 
 const AlertsContent = () => {
   const { t } = useTranslation()
-  const { signOut } = useAuth()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
+
+  const handleCitySelect = useCallback(
+    (cityId: string) => {
+      navigate(`/city/${cityId}`)
+    },
+    [navigate],
+  )
 
   const [cityId, setCityId] = useState<string | null>(null)
   const [cityLabel, setCityLabel] = useState('')
@@ -119,27 +126,7 @@ const AlertsContent = () => {
   return (
     <div className="min-h-screen bg-background grain-overlay">
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
-      <header className="fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border">
-        <div className="flex items-center justify-between px-6 py-3 max-w-[1200px] mx-auto gap-4">
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <Wind className="w-6 h-6 text-primary" />
-            <span className="font-heading text-2xl tracking-wider text-foreground">
-              Respir<span className="text-primary">A</span>
-            </span>
-          </Link>
-          <nav className="flex items-center gap-2">
-            <Link to="/" className="text-xs text-muted-foreground hover:text-foreground px-2">
-              {t('nav.dashboard')}
-            </Link>
-            <Link to="/ranking" className="text-xs text-muted-foreground hover:text-foreground px-2">
-              {t('nav.ranking')}
-            </Link>
-            <Button variant="ghost" size="sm" className="text-xs" onClick={() => signOut()}>
-              {t('auth.logout')}
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <Header onCitySelect={handleCitySelect} />
 
       <main className="pt-24 px-4 pb-12 max-w-[1200px] mx-auto relative z-10">
         <h1 className="font-heading text-2xl text-foreground mb-2">{t('alerts.title')}</h1>

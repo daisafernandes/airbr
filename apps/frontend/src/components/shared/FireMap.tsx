@@ -140,7 +140,7 @@ export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [],
         : ''
       const detailLink = onOpenFireDetail
         ? `<button type="button" class="airbr-fire-detail-btn" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px;cursor:pointer;background:none;border:none;padding:0;font-family:inherit" data-airbr-fire-id="${escapeAttr(spot.id)}">${escapePopupText(t('firemap.viewFireDetailLink'))}</button>`
-        : `<a href="/mapa-queimadas?foco=${encodeURIComponent(spot.id)}" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px">${escapePopupText(t('firemap.viewFireDetailLink'))}</a>`
+        : `<a href="/maps?foco=${encodeURIComponent(spot.id)}" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px">${escapePopupText(t('firemap.viewFireDetailLink'))}</a>`
 
       const marker = L.circleMarker([spot.lat, spot.lng], {
         radius,

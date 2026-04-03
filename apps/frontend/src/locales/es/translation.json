@@ -4,7 +4,6 @@
     "ranking": "Ranking",
     "fireMap": "Mapa Incendios / Deforestacións",
     "guide": "Guía",
-    "methodology": "Metodología",
     "alerts": "Alertas"
   },
   "auth": {
@@ -23,7 +22,25 @@
     "loginSuccess": "Sesión iniciada",
     "registerSuccess": "Cuenta creada",
     "loginError": "No se pudo iniciar sesión",
-    "registerError": "No se pudo registrar"
+    "registerError": "No se pudo registrar",
+    "accountMenu": "Menú de cuenta",
+    "forgotPasswordLink": "Olvidé mi contraseña",
+    "forgotPasswordTitle": "Restablecer contraseña",
+    "forgotPasswordDescription": "Indica tu correo. Si existe una cuenta, enviaremos un enlace para restablecer la contraseña.",
+    "forgotPasswordSubmit": "Enviar enlace",
+    "forgotPasswordToast": "Si existe una cuenta con este correo, recibirás instrucciones en breve.",
+    "forgotPasswordError": "No se pudo enviar la solicitud",
+    "forgotPasswordFollowUp": "Si existe una cuenta con este correo, recibirás un enlace en breve.",
+    "resetPasswordTitle": "Nueva contraseña",
+    "resetPasswordDescription": "Elige una nueva contraseña para tu cuenta.",
+    "resetPasswordSubmit": "Guardar contraseña",
+    "resetPasswordSuccess": "Contraseña actualizada",
+    "resetPasswordError": "No se pudo restablecer la contraseña",
+    "resetPasswordMissingToken": "Enlace inválido o caducado. Solicita uno nuevo en “Olvidé mi contraseña”.",
+    "resetPasswordMismatch": "Las contraseñas no coinciden.",
+    "resetPasswordDone": "Tu contraseña se actualizó. Ya puedes iniciar sesión.",
+    "confirmPassword": "Confirmar contraseña",
+    "backToLogin": "Volver al inicio de sesión"
   },
   "alerts": {
     "title": "Alertas de AQI",
@@ -204,7 +221,17 @@
     "compareCities": "Comparar ciudades",
     "exitComparison": "Salir de comparación",
     "lastUpdate": "Última actualización",
-    "sources": "Fuentes"
+    "sources": "Fuentes",
+    "sourcesFooter": "CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo"
+  },
+  "cityPage": {
+    "sourcesFooter": "{{source}} · INPE · DATASUS · Open-Meteo · IQAir"
+  },
+  "map": {
+    "loadingCities": "Cargando ciudades...",
+    "viewFullPage": "Ver página completa",
+    "aqiAbbrev": "AQI",
+    "stationOfficialTitle": "Estación oficial — {{city}}"
   },
   "cityDashboard": {
     "forecast": "PRONÓSTICO 3 DÍAS",
@@ -240,6 +267,11 @@
     "hospitalizationsMonth": "Hospitalizaciones respiratorias · último mes",
     "vsPrevMonth": "vs mes ant.",
     "simulatedData": "Datos simulados · últimos 12 meses",
+    "sourceDevelopment": "Datos de demostración",
+    "pollenUnavailable": "No disponible",
+    "healthFooterDatasus": "Fuente: DATASUS SIH (hospitalizaciones SUS, causas respiratorias J00–J99). Los valores son totales estatales repartidos entre los municipios del estado — no son cifras municipales individuales.",
+    "healthFooterGeneric": "Fuente de datos de salud: {{source}}.",
+    "healthFooterUnknown": "Fuente de la serie de salud no especificada.",
     "safetyLabel": {
       "safe": "Seguro",
       "moderate": "Moderado",
@@ -348,7 +380,7 @@
     "allBrazil": "Todo Brasil",
     "layers": "Capas",
     "fireFoci": "Focos de Incendio",
-    "deforestation": "Deforestación (PRODES)",
+    "deforestation": "Deforestación",
     "officialStations": "Estaciones Oficiales",
     "fireIntensity": "Intensidad de los focos",
     "intensityHigh": "Alta",
@@ -363,7 +395,7 @@
     "intensityUnknown": "No informada",
     "popupFireTitle": "Foco de incendio",
     "popupState": "Estado",
-    "popupNearestIbge": "Sedes IBGE más cercanas",
+    "popupNearestIbge": "Ciudades más cercanas",
     "popupNearestMonitored": "Ciudades monitoreadas más cercanas (aprox.)",
     "popupBiome": "Bioma",
     "popupIntensity": "Intensidad",
@@ -393,25 +425,6 @@
     "backToMap": "Volver al mapa de incendios",
     "sourceInpe": "Fuente: INPE/BDQueimadas"
   },
-  "methodology": {
-    "title": "METODOLOGÍA Y FUENTES",
-    "subtitle": "Cómo RespirA obtiene, procesa y muestra datos de calidad del aire y medio ambiente.",
-    "sections": {
-      "overview": {
-        "title": "Visión general",
-        "body": "La aplicación web consume una API REST. El backend agrega lecturas de varias fuentes, las normaliza y las guarda en PostgreSQL. Las respuestas frecuentes usan caché en memoria con TTL para reducir carga y latencia — el mismo patrón que en los servicios de ciudades y AQI."
-      },
-      "collectors": {
-        "title": "Recolección y actualización",
-        "body": "Tareas programadas y colectores alimentan el sistema con datos de proveedores como OpenWeatherMap, AQICN (IQAir), Open-Meteo, CETESB, IEMA, IAT, INPE (focos de incendio), PRODES (deforestación), DATASUS, IBGE y otros integrados en el pipeline. Los datos pasan por un normalizador antes de almacenarse y exponerse por la API."
-      },
-      "sources": {
-        "title": "Referencias y glosario",
-        "body": "Para descripciones de índices, contaminantes e instituciones, consulte la Guía de la plataforma.",
-        "guideCta": "Abrir la Guía"
-      }
-    }
-  },
   "oms": {
     "compliance": "CONFORMIDAD OMS — PM2.5",
     "limit": "Límite OMS",
@@ -438,6 +451,7 @@
     "source": "Fuente",
     "search": "Buscar ciudad...",
     "sources": "Fuentes",
+    "sourcesFooter": "AQI · AQICN · CETESB · DATASUS · IBGE · Open-Meteo",
     "selectPlaceholder": "Seleccionar..."
   },
   "notFound": {

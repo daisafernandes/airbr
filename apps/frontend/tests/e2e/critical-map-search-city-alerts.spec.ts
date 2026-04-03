@@ -40,4 +40,18 @@ test.describe('Critical flow: map, search, city and alerts', () => {
 
     await expect(page.getByText(/São Paulo/i).first()).toBeVisible()
   })
+
+  test('legacy URL paths redirect to canonical routes', async ({ page }) => {
+    await page.goto('/mapa-queimadas')
+    await expect(page).toHaveURL(/\/maps$/)
+
+    await page.goto('/guia')
+    await expect(page).toHaveURL(/\/guide$/)
+
+    await page.goto('/cidade/legacy-id-test')
+    await expect(page).toHaveURL(/\/city\/legacy-id-test$/)
+
+    await page.goto('/mapa-queimadas/foco/abc123')
+    await expect(page).toHaveURL(/\/maps\?foco=abc123/)
+  })
 })

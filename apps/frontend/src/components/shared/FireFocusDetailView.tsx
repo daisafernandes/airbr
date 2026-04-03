@@ -152,7 +152,7 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
         <h3 className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.nearestMonitoredHighlight')}</h3>
         {nearestMonitored && nearestMonitoredDistanceKm != null ? (
           <Link
-            to={`/cidade/${nearestMonitored.id}`}
+            to={`/city/${nearestMonitored.id}`}
             className="flex justify-between gap-4 items-center rounded-md border border-border bg-card/40 px-4 py-3 hover:bg-muted/40 transition-colors no-underline"
           >
             <span>
@@ -183,7 +183,7 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
         </section>
       ) : null}
 
-      <section className="space-y-3">
+      {/* <section className="space-y-3">
         <h3 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.monitoredSection')}</h3>
         <p className="text-xs text-muted-foreground font-body">{t('fireFocus.monitoredRadiusNote')}</p>
         {monitoredWithin200.length > 0 ? (
@@ -191,7 +191,7 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
             {monitoredWithin200.map(({ c, d }) => (
               <li key={c.id}>
                 <Link
-                  to={`/cidade/${c.id}`}
+                  to={`/city/${c.id}`}
                   className="flex justify-between gap-4 px-4 py-3 text-sm font-body hover:bg-muted/40 transition-colors"
                 >
                   <span>
@@ -206,7 +206,7 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
         ) : (
           <p className="text-sm text-muted-foreground font-body">{t('fireFocus.monitoredEmpty')}</p>
         )}
-      </section>
+      </section> */}
     </div>
   )
 }

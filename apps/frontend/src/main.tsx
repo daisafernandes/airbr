@@ -5,19 +5,9 @@ import { registerSW } from 'virtual:pwa-register'
 import { App } from './App'
 import './styles/global.css'
 
-if (import.meta.env.PROD) {
-  registerSW({ immediate: true })
-} else if ('serviceWorker' in navigator) {
-  // Avoid stale cache issues during local development.
-  navigator.serviceWorker
-    .getRegistrations()
-    .then(registrations => {
-      registrations.forEach(registration => {
-        registration.unregister()
-      })
-    })
-    .catch(() => {})
-}
+// Single registration path via vite-plugin-pwa (injectManifest → sw.ts). Push uses
+// navigator.serviceWorker.ready; do not unregister SWs in dev or push cannot attach.
+registerSW({ immediate: true })
 
 const rootElement = document.getElementById('root')
 

@@ -5,6 +5,8 @@ const envSchema = z
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.coerce.number().default(3333),
     CORS_ORIGIN: z.string().default('http://localhost:5173'),
+    /** Base URL of the web app (password reset links, etc.). No trailing slash. */
+    FRONTEND_URL: z.string().url().default('http://localhost:5173'),
     DATABASE_URL: z
       .string()
       .url()
@@ -24,7 +26,12 @@ const envSchema = z
     /** Sender address for transactional email (Resend / SMTP). */
     EMAIL_FROM: z.string().email().optional(),
     SMTP_HOST: z.string().optional(),
-    SMTP_PORT: z.coerce.number().optional(),
+    /** Omitted or empty in env parses as undefined (avoids z.coerce turning "" into 0). */
+    SMTP_PORT: z.preprocess((val: unknown) => {
+      if (val === undefined || val === null || val === '') return undefined
+      if (typeof val === 'string' && val.trim() === '') return undefined
+      return val
+    }, z.coerce.number().min(1).max(65535).optional()),
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     /** Web Push (VAPID). Required to send push notifications. */
@@ -47,6 +54,35 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         message: 'JWT_SECRET is required when NODE_ENV is production',
         path: ['JWT_SECRET'],
+      })
+    }
+
+    const hasSmtpHost = Boolean(data.SMTP_HOST?.trim())
+    const hasSmtpPort = data.SMTP_PORT !== undefined && data.SMTP_PORT !== null
+    if (hasSmtpHost && !hasSmtpPort) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'SMTP_PORT is required when SMTP_HOST is set',
+        path: ['SMTP_PORT'],
+      })
+    }
+    if (!hasSmtpHost && hasSmtpPort) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'SMTP_HOST is required when SMTP_PORT is set',
+        path: ['SMTP_HOST'],
+      })
+    }
+
+    const hasResend = Boolean(data.RESEND_API_KEY?.trim())
+    const smtpComplete = hasSmtpHost && hasSmtpPort
+    const emailTransportConfigured = hasResend || smtpComplete
+    if (data.NODE_ENV === 'production' && emailTransportConfigured && !data.EMAIL_FROM) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'EMAIL_FROM is required in production when RESEND_API_KEY or SMTP (host and port) is configured',
+        path: ['EMAIL_FROM'],
       })
     }
   })

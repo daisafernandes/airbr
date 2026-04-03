@@ -2,7 +2,7 @@ import { isAxiosError } from 'axios'
 import { Wind } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -13,16 +13,12 @@ import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { useAuth } from '@contexts/AuthContext'
 import { authService } from '@services/authService'
 
-
-export const RegisterPage = () => {
+export const ForgotPasswordPage = () => {
   const { t } = useTranslation()
-  const { signIn, isAuthenticated, authReady } = useAuth()
-  const navigate = useNavigate()
-
-  const [name, setName] = useState('')
+  const { isAuthenticated, authReady } = useAuth()
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [sent, setSent] = useState(false)
 
   if (authReady && isAuthenticated) {
     return <Navigate to="/alerts" replace />
@@ -32,15 +28,14 @@ export const RegisterPage = () => {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const { token, user } = await authService.register(email, password, name)
-      signIn(token, user)
-      toast.success(t('auth.registerSuccess'))
-      navigate('/alerts', { replace: true })
+      await authService.forgotPassword(email)
+      setSent(true)
+      toast.success(t('auth.forgotPasswordToast'))
     } catch (err) {
       const msg =
         isAxiosError<{ message?: string }>(err) && err.response?.data?.message
           ? err.response.data.message
-          : t('auth.registerError')
+          : t('auth.forgotPasswordError')
       toast.error(msg)
     } finally {
       setSubmitting(false)
@@ -49,7 +44,7 @@ export const RegisterPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-background grain-overlay">
-      <div className="ambient-blob blob-orange" style={{ top: '40%', right: '10%' }} />
+      <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
 
       <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-card/80 backdrop-blur-xl">
         <Link to="/" className="flex items-center gap-2 text-foreground shrink-0">
@@ -65,43 +60,33 @@ export const RegisterPage = () => {
       </header>
 
       <div className="w-full max-w-md p-8 rounded-xl border border-border bg-card/80 backdrop-blur-xl shadow-lg z-10 mt-8">
-        <h1 className="font-heading text-xl text-foreground mb-6">{t('auth.registerTitle')}</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">{t('auth.name')}</Label>
-            <Input id="name" autoComplete="name" value={name} onChange={e => setName(e.target.value)} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">{t('auth.email')}</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">{t('auth.passwordHint')}</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              minLength={8}
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? t('common.loading') : t('auth.createAccount')}
-          </Button>
-        </form>
+        <h1 className="font-heading text-xl text-foreground mb-2">{t('auth.forgotPasswordTitle')}</h1>
+        <p className="text-sm text-muted-foreground mb-6">{t('auth.forgotPasswordDescription')}</p>
+
+        {sent ? (
+          <p className="text-sm text-muted-foreground">{t('auth.forgotPasswordFollowUp')}</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">{t('auth.email')}</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? t('common.loading') : t('auth.forgotPasswordSubmit')}
+            </Button>
+          </form>
+        )}
+
         <p className="mt-6 text-sm text-muted-foreground text-center">
-          {t('auth.hasAccount')}{' '}
           <Link to="/login" className="text-primary hover:underline">
-            {t('auth.login')}
+            {t('auth.backToLogin')}
           </Link>
         </p>
       </div>

@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom'
 import { Wind, ExternalLink, Info, Droplets, Sun, Flower2, Radio } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
-import { LiveIndicator } from '@components/shared/LiveIndicator'
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
+import { LiveIndicator } from '@components/shared/LiveIndicator'
 import { getAqiBands, getUVLevels, getPollenLevels, getPollutantInfo, getDataSources } from '@utils/aqiInfo'
 
 const POLLUTANTS_ORDER = ['pm25', 'pm10', 'no2', 'o3', 'co'] as const
@@ -20,9 +21,8 @@ export const GlossaryPage = () => {
   const navLinks = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/ranking', label: t('nav.ranking') },
-    { to: '/mapa-queimadas', label: t('nav.fireMap') },
-    { to: '/guia', label: t('nav.guide') },
-    { to: '/metodologia', label: t('nav.methodology') },
+    { to: '/maps', label: t('nav.fireMap') },
+    { to: '/guide', label: t('nav.guide') },
   ]
 
   return (
@@ -47,7 +47,7 @@ export const GlossaryPage = () => {
                 key={link.to}
                 to={link.to}
                 className={`px-3 py-1.5 text-xs font-body rounded transition-colors ${
-                  link.to === '/guia'
+                  link.to === '/guide'
                     ? 'text-primary border-b border-primary font-semibold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
@@ -60,6 +60,7 @@ export const GlossaryPage = () => {
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <LiveIndicator />
+            <AuthHeaderActions />
           </div>
         </div>
       </header>

@@ -20,11 +20,12 @@ function uvScore(uv: number): number {
   return 0
 }
 
+/** Pollen index 0–10 (aligned with UI bands and Open-Meteo aggregation). */
 function pollenScore(pollen: number): number {
-  if (pollen <= 20) return 100
-  if (pollen <= 50) return 75
-  if (pollen <= 100) return 50
-  if (pollen <= 200) return 25
+  if (pollen <= 2) return 100
+  if (pollen <= 5) return 75
+  if (pollen <= 7) return 50
+  if (pollen <= 10) return 25
   return 0
 }
 
@@ -67,15 +68,30 @@ export class OutdoorSafetyService {
 
     const aqi = reading?.aqi ?? 100
     const uv = reading?.uv ?? 5
-    const pollen = reading?.pollen ?? 50
+    const hasPollen = reading?.pollen != null
+    const pollen = reading?.pollen ?? null
     const temp = reading?.temperature ?? 25
 
     const aqiS = aqiScore(aqi)
     const uvS = uvScore(uv)
-    const pollenS = pollenScore(pollen)
+    const pollenS = hasPollen && pollen != null ? pollenScore(pollen) : 0
     const tempS = tempScore(temp)
 
-    const score = Math.round(aqiS * 0.5 + uvS * 0.25 + pollenS * 0.15 + tempS * 0.1)
+    let wAqi = 0.5
+    let wUv = 0.25
+    let wPollen = 0.15
+    let wTemp = 0.1
+    if (!hasPollen) {
+      const sum = wAqi + wUv + wTemp
+      wAqi /= sum
+      wUv /= sum
+      wTemp /= sum
+      wPollen = 0
+    }
+
+    const score = Math.round(
+      aqiS * wAqi + uvS * wUv + pollenS * wPollen + tempS * wTemp,
+    )
     const level: OutdoorSafetyResult['level'] =
       score >= 70 ? 'seguro' : score >= 40 ? 'moderado' : 'arriscado'
 
@@ -89,7 +105,7 @@ export class OutdoorSafetyService {
         temperature: reading?.temperature ?? null,
         aqiScore: aqiS,
         uvScore: uvS,
-        pollenScore: pollenS,
+        pollenScore: hasPollen && pollen != null ? pollenS : 0,
         tempScore: tempS,
       },
     }

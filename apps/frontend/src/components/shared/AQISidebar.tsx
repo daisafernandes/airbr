@@ -63,7 +63,7 @@ const RankingCard = ({
         : data.map((item, i) => (
             <Link
               key={item.cityId}
-              to={`/cidade/${item.cityId}`}
+              to={`/city/${item.cityId}`}
               className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50 transition-colors no-underline"
             >
               <div className="flex items-center gap-2">

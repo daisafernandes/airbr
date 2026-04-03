@@ -1,14 +1,15 @@
-import { useState, useMemo, useCallback } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowDownUp, Wind } from 'lucide-react'
+import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link, useSearchParams } from 'react-router-dom'
 
-import { useCities } from '@hooks/useCities'
-import { useIsMobile } from '@hooks/use-mobile'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
 import { OMSCompliancePanel } from '@components/shared/OMSCompliancePanel'
 import { RankingTable } from '@components/shared/RankingTable'
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { useIsMobile } from '@hooks/use-mobile'
+import { useCities } from '@hooks/useCities'
 import { formatDateTime } from '@utils/formatters'
 
 type SortMode = 'polluted' | 'clean'
@@ -99,20 +100,18 @@ export const RankingPage = () => {
             <span className="px-3 py-1.5 text-xs font-body text-primary border-b border-primary font-semibold">
               {t('nav.ranking')}
             </span>
-            <Link to="/mapa-queimadas" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
+            <Link to="/maps" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
               {t('nav.fireMap')}
             </Link>
-            <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
+            <Link to="/guide" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
               {t('nav.guide')}
-            </Link>
-            <Link to="/metodologia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              {t('nav.methodology')}
             </Link>
           </nav>
 
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <LiveIndicator />
+            <AuthHeaderActions />
           </div>
         </div>
       </header>
@@ -271,7 +270,7 @@ export const RankingPage = () => {
           <span className="font-mono">
             {t('common.lastUpdate')}: {lastUpdate}
           </span>
-          <span>{t('common.sources')}: IQAir · AQICN · CETESB · DATASUS · IBGE · Open-Meteo</span>
+          <span>{t('common.sources')}: {t('common.sourcesFooter')}</span>
         </footer>
       </main>
     </div>

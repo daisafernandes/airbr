@@ -58,9 +58,13 @@ function buildHistoryPoints(readings: AqiReadingApi[], locale: string): AQIHisto
 function computeOutdoorSafety(aqi: number, uv: number | null, pollen: number | null) {
   const aqiScore = Math.max(0, 10 - (aqi / 50))
   const uvScore = uv !== null ? Math.max(0, 10 - uv) : 5
-  const pollenScore = pollen !== null ? Math.max(0, 10 - pollen) : 5
-  const score = Math.round(((aqiScore + uvScore + pollenScore) / 3) * 10) / 10
-  return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: pollen ?? 0 }
+  if (pollen === null) {
+    const score = Math.round(((aqiScore + uvScore) / 2) * 10) / 10
+    return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: null as number | null }
+  }
+  const pollenPart = Math.max(0, 10 - pollen)
+  const score = Math.round(((aqiScore + uvScore + pollenPart) / 3) * 10) / 10
+  return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: pollen }
 }
 
 const LOCALE_MAP: Record<string, string> = { pt: 'pt-BR', en: 'en-US', es: 'es-ES' }
@@ -117,7 +121,7 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
         return score
       })()
   const uvIndex = outdoorSafety?.breakdown.uv ?? city.latestAqi?.uv ?? 0
-  const pollenLevel = outdoorSafety?.breakdown.pollen ?? city.latestAqi?.pollen ?? 0
+  const pollenLevel = outdoorSafety?.breakdown.pollen ?? city.latestAqi?.pollen ?? null
   const temperature =
     outdoorSafety?.breakdown.temperature ?? city.latestAqi?.temperature ?? null
 
@@ -209,6 +213,7 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
         <PublicHealthCard
           hospitalizations={healthData.monthlyData[healthData.monthlyData.length - 1]?.hospitalizations ?? 0}
           history={healthData.monthlyData.map(d => d.hospitalizations)}
+          dataSource={healthData.dataSource}
         />
       )}
 

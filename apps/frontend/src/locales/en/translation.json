@@ -4,7 +4,6 @@
     "ranking": "Ranking",
     "fireMap": "Wildfires / Deforestation Map",
     "guide": "Guide",
-    "methodology": "Methodology",
     "alerts": "Alerts"
   },
   "auth": {
@@ -23,7 +22,25 @@
     "loginSuccess": "Signed in successfully",
     "registerSuccess": "Account created",
     "loginError": "Could not sign in",
-    "registerError": "Could not register"
+    "registerError": "Could not register",
+    "accountMenu": "Account menu",
+    "forgotPasswordLink": "Forgot password?",
+    "forgotPasswordTitle": "Reset password",
+    "forgotPasswordDescription": "Enter your email. If an account exists, we will send a link to reset your password.",
+    "forgotPasswordSubmit": "Send link",
+    "forgotPasswordToast": "If an account exists for this email, you will receive instructions shortly.",
+    "forgotPasswordError": "Could not send the request",
+    "forgotPasswordFollowUp": "If an account exists for this email, you will receive a link shortly.",
+    "resetPasswordTitle": "New password",
+    "resetPasswordDescription": "Choose a new password for your account.",
+    "resetPasswordSubmit": "Save password",
+    "resetPasswordSuccess": "Password updated",
+    "resetPasswordError": "Could not reset password",
+    "resetPasswordMissingToken": "Invalid or expired link. Request a new one from “Forgot password”.",
+    "resetPasswordMismatch": "Passwords do not match.",
+    "resetPasswordDone": "Your password was updated. You can sign in now.",
+    "confirmPassword": "Confirm password",
+    "backToLogin": "Back to sign in"
   },
   "alerts": {
     "title": "AQI alerts",
@@ -184,7 +201,7 @@
       "description": "Environmental agency of São Paulo State. Brazilian reference in air quality monitoring."
     },
     "iqair": {
-      "name": "IQAir – World Air Quality Report",
+      "name": "AQI – World Air Quality Report",
       "description": "Global platform for real-time air quality data and annual country reports."
     },
     "epa": {
@@ -204,7 +221,17 @@
     "compareCities": "Compare cities",
     "exitComparison": "Exit comparison",
     "lastUpdate": "Last update",
-    "sources": "Sources"
+    "sources": "Sources",
+    "sourcesFooter": "CETESB · INPE · IBAMA · AQI · DATASUS · Open-Meteo"
+  },
+  "cityPage": {
+    "sourcesFooter": "{{source}} · INPE · DATASUS · Open-Meteo · AQI"
+  },
+  "map": {
+    "loadingCities": "Loading cities...",
+    "viewFullPage": "View full page",
+    "aqiAbbrev": "AQI",
+    "stationOfficialTitle": "Official station — {{city}}"
   },
   "cityDashboard": {
     "forecast": "3-DAY FORECAST",
@@ -240,6 +267,11 @@
     "hospitalizationsMonth": "Respiratory hospitalizations · last month",
     "vsPrevMonth": "vs prev month",
     "simulatedData": "Simulated data · last 12 months",
+    "sourceDevelopment": "Demo data",
+    "pollenUnavailable": "Unavailable",
+    "healthFooterDatasus": "Source: DATASUS SIH (SUS hospitalizations, respiratory J00–J99). Values are state totals divided among cities in the state — not individual municipal counts.",
+    "healthFooterGeneric": "Health data source: {{source}}.",
+    "healthFooterUnknown": "Health data source is not specified.",
     "safetyLabel": {
       "safe": "Safe",
       "moderate": "Moderate",
@@ -326,7 +358,7 @@
     "recommendation": "Recommendation",
     "dataSources": "DATA SOURCES",
     "dataSourcesSubtitle": "Scientific and institutional references used",
-    "footer": "RespirA · AirBR — data continuously updated via INPE, IQAir, CETESB and partners.",
+    "footer": "RespirA · AirBR — data continuously updated via INPE, AQI, CETESB and partners.",
     "tocTitle": "On this page",
     "tocAqi": "AQI",
     "tocPollutants": "Pollutants",
@@ -336,7 +368,7 @@
     "tocSources": "Sources",
     "officialStationsTitle": "OFFICIAL STATIONS",
     "officialStationsSubtitle": "What they mean on the map and ranking",
-    "officialStationsDesc": "Official stations are fixed air quality monitoring points: sensors and public or partner networks that report pollutant concentrations and the AQI shown in RespirA. Examples include the CETESB network (São Paulo), IQAir stations and other sources aggregated by the platform. Each monitored city corresponds to one of these points — do not confuse them with wildfire or deforestation layers, which use separate INPE and PRODES data."
+    "officialStationsDesc": "Official stations are fixed air quality monitoring points: sensors and public or partner networks that report pollutant concentrations and the AQI shown in RespirA. Examples include the CETESB network (São Paulo), AQI stations and other sources aggregated by the platform. Each monitored city corresponds to one of these points — do not confuse them with wildfire or deforestation layers, which use separate INPE and PRODES data."
   },
   "firemap": {
     "title": "WILDFIRES / DEFORESTATIONS MAP",
@@ -348,7 +380,7 @@
     "allBrazil": "All of Brazil",
     "layers": "Layers",
     "fireFoci": "Fire Foci",
-    "deforestation": "Deforestation (PRODES)",
+    "deforestation": "Deforestation",
     "officialStations": "Official Stations",
     "fireIntensity": "Fire intensity",
     "intensityHigh": "High",
@@ -363,7 +395,7 @@
     "intensityUnknown": "Unknown",
     "popupFireTitle": "Wildfire focus",
     "popupState": "State",
-    "popupNearestIbge": "Nearest IBGE municipal seats",
+    "popupNearestIbge": "Nearest cities",
     "popupNearestMonitored": "Nearest monitored cities (approx.)",
     "popupBiome": "Biome",
     "popupIntensity": "Intensity",
@@ -393,25 +425,6 @@
     "backToMap": "Back to wildfire map",
     "sourceInpe": "Source: INPE/BDQueimadas"
   },
-  "methodology": {
-    "title": "METHODOLOGY AND SOURCES",
-    "subtitle": "How RespirA fetches, processes and displays air quality and environmental data.",
-    "sections": {
-      "overview": {
-        "title": "Overview",
-        "body": "The web app calls a REST API. The backend aggregates readings from multiple sources, normalizes them and stores them in PostgreSQL. Frequently used responses are cached in memory with a TTL to reduce load and latency — the same pattern used for city and AQI services."
-      },
-      "collectors": {
-        "title": "Ingestion and updates",
-        "body": "Scheduled jobs and collectors feed the system from providers such as OpenWeatherMap, AQICN (IQAir), Open-Meteo, CETESB, IEMA, IAT, INPE (wildfire foci), PRODES (deforestation), DATASUS, IBGE and others wired into the pipeline. Data passes through a normalizer before storage and exposure via the API."
-      },
-      "sources": {
-        "title": "References and glossary",
-        "body": "For descriptions of indexes, pollutants and institutions, see the platform Guide.",
-        "guideCta": "Open the Guide"
-      }
-    }
-  },
   "oms": {
     "compliance": "WHO COMPLIANCE — PM2.5",
     "limit": "WHO Limit",
@@ -438,6 +451,7 @@
     "source": "Source",
     "search": "Search city...",
     "sources": "Sources",
+    "sourcesFooter": "AQI · AQICN · CETESB · DATASUS · IBGE · Open-Meteo",
     "selectPlaceholder": "Select..."
   },
   "notFound": {
