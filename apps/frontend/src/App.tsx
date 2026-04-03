@@ -11,11 +11,13 @@ import { CityPage } from '@pages/CityPage'
 import { DashboardPage } from '@pages/DashboardPage'
 import { FireFocusRedirectPage } from '@pages/FireFocusRedirectPage'
 import { FireMapPage } from '@pages/FireMapPage'
+import { ForgotPasswordPage } from '@pages/ForgotPasswordPage'
 import { GlossaryPage } from '@pages/GlossaryPage'
 import { LoginPage } from '@pages/LoginPage'
 import { NotFoundPage } from '@pages/NotFoundPage'
 import { RankingPage } from '@pages/RankingPage'
 import { RegisterPage } from '@pages/RegisterPage'
+import { ResetPasswordPage } from '@pages/ResetPasswordPage'
 
 function LegacyCidadeRedirect() {
   const { id } = useParams()
@@ -57,6 +59,8 @@ export const App = () => {
               <Route path="/guia" element={<Navigate to="/guide" replace />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/alerts" element={<AlertsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs'
 
-import { AuthService } from './AuthService'
+import { AuthService, hashPasswordResetToken } from './AuthService'
 import { User } from '@domain/entities/User'
+import type { IPasswordResetTokenRepository } from '@domain/repositories/IPasswordResetTokenRepository'
 import type { IUserRepository } from '@domain/repositories/IUserRepository'
 import { AppError } from '@shared/errors/AppError'
 import type { PaginatedResult, PaginationParams } from '@shared/utils/pagination'
@@ -45,10 +46,49 @@ class InMemoryUserRepository implements IUserRepository {
   }
 }
 
+class InMemoryPasswordResetTokenRepository implements IPasswordResetTokenRepository {
+  public readonly rows: Array<{ id: string; userId: string; tokenHash: string; expiresAt: Date }> = []
+
+  async deleteByUserId(userId: string): Promise<void> {
+    for (let i = this.rows.length - 1; i >= 0; i--) {
+      if (this.rows[i].userId === userId) this.rows.splice(i, 1)
+    }
+  }
+
+  async create(data: { userId: string; tokenHash: string; expiresAt: Date }): Promise<void> {
+    this.rows.push({ id: `tok-${this.rows.length}`, ...data })
+  }
+
+  async findValidByTokenHash(tokenHash: string): Promise<{ id: string; userId: string } | null> {
+    const row = this.rows.find((r) => r.tokenHash === tokenHash && r.expiresAt > new Date())
+    return row ? { id: row.id, userId: row.userId } : null
+  }
+
+  async deleteById(id: string): Promise<void> {
+    const i = this.rows.findIndex((r) => r.id === id)
+    if (i >= 0) this.rows.splice(i, 1)
+  }
+}
+
+class CaptureEmailSender {
+  public readonly sent: Array<{ to: string; subject: string; text: string }> = []
+
+  async send(to: string, subject: string, text: string): Promise<void> {
+    this.sent.push({ to, subject, text })
+  }
+}
+
+function makeSut() {
+  const users = new InMemoryUserRepository()
+  const tokens = new InMemoryPasswordResetTokenRepository()
+  const email = new CaptureEmailSender()
+  const sut = new AuthService(users, tokens, email)
+  return { sut, users, tokens, email }
+}
+
 describe('AuthService', () => {
   it('registers user with normalized email and hashed password', async () => {
-    const users = new InMemoryUserRepository()
-    const sut = new AuthService(users)
+    const { sut, users } = makeSut()
 
     const result = await sut.register({
       email: '  USER@Email.com ',
@@ -65,7 +105,7 @@ describe('AuthService', () => {
   })
 
   it('throws conflict when email already exists', async () => {
-    const users = new InMemoryUserRepository()
+    const { sut, users } = makeSut()
     const existing = User.create({
       id: 'u-1',
       email: 'test@airbr.dev',
@@ -75,7 +115,6 @@ describe('AuthService', () => {
       updatedAt: now,
     })
     await users.save(existing)
-    const sut = new AuthService(users)
 
     await expect(
       sut.register({
@@ -87,7 +126,7 @@ describe('AuthService', () => {
   })
 
   it('logs in existing user and returns token', async () => {
-    const users = new InMemoryUserRepository()
+    const { sut, users } = makeSut()
     const passwordHash = await bcrypt.hash('password-123', 10)
     const existing = User.create({
       id: 'u-2',
@@ -98,7 +137,6 @@ describe('AuthService', () => {
       updatedAt: now,
     })
     await users.save(existing)
-    const sut = new AuthService(users)
 
     const result = await sut.login({
       email: 'login@airbr.dev',
@@ -110,8 +148,7 @@ describe('AuthService', () => {
   })
 
   it('rejects invalid credentials', async () => {
-    const users = new InMemoryUserRepository()
-    const sut = new AuthService(users)
+    const { sut } = makeSut()
 
     await expect(
       sut.login({
@@ -119,5 +156,66 @@ describe('AuthService', () => {
         password: 'password-123',
       }),
     ).rejects.toMatchObject<AppError>({ statusCode: 401 })
+  })
+
+  it('requestPasswordReset stores token and sends email for existing user', async () => {
+    const { sut, users, tokens, email } = makeSut()
+    await users.save(
+      User.create({
+        id: 'u-reset',
+        email: 'reset@airbr.dev',
+        name: 'Reset',
+        passwordHash: 'x',
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+
+    await sut.requestPasswordReset('reset@airbr.dev')
+
+    expect(tokens.rows).toHaveLength(1)
+    expect(tokens.rows[0].expiresAt.getTime()).toBeGreaterThan(Date.now())
+    expect(email.sent).toHaveLength(1)
+    expect(email.sent[0].to).toBe('reset@airbr.dev')
+    expect(email.sent[0].text).toContain('/reset-password?token=')
+  })
+
+  it('requestPasswordReset does nothing when email unknown', async () => {
+    const { sut, tokens, email } = makeSut()
+    await sut.requestPasswordReset('nobody@airbr.dev')
+    expect(tokens.rows).toHaveLength(0)
+    expect(email.sent).toHaveLength(0)
+  })
+
+  it('resetPassword updates password and consumes token', async () => {
+    const { sut, users, tokens } = makeSut()
+    await users.save(
+      User.create({
+        id: 'u-rp',
+        email: 'rp@airbr.dev',
+        name: 'RP',
+        passwordHash: await bcrypt.hash('old-pass-12', 10),
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+
+    const raw = 'a'.repeat(64)
+    await tokens.create({
+      userId: 'u-rp',
+      tokenHash: hashPasswordResetToken(raw),
+      expiresAt: new Date(Date.now() + 3600_000),
+    })
+
+    await sut.resetPassword(raw, 'new-pass-12')
+
+    const updated = await users.findByEmail('rp@airbr.dev')
+    expect(await bcrypt.compare('new-pass-12', updated!.passwordHash)).toBe(true)
+    expect(tokens.rows).toHaveLength(0)
+  })
+
+  it('resetPassword rejects invalid token', async () => {
+    const { sut } = makeSut()
+    await expect(sut.resetPassword('bad', '12345678')).rejects.toMatchObject<AppError>({ statusCode: 400 })
   })
 })

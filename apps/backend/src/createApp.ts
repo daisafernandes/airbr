@@ -23,6 +23,7 @@ import { PrismaFireRepository } from '@infrastructure/database/repositories/Pris
 import { PrismaHealthRepository } from '@infrastructure/database/repositories/PrismaHealthRepository'
 import { PrismaJobLogRepository } from '@infrastructure/database/repositories/PrismaJobLogRepository'
 import { PrismaMunicipalityRepository } from '@infrastructure/database/repositories/PrismaMunicipalityRepository'
+import { PrismaPasswordResetTokenRepository } from '@infrastructure/database/repositories/PrismaPasswordResetTokenRepository'
 import { PrismaPushSubscriptionRepository } from '@infrastructure/database/repositories/PrismaPushSubscriptionRepository'
 import { PrismaUserRepository } from '@infrastructure/database/repositories/PrismaUserRepository'
 import { AdminController } from '@infrastructure/http/controllers/AdminController'
@@ -35,6 +36,7 @@ import { PushController } from '@infrastructure/http/controllers/PushController'
 import { errorHandler } from '@infrastructure/http/middlewares/errorHandler'
 import { apiRateLimiter } from '@infrastructure/http/middlewares/rateLimit'
 import { buildRoutes } from '@infrastructure/http/routes'
+import { TransactionalEmailSender } from '@infrastructure/providers/TransactionalEmailSender'
 import { AlertChecker } from '@jobs/AlertChecker'
 import { AQICNCollector } from '@jobs/collectors/AQICNCollector'
 import { CETESBCollector } from '@jobs/collectors/CETESBCollector'
@@ -82,6 +84,8 @@ export function createApp(): CreateAppResult {
   const deforestationRepository = new PrismaDeforestationRepository()
   const healthRepository = new PrismaHealthRepository()
   const userRepository = new PrismaUserRepository()
+  const passwordResetTokenRepository = new PrismaPasswordResetTokenRepository()
+  const transactionalEmailSender = new TransactionalEmailSender()
   const alertRepository = new PrismaAlertRepository()
   const pushSubscriptionRepository = new PrismaPushSubscriptionRepository()
 
@@ -93,7 +97,7 @@ export function createApp(): CreateAppResult {
   const healthService = new HealthService(healthRepository, aqiRepository, cityRepository, cacheService)
   const deforestationService = new DeforestationService(deforestationRepository, cacheService)
 
-  const authService = new AuthService(userRepository)
+  const authService = new AuthService(userRepository, passwordResetTokenRepository, transactionalEmailSender)
   const alertService = new AlertService(alertRepository, cityRepository)
 
   const aqiCollectors = [

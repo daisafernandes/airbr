@@ -29,4 +29,16 @@ export class AuthController {
     }
     res.json(user)
   }
+
+  forgotPassword = async (req: Request, res: Response): Promise<void> => {
+    const { email } = req.body as { email: string }
+    await this.authService.requestPasswordReset(email)
+    res.json({ ok: true })
+  }
+
+  resetPassword = async (req: Request, res: Response): Promise<void> => {
+    const { token, password } = req.body as { token: string; password: string }
+    await this.authService.resetPassword(token, password)
+    res.json({ ok: true })
+  }
 }
