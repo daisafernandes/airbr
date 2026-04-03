@@ -9,17 +9,17 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import { Switch } from '@/components/ui/switch'
 import { ProtectedRoute } from '@components/layout/ProtectedRoute'
+import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { CitySearchBar } from '@components/shared/CitySearchBar'
-import { useAuth } from '@contexts/AuthContext'
 import { alertsService, type AlertChannel } from '@services/alertsService'
 import { formatDateTime } from '@utils/formatters'
 import { registerPushNotifications } from '@utils/pushNotifications'
 
 const AlertsContent = () => {
   const { t } = useTranslation()
-  const { signOut } = useAuth()
   const queryClient = useQueryClient()
 
   const [cityId, setCityId] = useState<string | null>(null)
@@ -127,16 +127,15 @@ const AlertsContent = () => {
               Respir<span className="text-primary">A</span>
             </span>
           </Link>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-2 flex-wrap justify-end">
             <Link to="/" className="text-xs text-muted-foreground hover:text-foreground px-2">
               {t('nav.dashboard')}
             </Link>
             <Link to="/ranking" className="text-xs text-muted-foreground hover:text-foreground px-2">
               {t('nav.ranking')}
             </Link>
-            <Button variant="ghost" size="sm" className="text-xs" onClick={() => signOut()}>
-              {t('auth.logout')}
-            </Button>
+            <LanguageSelector />
+            <AuthHeaderActions />
           </nav>
         </div>
       </header>

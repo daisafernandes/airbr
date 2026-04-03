@@ -8,6 +8,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { useAuth } from '@contexts/AuthContext'
 import { authService } from '@services/authService'
 
@@ -51,14 +53,20 @@ export const LoginPage = () => {
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
       <div className="ambient-blob blob-blue" style={{ bottom: '-150px', right: '-100px' }} />
 
-      <Link to="/" className="flex items-center gap-2 mb-10 text-foreground">
-        <Wind className="w-8 h-8 text-primary" />
-        <span className="font-heading text-2xl tracking-wider">
-          Respir<span className="text-primary">A</span>
-        </span>
-      </Link>
+      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-card/80 backdrop-blur-xl">
+        <Link to="/" className="flex items-center gap-2 text-foreground shrink-0">
+          <Wind className="w-7 h-7 text-primary" />
+          <span className="font-heading text-xl sm:text-2xl tracking-wider">
+            Respir<span className="text-primary">A</span>
+          </span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <LanguageSelector />
+          <AuthHeaderActions />
+        </div>
+      </header>
 
-      <div className="w-full max-w-md p-8 rounded-xl border border-border bg-card/80 backdrop-blur-xl shadow-lg z-10">
+      <div className="w-full max-w-md p-8 rounded-xl border border-border bg-card/80 backdrop-blur-xl shadow-lg z-10 mt-8">
         <h1 className="font-heading text-xl text-foreground mb-6">{t('auth.loginTitle')}</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

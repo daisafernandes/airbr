@@ -7,6 +7,7 @@ import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import { formatDateTime } from '@/utils/formatters'
 import type { AqiReadingApi } from '@app-types/airQuality.types'
 import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
+import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { AQIGauge } from '@components/shared/CityDashboard/AQIGauge'
 import { AQIHistoryChart } from '@components/shared/CityDashboard/AQIHistoryChart'
 import { HealthAlertsCard } from '@components/shared/CityDashboard/HealthAlertsCard'
@@ -94,7 +95,6 @@ export const CityPage = () => {
     { to: '/ranking', label: t('nav.ranking') },
     { to: '/mapa-queimadas', label: t('nav.fireMap') },
     { to: '/guia', label: t('nav.guide') },
-    { to: '/metodologia', label: t('nav.methodology') },
   ]
 
   return (
@@ -128,6 +128,7 @@ export const CityPage = () => {
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <LiveIndicator />
+            <AuthHeaderActions />
           </div>
         </div>
       </header>
@@ -285,10 +286,10 @@ export const CityPage = () => {
                       <span className="text-muted-foreground">{t('cityDashboard.region')}</span>
                       <span className="text-foreground">{city.region}</span>
                     </div>
-                    <div className="flex justify-between">
+                    {/* <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('cityDashboard.dataSource')}</span>
                       <span className="text-foreground">{city.source}</span>
-                    </div>
+                    </div> */}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('cityDashboard.temperature')}</span>
                       <span className="text-foreground">
@@ -309,7 +310,7 @@ export const CityPage = () => {
             </div>
 
             <footer className="mt-10 text-xs text-muted-foreground text-center font-mono">
-              {t('dashboard.sources')}: {city.source} · INPE · DATASUS · Open-Meteo · IQAir
+              {t('dashboard.sources')}: {t('cityPage.sourcesFooter', { source: city.source })}
             </footer>
           </>
         )}

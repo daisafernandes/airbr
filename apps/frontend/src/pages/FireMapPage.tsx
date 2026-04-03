@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import type { CityApiData, FireFocusApi } from '@app-types/airQuality.types'
+import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { FireFocusDetailDialog } from '@components/shared/FireFocusDetailDialog'
 import { FireMap } from '@components/shared/FireMap'
 import { LiveIndicator } from '@components/shared/LiveIndicator'
@@ -17,7 +19,6 @@ import {
 import { useIsMobile } from '@hooks/use-mobile'
 import { useCities } from '@hooks/useCities'
 import { useFires } from '@hooks/useFires'
-import type { CityApiData, FireFocusApi } from '@app-types/airQuality.types'
 
 type Period = 'hoje' | '7d' | '30d'
 
@@ -303,14 +304,12 @@ export const FireMapPage = () => {
             <Link to="/guia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
               {t('nav.guide')}
             </Link>
-            <Link to="/metodologia" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              {t('nav.methodology')}
-            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <LiveIndicator />
+            <AuthHeaderActions />
           </div>
         </div>
       </header>

@@ -5,10 +5,10 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
-import { useAuth } from '@contexts/AuthContext'
 import { usePwaInstall } from '@hooks/usePwaInstall'
 import { airQualityService } from '@services/airQualityService'
 
+import { AuthHeaderActions } from './AuthHeaderActions'
 import { CitySearchBar } from './CitySearchBar'
 import { LiveIndicator } from './LiveIndicator'
 
@@ -19,7 +19,6 @@ interface HeaderProps {
 export const Header = ({ onCitySelect }: HeaderProps) => {
   const location = useLocation()
   const { t } = useTranslation()
-  const { isAuthenticated, authReady, signOut } = useAuth()
   const { canInstall, install } = usePwaInstall()
   const [installBusy, setInstallBusy] = useState(false)
 
@@ -55,7 +54,6 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
     { to: '/ranking', label: t('nav.ranking') },
     { to: '/mapa-queimadas', label: t('nav.fireMap') },
     { to: '/guia', label: t('nav.guide') },
-    { to: '/metodologia', label: t('nav.methodology') },
     { to: '/alerts', label: t('nav.alerts') },
   ]
 
@@ -121,19 +119,7 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
               {installBusy ? t('pwa.installing') : t('pwa.install')}
             </Button>
           )}
-          {authReady &&
-            (isAuthenticated ? (
-              <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => signOut()}>
-                {t('auth.logout')}
-              </Button>
-            ) : (
-              <Link
-                to="/login"
-                className="text-xs font-body px-3 py-2 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
-              >
-                {t('auth.login')}
-              </Link>
-            ))}          
+          <AuthHeaderActions />
         </div>
       </div>
     </header>

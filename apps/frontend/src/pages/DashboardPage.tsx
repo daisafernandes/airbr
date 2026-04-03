@@ -1,13 +1,13 @@
-import { useState } from 'react'
 import { Flame, Trees, Radio, GitCompare } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { BrazilMap } from '@components/shared/BrazilMap'
-import { FireFocusDetailDialog } from '@components/shared/FireFocusDetailDialog'
-import { Header } from '@components/shared/Header'
 import { AQISidebar } from '@components/shared/AQISidebar'
+import { BrazilMap } from '@components/shared/BrazilMap'
 import { CityDashboard } from '@components/shared/CityDashboard'
 import { ComparisonPanel } from '@components/shared/ComparisonPanel'
+import { FireFocusDetailDialog } from '@components/shared/FireFocusDetailDialog'
+import { Header } from '@components/shared/Header'
 import { useFires } from '@hooks/useFires'
 import { formatDateTime } from '@utils/formatters'
 
@@ -160,7 +160,7 @@ export const DashboardPage = () => {
 
         <footer className="mt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground py-3 border-t border-border">
           <span className="font-mono">{t('dashboard.lastUpdate')}: {lastUpdate}</span>
-          <span>{t('dashboard.sources')}: CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo</span>
+          <span>{t('dashboard.sources')}: {t('dashboard.sourcesFooter')}</span>
         </footer>
       </main>
     </div>

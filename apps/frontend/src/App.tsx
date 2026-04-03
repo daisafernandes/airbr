@@ -13,7 +13,6 @@ import { FireFocusRedirectPage } from '@pages/FireFocusRedirectPage'
 import { FireMapPage } from '@pages/FireMapPage'
 import { GlossaryPage } from '@pages/GlossaryPage'
 import { LoginPage } from '@pages/LoginPage'
-import { MethodologyPage } from '@pages/MethodologyPage'
 import { NotFoundPage } from '@pages/NotFoundPage'
 import { RankingPage } from '@pages/RankingPage'
 import { RegisterPage } from '@pages/RegisterPage'
@@ -44,7 +43,6 @@ export const App = () => {
               <Route path="/mapa-queimadas/foco/:id" element={<FireFocusRedirectPage />} />
               <Route path="/cidade/:id" element={<CityPage />} />
               <Route path="/guia" element={<GlossaryPage />} />
-              <Route path="/metodologia" element={<MethodologyPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/alerts" element={<AlertsPage />} />
