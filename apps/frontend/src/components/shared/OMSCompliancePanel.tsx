@@ -84,7 +84,7 @@ export const OMSCompliancePanel = () => {
               return (
                 <Link
                   key={city.cityId}
-                  to={`/cidade/${city.cityId}`}
+                  to={`/city/${city.cityId}`}
                   className="flex items-center gap-2 group hover:bg-muted/40 rounded px-2 py-1 transition-colors"
                 >
                   <span className="text-[10px] font-mono text-muted-foreground w-4 text-right shrink-0">

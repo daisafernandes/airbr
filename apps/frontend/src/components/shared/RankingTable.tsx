@@ -91,7 +91,7 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
                     <Link
-                      to={`/cidade/${city.id}`}
+                      to={`/city/${city.id}`}
                       className="font-body font-medium text-foreground hover:text-primary transition-colors"
                       onClick={e => e.stopPropagation()}
                     >

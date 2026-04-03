@@ -22,7 +22,8 @@
     "loginSuccess": "Login realizado",
     "registerSuccess": "Conta criada",
     "loginError": "Não foi possível entrar",
-    "registerError": "Não foi possível registrar"
+    "registerError": "Não foi possível registrar",
+    "accountMenu": "Menu da conta"
   },
   "alerts": {
     "title": "Alertas de AQI",

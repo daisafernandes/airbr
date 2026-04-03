@@ -21,8 +21,8 @@ export const GlossaryPage = () => {
   const navLinks = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/ranking', label: t('nav.ranking') },
-    { to: '/mapa-queimadas', label: t('nav.fireMap') },
-    { to: '/guia', label: t('nav.guide') },
+    { to: '/maps', label: t('nav.fireMap') },
+    { to: '/guide', label: t('nav.guide') },
   ]
 
   return (
@@ -47,7 +47,7 @@ export const GlossaryPage = () => {
                 key={link.to}
                 to={link.to}
                 className={`px-3 py-1.5 text-xs font-body rounded transition-colors ${
-                  link.to === '/guia'
+                  link.to === '/guide'
                     ? 'text-primary border-b border-primary font-semibold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}

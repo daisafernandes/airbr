@@ -22,7 +22,8 @@
     "loginSuccess": "Sesión iniciada",
     "registerSuccess": "Cuenta creada",
     "loginError": "No se pudo iniciar sesión",
-    "registerError": "No se pudo registrar"
+    "registerError": "No se pudo registrar",
+    "accountMenu": "Menú de cuenta"
   },
   "alerts": {
     "title": "Alertas de AQI",

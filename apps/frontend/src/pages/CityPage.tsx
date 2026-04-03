@@ -93,8 +93,8 @@ export const CityPage = () => {
   const navLinks = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/ranking', label: t('nav.ranking') },
-    { to: '/mapa-queimadas', label: t('nav.fireMap') },
-    { to: '/guia', label: t('nav.guide') },
+    { to: '/maps', label: t('nav.fireMap') },
+    { to: '/guide', label: t('nav.guide') },
   ]
 
   return (

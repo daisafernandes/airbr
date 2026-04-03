@@ -22,7 +22,8 @@
     "loginSuccess": "Signed in successfully",
     "registerSuccess": "Account created",
     "loginError": "Could not sign in",
-    "registerError": "Could not register"
+    "registerError": "Could not register",
+    "accountMenu": "Account menu"
   },
   "alerts": {
     "title": "AQI alerts",
