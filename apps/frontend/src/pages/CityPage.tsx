@@ -20,6 +20,7 @@ import { useCity } from '@hooks/useCity'
 import { useCityHistory } from '@hooks/useCityHistory'
 import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
 import { useWindSmoke } from '@hooks/useWindSmoke'
+import { isDevelopmentSource } from '@utils/dataSource'
 import { getAQILabel, getHealthAlerts, getPollutantInfo } from '@utils/aqiInfo'
 
 type Period = '7d' | '30d' | '1y'
@@ -56,9 +57,13 @@ function buildHistoryPoints(readings: AqiReadingApi[], locale: string): AQIHisto
 function computeOutdoorSafety(aqi: number, uv: number | null, pollen: number | null) {
   const aqiScore = Math.max(0, 10 - aqi / 50)
   const uvScore = uv !== null ? Math.max(0, 10 - uv) : 5
-  const pollenScore = pollen !== null ? Math.max(0, 10 - pollen) : 5
-  const score = Math.round(((aqiScore + uvScore + pollenScore) / 3) * 10) / 10
-  return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: pollen ?? 0 }
+  if (pollen === null) {
+    const score = Math.round(((aqiScore + uvScore) / 2) * 10) / 10
+    return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: null as number | null }
+  }
+  const pollenPart = Math.max(0, 10 - pollen)
+  const score = Math.round(((aqiScore + uvScore + pollenPart) / 3) * 10) / 10
+  return { score: Math.min(10, Math.max(0, score)), uvIndex: uv ?? 0, pollenLevel: pollen }
 }
 
 export const CityPage = () => {
@@ -87,7 +92,8 @@ export const CityPage = () => {
       ? computeOutdoorSafety(aqi, city.latestAqi?.uv ?? null, city.latestAqi?.pollen ?? null).score
       : 0
   const uvIndex = outdoorSafety?.breakdown.uv ?? city?.latestAqi?.uv ?? 0
-  const pollenLevel = outdoorSafety?.breakdown.pollen ?? city?.latestAqi?.pollen ?? 0
+  const pollenLevel =
+    outdoorSafety?.breakdown.pollen ?? city?.latestAqi?.pollen ?? null
   const temperature = outdoorSafety?.breakdown.temperature ?? city?.latestAqi?.temperature ?? null
 
   const navLinks = [
@@ -183,7 +189,11 @@ export const CityPage = () => {
                 </div>
               </div>
               <p className="text-[10px] font-mono text-muted-foreground mt-2">
-                {t('cityDashboard.sourceLabel')}: {city.source} · {t('cityDashboard.lastUpdateLabel')}:{' '}
+                {t('cityDashboard.sourceLabel')}:{' '}
+                {isDevelopmentSource(city.source)
+                  ? t('cityDashboard.sourceDevelopment')
+                  : city.source}{' '}
+                · {t('cityDashboard.lastUpdateLabel')}:{' '}
                 {city.latestAqi
                   ? formatDateTime(new Date(city.latestAqi.timestamp), {
                       day: '2-digit',
@@ -310,7 +320,10 @@ export const CityPage = () => {
             </div>
 
             <footer className="mt-10 text-xs text-muted-foreground text-center font-mono">
-              {t('dashboard.sources')}: {t('cityPage.sourcesFooter', { source: city.source })}
+              {t('dashboard.sources')}:{' '}
+              {t('cityPage.sourcesFooter', {
+                source: isDevelopmentSource(city.source) ? t('cityDashboard.sourceDevelopment') : city.source,
+              })}
             </footer>
           </>
         )}

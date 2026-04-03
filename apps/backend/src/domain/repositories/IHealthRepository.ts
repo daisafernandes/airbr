@@ -19,4 +19,6 @@ export interface HealthDataUpsertInput {
 export interface IHealthRepository {
   upsert(input: HealthDataUpsertInput): Promise<HealthDataRecord>
   findByCity(cityId: string, months?: number): Promise<HealthDataRecord[]>
+  /** Most recently written row for the city (e.g. to expose pipeline source on the API). */
+  findLatestSource(cityId: string): Promise<string | null>
 }

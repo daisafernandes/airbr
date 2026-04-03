@@ -26,7 +26,8 @@ function tempComfortBarAndColor(temp: number): { barFill: number; color: string 
 interface OutdoorSafetyCardProps {
   score: number
   uvIndex: number
-  pollenLevel: number
+  /** 0–10 index from API; `null` when no pollen data (do not show as 0). */
+  pollenLevel: number | null
   aqi: number
   temperature: number | null
 }
@@ -196,10 +197,20 @@ export const OutdoorSafetyCard = ({ score, uvIndex, pollenLevel, aqi, temperatur
         <MetricRow
           icon={<Flower2 className="w-3.5 h-3.5" />}
           label={t('cityDashboard.pollen')}
-          value={pollenLevel}
-          sublabel={getPollenLabel(pollenLevel, pollenLevels)}
-          barFill={(pollenLevel / 10) * 100}
-          color={pollenLevel <= 2 ? '#4af0c4' : pollenLevel <= 5 ? '#facc15' : '#ff9f4a'}
+          value={pollenLevel === null ? '—' : pollenLevel}
+          sublabel={pollenLevel === null ? t('cityDashboard.pollenUnavailable') : getPollenLabel(pollenLevel, pollenLevels)}
+          barFill={pollenLevel === null ? 0 : (pollenLevel / 10) * 100}
+          color={
+            pollenLevel === null
+              ? 'rgba(255,255,255,0.2)'
+              : pollenLevel <= 2
+                ? '#4af0c4'
+                : pollenLevel <= 5
+                  ? '#facc15'
+                  : pollenLevel <= 7
+                    ? '#ff9f4a'
+                    : '#ef4444'
+          }
           tooltip={<PollenTooltip />}
         />
         <MetricRow

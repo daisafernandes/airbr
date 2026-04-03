@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next'
 interface PublicHealthCardProps {
   hospitalizations: number
   history: number[]
+  /** Latest `HealthData.source` from API (e.g. `datasus-sih`). */
+  dataSource: string | null
 }
 
 const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ value: number }> }) => {
@@ -18,13 +20,20 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
   return null
 }
 
-export const PublicHealthCard = ({ hospitalizations, history }: PublicHealthCardProps) => {
+export const PublicHealthCard = ({ hospitalizations, history, dataSource }: PublicHealthCardProps) => {
   const { t } = useTranslation()
   const prevMonth = history[history.length - 2] ?? hospitalizations
   const delta = hospitalizations - prevMonth
   const isUp = delta > 0
 
   const chartData = history.map((v, i) => ({ month: i + 1, value: v }))
+
+  const footerKey =
+    dataSource === 'datasus-sih'
+      ? 'cityDashboard.healthFooterDatasus'
+      : dataSource
+        ? 'cityDashboard.healthFooterGeneric'
+        : 'cityDashboard.healthFooterUnknown'
 
   return (
     <div className="bg-card border border-border rounded p-4">
@@ -57,8 +66,8 @@ export const PublicHealthCard = ({ hospitalizations, history }: PublicHealthCard
           <Bar dataKey="value" fill="#ef4444" opacity={0.6} radius={[2, 2, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
-      <p className="text-[9px] text-muted-foreground font-body mt-1 text-right">
-        {t('cityDashboard.simulatedData')}
+      <p className="text-[9px] text-muted-foreground font-body mt-1 text-right leading-snug">
+        {t(footerKey, { source: dataSource ?? '' })}
       </p>
     </div>
   )

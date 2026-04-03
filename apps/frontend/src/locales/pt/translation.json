@@ -267,6 +267,11 @@
     "hospitalizationsMonth": "Internações respiratórias · último mês",
     "vsPrevMonth": "vs mês ant.",
     "simulatedData": "Dados simulados · últimos 12 meses",
+    "sourceDevelopment": "Dados de demonstração",
+    "pollenUnavailable": "Indisponível",
+    "healthFooterDatasus": "Fonte: DATASUS SIH (internações SUS, causas respiratórias J00–J99). Valores são totais estaduais repartidos entre os municípios do estado — não são contagens municipais individuais.",
+    "healthFooterGeneric": "Fonte dos dados de saúde: {{source}}.",
+    "healthFooterUnknown": "Fonte da série de saúde não informada.",
     "safetyLabel": {
       "safe": "Seguro",
       "moderate": "Moderado",

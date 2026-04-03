@@ -123,6 +123,8 @@ export interface HealthDataApi {
   populationTotal: number | null
   elderlyPct: number | null
   childrenPct: number | null
+  /** Latest pipeline source for health rows (e.g. `datasus-sih`). */
+  dataSource: string | null
   monthlyData: HealthMonthlyData[]
   correlation: number
   totalHospitalizations: number

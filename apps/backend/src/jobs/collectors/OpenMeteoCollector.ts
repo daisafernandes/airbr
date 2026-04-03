@@ -7,16 +7,45 @@ import type { ICollector, NormalizedReading } from './ICollector'
 /** Open-Meteo: open-source, no key — 300 req/min for free tier. 300ms interval is safe. */
 const OPEN_METEO_MIN_INTERVAL_MS = 300
 
+interface OpenMeteoAirQualityCurrent {
+  european_aqi?: number
+  pm10?: number
+  pm2_5?: number
+  carbon_monoxide?: number
+  nitrogen_dioxide?: number
+  ozone?: number
+  uv_index?: number
+  grass_pollen?: number
+  birch_pollen?: number
+  ragweed_pollen?: number
+  alder_pollen?: number
+  mugwort_pollen?: number
+  olive_pollen?: number
+}
+
 interface OpenMeteoAirQualityResponse {
-  current: {
-    european_aqi?: number
-    pm10?: number
-    pm2_5?: number
-    carbon_monoxide?: number
-    nitrogen_dioxide?: number
-    ozone?: number
-    uv_index?: number
+  current: OpenMeteoAirQualityCurrent | undefined
+}
+
+/** Sum of pollen species (grains/m³) → 0–10 index for UI / scoring (aligned with OutdoorSafetyService). */
+function pollenGrainsToIndex(c: OpenMeteoAirQualityCurrent | undefined): number | null {
+  if (!c) return null
+  const keys = [
+    'grass_pollen',
+    'birch_pollen',
+    'ragweed_pollen',
+    'alder_pollen',
+    'mugwort_pollen',
+    'olive_pollen',
+  ] as const
+  let sum = 0
+  for (const k of keys) {
+    const v = c[k]
+    if (typeof v === 'number' && Number.isFinite(v) && v > 0) sum += v
   }
+  if (sum <= 0) return null
+  const idx = Math.min(10, Math.round((sum / 40) * 10) / 10)
+  return idx > 0 ? idx : null
 }
 
 interface OpenMeteoWeatherResponse {
@@ -56,6 +85,12 @@ export class OpenMeteoCollector implements ICollector {
                   'nitrogen_dioxide',
                   'ozone',
                   'uv_index',
+                  'grass_pollen',
+                  'birch_pollen',
+                  'ragweed_pollen',
+                  'alder_pollen',
+                  'mugwort_pollen',
+                  'olive_pollen',
                 ].join(','),
               },
               timeout: 8_000,
@@ -78,6 +113,8 @@ export class OpenMeteoCollector implements ICollector {
         const w = wxRes.data.current
         if (!c) continue
 
+        const pollen = pollenGrainsToIndex(c)
+
         results.push({
           cityId: city.id,
           city: city.name,
@@ -90,6 +127,7 @@ export class OpenMeteoCollector implements ICollector {
           no2: c.nitrogen_dioxide ?? null,
           co: c.carbon_monoxide ?? null,
           uv: c.uv_index ?? null,
+          pollen,
           windDirection: w?.wind_direction_10m ?? null,
           windSpeed: w?.wind_speed_10m ?? null,
           temperature: w?.temperature_2m ?? null,

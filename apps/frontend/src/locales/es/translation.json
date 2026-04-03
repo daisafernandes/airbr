@@ -267,6 +267,11 @@
     "hospitalizationsMonth": "Hospitalizaciones respiratorias · último mes",
     "vsPrevMonth": "vs mes ant.",
     "simulatedData": "Datos simulados · últimos 12 meses",
+    "sourceDevelopment": "Datos de demostración",
+    "pollenUnavailable": "No disponible",
+    "healthFooterDatasus": "Fuente: DATASUS SIH (hospitalizaciones SUS, causas respiratorias J00–J99). Los valores son totales estatales repartidos entre los municipios del estado — no son cifras municipales individuales.",
+    "healthFooterGeneric": "Fuente de datos de salud: {{source}}.",
+    "healthFooterUnknown": "Fuente de la serie de salud no especificada.",
     "safetyLabel": {
       "safe": "Seguro",
       "moderate": "Moderado",

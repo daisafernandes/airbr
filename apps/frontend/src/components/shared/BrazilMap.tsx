@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
+import { isDevelopmentSource } from '@utils/dataSource'
 import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
 
 function escapePopupHtml(s: string): string {
@@ -186,11 +187,14 @@ export const BrazilMap = ({
               → ${escapePopupHtml(t('map.viewFullPage'))}
             </a>
           </div>`
+      const stationSourceLine = isDevelopmentSource(city.source)
+        ? t('cityDashboard.sourceDevelopment')
+        : city.source
       const stationPopup = `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e">
             <strong style="font-family:'Bebas Neue',sans-serif;font-size:14px">
               📡 ${escapePopupHtml(t('map.stationOfficialTitle', { city: city.name }))}
             </strong><br/>
-            <span style="font-size:11px">${escapePopupHtml(city.source)} · ${escapePopupHtml(aqiAbbr)} ${aqi}</span>
+            <span style="font-size:11px">${escapePopupHtml(stationSourceLine)} · ${escapePopupHtml(aqiAbbr)} ${aqi}</span>
           </div>`
 
       L.circleMarker([lat, lng], {

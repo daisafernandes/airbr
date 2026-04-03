@@ -267,6 +267,11 @@
     "hospitalizationsMonth": "Respiratory hospitalizations · last month",
     "vsPrevMonth": "vs prev month",
     "simulatedData": "Simulated data · last 12 months",
+    "sourceDevelopment": "Demo data",
+    "pollenUnavailable": "Unavailable",
+    "healthFooterDatasus": "Source: DATASUS SIH (SUS hospitalizations, respiratory J00–J99). Values are state totals divided among cities in the state — not individual municipal counts.",
+    "healthFooterGeneric": "Health data source: {{source}}.",
+    "healthFooterUnknown": "Health data source is not specified.",
     "safetyLabel": {
       "safe": "Safe",
       "moderate": "Moderate",
