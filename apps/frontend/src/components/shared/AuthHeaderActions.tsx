@@ -14,7 +14,7 @@ import {
 import { useAuth } from '@contexts/AuthContext'
 
 /**
- * Login / account menu for page headers (no duplicate of dashboard search / PWA install).
+ * Login / account menu for page headers (no duplicate of dashboard search).
  */
 export const AuthHeaderActions = () => {
   const { t } = useTranslation()
@@ -55,6 +55,9 @@ export const AuthHeaderActions = () => {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/profile">{t('profile.title')}</Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to="/alerts">{t('nav.alerts')}</Link>
           </DropdownMenuItem>

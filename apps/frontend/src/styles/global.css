@@ -146,8 +146,12 @@
 .aqi-hazardous { color: hsl(340 80% 40%); }
 
 /* Leaflet overrides for dark theme */
+/* Isolate map layers so internal z-index (e.g. 400–1000) cannot paint above fixed UI (header, dropdowns). */
 .leaflet-container {
   background: hsl(225 40% 6%) !important;
+  isolation: isolate;
+  position: relative;
+  z-index: 0;
 }
 
 .leaflet-control-zoom a {

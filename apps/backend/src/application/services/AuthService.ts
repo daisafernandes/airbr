@@ -3,6 +3,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import bcrypt from 'bcryptjs'
 
 import { User } from '@domain/entities/User'
+import type { ICityRepository } from '@domain/repositories/ICityRepository'
 import type { IPasswordResetTokenRepository } from '@domain/repositories/IPasswordResetTokenRepository'
 import type { IUserRepository } from '@domain/repositories/IUserRepository'
 import { signAccessToken } from '@infrastructure/auth/jwt'
@@ -15,6 +16,9 @@ const MIN_PASSWORD_LENGTH = 8
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000
 const RESET_TOKEN_BYTES = 32
 
+/** E.164: + followed by 1–15 digits (max 15 total national significant digits). */
+const E164_REGEX = /^\+[1-9]\d{1,14}$/
+
 export function hashPasswordResetToken(raw: string): string {
   return createHash('sha256').update(raw, 'utf8').digest('hex')
 }
@@ -24,11 +28,29 @@ function buildPasswordResetLink(frontendUrl: string, rawToken: string): string {
   return `${base}/reset-password?token=${encodeURIComponent(rawToken)}`
 }
 
+function parseE164OrNull(raw: string | null): string | null {
+  if (raw === null) return null
+  const trimmed = raw.trim()
+  if (trimmed === '') return null
+  if (!E164_REGEX.test(trimmed)) {
+    throw new AppError('Invalid phone number (use international format, e.g. +5511999998888)', 400)
+  }
+  return trimmed
+}
+
+export type UpdateProfileInput = {
+  name?: string
+  phone?: string | null
+  defaultCityId?: string | null
+  preferredLocale?: 'pt' | 'en' | 'es'
+}
+
 export class AuthService {
   constructor(
     private readonly users: IUserRepository,
     private readonly passwordResetTokens: IPasswordResetTokenRepository,
     private readonly emailSender: { send(to: string, subject: string, text: string): Promise<void> },
+    private readonly cities: ICityRepository,
   ) {}
 
   async register(input: { email: string; password: string; name: string }): Promise<{ token: string; user: ReturnType<User['toJSON']> }> {
@@ -54,6 +76,9 @@ export class AuthService {
       email,
       name,
       passwordHash,
+      phone: null,
+      defaultCityId: null,
+      preferredLocale: 'pt',
       createdAt: now,
       updatedAt: now,
     })
@@ -85,6 +110,61 @@ export class AuthService {
   async getProfile(userId: string): Promise<ReturnType<User['toJSON']> | null> {
     const user = await this.users.findById(userId)
     return user?.toJSON() ?? null
+  }
+
+  async updateProfile(userId: string, input: UpdateProfileInput): Promise<ReturnType<User['toJSON']>> {
+    const user = await this.users.findById(userId)
+    if (!user) {
+      throw new AppError('User not found', 404)
+    }
+
+    let name = user.name
+    if (input.name !== undefined) {
+      const trimmed = input.name.trim()
+      if (trimmed.length < 1) {
+        throw new AppError('Name is required', 400)
+      }
+      name = trimmed
+    }
+
+    let phone = user.phone
+    if (input.phone !== undefined) {
+      const raw =
+        input.phone === null || input.phone === '' ? null : String(input.phone).trim()
+      phone = parseE164OrNull(raw)
+    }
+
+    let defaultCityId = user.defaultCityId
+    if (input.defaultCityId !== undefined) {
+      if (input.defaultCityId === null) {
+        defaultCityId = null
+      } else {
+        const city = await this.cities.findById(input.defaultCityId)
+        if (!city) {
+          throw new AppError('City not found', 400)
+        }
+        defaultCityId = input.defaultCityId
+      }
+    }
+
+    let preferredLocale = user.preferredLocale
+    if (input.preferredLocale !== undefined) {
+      preferredLocale = input.preferredLocale
+    }
+
+    const updated = User.create({
+      id: user.id,
+      email: user.email,
+      name,
+      passwordHash: user.passwordHash,
+      phone,
+      defaultCityId,
+      preferredLocale,
+      createdAt: user.createdAt,
+      updatedAt: new Date(),
+    })
+    await this.users.update(updated)
+    return updated.toJSON()
   }
 
   /**
@@ -145,6 +225,9 @@ export class AuthService {
       email: user.email,
       name: user.name,
       passwordHash,
+      phone: user.phone,
+      defaultCityId: user.defaultCityId,
+      preferredLocale: user.preferredLocale,
       createdAt: user.createdAt,
       updatedAt: new Date(),
     })

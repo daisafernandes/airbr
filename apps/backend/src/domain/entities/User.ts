@@ -3,6 +3,9 @@ export interface UserProps {
   name: string
   email: string
   passwordHash: string
+  phone: string | null
+  defaultCityId: string | null
+  preferredLocale: string
   createdAt: Date
   updatedAt: Date
 }
@@ -34,6 +37,18 @@ export class User {
     return this.props.passwordHash
   }
 
+  get phone(): string | null {
+    return this.props.phone
+  }
+
+  get defaultCityId(): string | null {
+    return this.props.defaultCityId
+  }
+
+  get preferredLocale(): string {
+    return this.props.preferredLocale
+  }
+
   get createdAt(): Date {
     return this.props.createdAt
   }
@@ -47,6 +62,9 @@ export class User {
       id: this.props.id,
       name: this.props.name,
       email: this.props.email,
+      phone: this.props.phone,
+      defaultCityId: this.props.defaultCityId,
+      preferredLocale: this.props.preferredLocale,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     }

@@ -1,20 +1,25 @@
 import { isAxiosError } from 'axios'
-import { Wind } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
-import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
+import { Header } from '@components/shared/Header'
 import { useAuth } from '@contexts/AuthContext'
 import { authService } from '@services/authService'
 
 export const ForgotPasswordPage = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const handleCitySelect = useCallback(
+    (cityId: string) => {
+      navigate(`/city/${cityId}`)
+    },
+    [navigate],
+  )
   const { isAuthenticated, authReady } = useAuth()
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -46,18 +51,7 @@ export const ForgotPasswordPage = () => {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-background grain-overlay">
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
 
-      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-card/80 backdrop-blur-xl">
-        <Link to="/" className="flex items-center gap-2 text-foreground shrink-0">
-          <Wind className="w-7 h-7 text-primary" />
-          <span className="font-heading text-xl sm:text-2xl tracking-wider">
-            Respir<span className="text-primary">A</span>
-          </span>
-        </Link>
-        <div className="flex items-center gap-2">
-          <LanguageSelector />
-          <AuthHeaderActions />
-        </div>
-      </header>
+      <Header onCitySelect={handleCitySelect} />
 
       <div className="w-full max-w-md p-8 rounded-xl border border-border bg-card/80 backdrop-blur-xl shadow-lg z-10 mt-8">
         <h1 className="font-heading text-xl text-foreground mb-2">{t('auth.forgotPasswordTitle')}</h1>

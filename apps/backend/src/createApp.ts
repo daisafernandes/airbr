@@ -97,7 +97,7 @@ export function createApp(): CreateAppResult {
   const healthService = new HealthService(healthRepository, aqiRepository, cityRepository, cacheService)
   const deforestationService = new DeforestationService(deforestationRepository, cacheService)
 
-  const authService = new AuthService(userRepository, passwordResetTokenRepository, transactionalEmailSender)
+  const authService = new AuthService(userRepository, passwordResetTokenRepository, transactionalEmailSender, cityRepository)
   const alertService = new AlertService(alertRepository, cityRepository)
 
   const aqiCollectors = [

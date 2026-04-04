@@ -15,6 +15,7 @@ import { ForgotPasswordPage } from '@pages/ForgotPasswordPage'
 import { GlossaryPage } from '@pages/GlossaryPage'
 import { LoginPage } from '@pages/LoginPage'
 import { NotFoundPage } from '@pages/NotFoundPage'
+import { ProfilePage } from '@pages/ProfilePage'
 import { RankingPage } from '@pages/RankingPage'
 import { RegisterPage } from '@pages/RegisterPage'
 import { ResetPasswordPage } from '@pages/ResetPasswordPage'
@@ -62,6 +63,7 @@ export const App = () => {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/alerts" element={<AlertsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </BrowserRouter>

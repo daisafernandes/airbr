@@ -86,10 +86,6 @@
     "whoLimit": "WHO: {{limit}} {{unit}}",
     "pollutantsHeading": "POLLUTANTS"
   },
-  "pwa": {
-    "install": "Install app",
-    "installing": "Installing…"
-  },
   "header": {
     "detectLocation": "Detect my location",
     "location": "Location",
@@ -442,6 +438,23 @@
     "tooltipDesc": "The World Health Organization recommends PM2.5 concentration below 5 µg/m³ (annual mean).",
     "tooltipCompliant": "This city is within the recommended limit.",
     "tooltipNonCompliant": "The PM2.5 concentration exceeds the WHO recommended limit."
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Name, phone, default city, and interface language.",
+    "phone": "Phone",
+    "phoneHint": "Brazil: +55, area code and number (stored in international format on the server).",
+    "defaultCity": "Default city",
+    "citySelected": "Selected",
+    "clearCity": "Remove city",
+    "preferredLanguage": "Preferred language",
+    "langPt": "Portuguese",
+    "langEn": "English",
+    "langEs": "Spanish",
+    "save": "Save changes",
+    "saved": "Profile updated",
+    "saveError": "Could not save profile",
+    "phoneInvalid": "Invalid phone. Complete the area code and number."
   },
   "common": {
     "loading": "Loading...",

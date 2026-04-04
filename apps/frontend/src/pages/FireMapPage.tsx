@@ -1,14 +1,12 @@
-import { Flame, Trees, SlidersHorizontal, Wind } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { Flame, Trees, SlidersHorizontal } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import type { CityApiData, FireFocusApi } from '@app-types/airQuality.types'
-import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { FireFocusDetailDialog } from '@components/shared/FireFocusDetailDialog'
 import { FireMap } from '@components/shared/FireMap'
-import { LiveIndicator } from '@components/shared/LiveIndicator'
+import { Header } from '@components/shared/Header'
 import {
   Drawer,
   DrawerContent,
@@ -218,6 +216,13 @@ function FilterControls({
 
 export const FireMapPage = () => {
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
+  const handleCitySelect = useCallback(
+    (cityId: string) => {
+      navigate(`/city/${cityId}`)
+    },
+    [navigate],
+  )
   const [searchParams, setSearchParams] = useSearchParams()
   const fireDetailId = searchParams.get('foco')
   const [showFires, setShowFires] = useState(true)
@@ -280,42 +285,10 @@ export const FireMapPage = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      {/* Header */}
-      <header className="shrink-0 bg-card/80 backdrop-blur-xl border-b border-border z-40">
-        <div className="flex items-center justify-between px-6 py-3 max-w-[1800px] mx-auto">
-          <Link to="/" className="flex items-center gap-2">
-            <Wind className="w-6 h-6 text-primary" />
-            <span className="font-heading text-2xl tracking-wider text-foreground">
-              Respir<span className="text-primary">A</span>
-            </span>
-            <span className="text-xs font-mono text-muted-foreground ml-2 hidden sm:block">AirBR</span>
-          </Link>
+      <Header onCitySelect={handleCitySelect} />
 
-          <nav className="hidden sm:flex items-center gap-1">
-            <Link to="/" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              {t('nav.dashboard')}
-            </Link>
-            <Link to="/ranking" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              {t('nav.ranking')}
-            </Link>
-            <span className="px-3 py-1.5 text-xs font-body text-accent border-b border-accent font-semibold">
-              {t('nav.fireMap')}
-            </span>
-            <Link to="/guide" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              {t('nav.guide')}
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <LanguageSelector />
-            <LiveIndicator />
-            <AuthHeaderActions />
-          </div>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <div className="flex-1 flex overflow-hidden relative">
+      {/* Main content — pt-16 clears fixed header */}
+      <div className="flex-1 flex overflow-hidden relative min-h-0 pt-16">
         {/* Sidebar — desktop only */}
         {!isMobile && (
           <aside className="w-72 shrink-0 bg-card border-r border-border overflow-y-auto p-4 space-y-2 z-10">

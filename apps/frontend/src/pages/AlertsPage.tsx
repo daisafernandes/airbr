@@ -128,7 +128,7 @@ const AlertsContent = () => {
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
       <Header onCitySelect={handleCitySelect} />
 
-      <main className="pt-24 px-4 pb-12 max-w-[1200px] mx-auto relative z-10">
+      <main className="pt-16 px-4 pb-12 max-w-[1200px] mx-auto relative z-10">
         <h1 className="font-heading text-2xl text-foreground mb-2">{t('alerts.title')}</h1>
         <p className="text-sm text-muted-foreground mb-8 max-w-xl">{t('alerts.subtitle')}</p>
 

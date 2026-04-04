@@ -13,12 +13,17 @@ model User {
   email                String                @unique
   passwordHash         String
   name                 String
+  phone                String?
+  defaultCityId        String?
+  defaultCity          City?                 @relation("UserDefaultCity", fields: [defaultCityId], references: [id], onDelete: SetNull)
+  preferredLocale      String                @default("pt")
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   alerts               Alert[]
   pushSubscriptions    PushSubscription[]
   passwordResetTokens  PasswordResetToken[]
 
+  @@index([defaultCityId])
   @@map("users")
 }
 
@@ -98,6 +103,7 @@ model City {
   aqiReadings     AqiReading[]
   healthData      HealthData[]
   alerts          Alert[]
+  usersDefault    User[]       @relation("UserDefaultCity")
 
   @@unique([name, state])
   @@map("cities")

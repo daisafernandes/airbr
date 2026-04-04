@@ -1,16 +1,22 @@
-import { Wind, ExternalLink, Info, Droplets, Sun, Flower2, Radio } from 'lucide-react'
+import { ExternalLink, Info, Droplets, Sun, Flower2, Radio } from 'lucide-react'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
-import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
-import { LiveIndicator } from '@components/shared/LiveIndicator'
+import { Header } from '@components/shared/Header'
 import { getAqiBands, getUVLevels, getPollenLevels, getPollutantInfo, getDataSources } from '@utils/aqiInfo'
 
 const POLLUTANTS_ORDER = ['pm25', 'pm10', 'no2', 'o3', 'co'] as const
 
 export const GlossaryPage = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const handleCitySelect = useCallback(
+    (cityId: string) => {
+      navigate(`/city/${cityId}`)
+    },
+    [navigate],
+  )
 
   const aqiBands = getAqiBands(t)
   const uvLevels = getUVLevels(t)
@@ -18,54 +24,14 @@ export const GlossaryPage = () => {
   const pollutantInfo = getPollutantInfo(t)
   const dataSources = getDataSources(t)
 
-  const navLinks = [
-    { to: '/', label: t('nav.dashboard') },
-    { to: '/ranking', label: t('nav.ranking') },
-    { to: '/maps', label: t('nav.fireMap') },
-    { to: '/guide', label: t('nav.guide') },
-  ]
-
   return (
     <div className="grain-overlay min-h-screen bg-background relative overflow-hidden">
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
       <div className="ambient-blob blob-blue" style={{ bottom: '-150px', right: '-100px' }} />
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border">
-        <div className="flex items-center justify-between px-6 py-3 max-w-[1400px] mx-auto gap-4">
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <Wind className="w-6 h-6 text-primary" />
-            <span className="font-heading text-2xl tracking-wider text-foreground">
-              Respir<span className="text-primary">A</span>
-            </span>
-            <span className="text-xs font-mono text-muted-foreground ml-2 hidden sm:block">AirBR</span>
-          </Link>
+      <Header onCitySelect={handleCitySelect} />
 
-          <nav className="hidden md:flex items-center gap-0.5">
-            {navLinks.map(link => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`px-3 py-1.5 text-xs font-body rounded transition-colors ${
-                  link.to === '/guide'
-                    ? 'text-primary border-b border-primary font-semibold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <LanguageSelector />
-            <LiveIndicator />
-            <AuthHeaderActions />
-          </div>
-        </div>
-      </header>
-
-      <main className="pt-20 pb-12 px-4 max-w-[900px] mx-auto relative z-10">
+      <main className="pt-16 pb-12 px-4 max-w-[900px] mx-auto relative z-10">
         {/* Page title */}
         <div className="mb-10">
           <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">{t('glossary.title')}</h1>

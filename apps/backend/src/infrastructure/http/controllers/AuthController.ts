@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import type { AuthService } from '@application/services/AuthService'
+import type { AuthService, UpdateProfileInput } from '@application/services/AuthService'
 import { AppError } from '@shared/errors/AppError'
 
 export class AuthController {
@@ -27,6 +27,16 @@ export class AuthController {
     if (!user) {
       throw new AppError('User not found', 404)
     }
+    res.json(user)
+  }
+
+  updateMe = async (req: Request, res: Response): Promise<void> => {
+    const userId = req.userId
+    if (!userId) {
+      throw new AppError('Unauthorized', 401)
+    }
+    const body = req.body as UpdateProfileInput
+    const user = await this.authService.updateProfile(userId, body)
     res.json(user)
   }
 

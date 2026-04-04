@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
+import i18n from '@/lib/i18n'
 import { authService, type AuthUser } from '@services/authService'
 
 interface AuthState {
@@ -12,9 +13,15 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   signIn: (token: string, user: AuthUser) => void
   signOut: () => void
+  applySessionUser: (user: AuthUser) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+function applyPreferredLocale(user: AuthUser): void {
+  const lng = user.preferredLocale === 'en' || user.preferredLocale === 'es' ? user.preferredLocale : 'pt'
+  void i18n.changeLanguage(lng)
+}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('@airbr:token'))
@@ -33,7 +40,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     authService
       .me()
       .then(u => {
-        if (!cancelled) setUser(u)
+        if (!cancelled) {
+          setUser(u)
+          applyPreferredLocale(u)
+        }
       })
       .catch(() => {
         if (!cancelled) {
@@ -57,6 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('@airbr:user', JSON.stringify(u))
     setToken(newToken)
     setUser(u)
+    applyPreferredLocale(u)
   }, [])
 
   const signOut = useCallback(() => {
@@ -64,6 +75,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('@airbr:user')
     setToken(null)
     setUser(null)
+  }, [])
+
+  const applySessionUser = useCallback((u: AuthUser) => {
+    setUser(u)
+    localStorage.setItem('@airbr:user', JSON.stringify(u))
+    applyPreferredLocale(u)
   }, [])
 
   const value = useMemo<AuthContextValue>(
@@ -74,8 +91,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isAuthenticated: !!token && !!user,
       signIn,
       signOut,
+      applySessionUser,
     }),
-    [token, user, authReady, signIn, signOut],
+    [token, user, authReady, signIn, signOut, applySessionUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -1,11 +1,9 @@
-import { ArrowDownUp, Wind } from 'lucide-react'
+import { ArrowDownUp } from 'lucide-react'
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
-import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
-import { LiveIndicator } from '@components/shared/LiveIndicator'
+import { Header } from '@components/shared/Header'
 import { OMSCompliancePanel } from '@components/shared/OMSCompliancePanel'
 import { RankingTable } from '@components/shared/RankingTable'
 import { useIsMobile } from '@hooks/use-mobile'
@@ -18,6 +16,13 @@ const REGIONS = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'] as const
 
 export const RankingPage = () => {
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
+  const handleCitySelect = useCallback(
+    (cityId: string) => {
+      navigate(`/city/${cityId}`)
+    },
+    [navigate],
+  )
   const [searchParams, setSearchParams] = useSearchParams()
   const sortMode: SortMode = searchParams.get('sort') === 'clean' ? 'clean' : 'polluted'
   const setSortMode = useCallback(
@@ -82,41 +87,9 @@ export const RankingPage = () => {
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
       <div className="ambient-blob blob-blue" style={{ bottom: '-150px', right: '20%' }} />
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border">
-        <div className="flex items-center justify-between px-6 py-3 max-w-[1400px] mx-auto">
-          <Link to="/" className="flex items-center gap-2 group">
-            <Wind className="w-6 h-6 text-primary" />
-            <span className="font-heading text-2xl tracking-wider text-foreground">
-              Respir<span className="text-primary">A</span>
-            </span>
-            <span className="text-xs font-mono text-muted-foreground ml-2 hidden sm:block">AirBR</span>
-          </Link>
+      <Header onCitySelect={handleCitySelect} />
 
-          <nav className="hidden sm:flex items-center gap-1">
-            <Link to="/" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              {t('nav.dashboard')}
-            </Link>
-            <span className="px-3 py-1.5 text-xs font-body text-primary border-b border-primary font-semibold">
-              {t('nav.ranking')}
-            </span>
-            <Link to="/maps" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              {t('nav.fireMap')}
-            </Link>
-            <Link to="/guide" className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
-              {t('nav.guide')}
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <LanguageSelector />
-            <LiveIndicator />
-            <AuthHeaderActions />
-          </div>
-        </div>
-      </header>
-
-      <main className="pt-20 pb-8 px-4 max-w-[1400px] mx-auto relative z-10">
+      <main className="pt-16 pb-8 px-4 max-w-[1400px] mx-auto relative z-10">
         {/* Page title */}
         <div className="mb-6">
           <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">{t('ranking.title')}</h1>

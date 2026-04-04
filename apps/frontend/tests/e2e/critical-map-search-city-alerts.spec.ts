@@ -13,7 +13,7 @@ test.describe('Critical flow: map, search, city and alerts', () => {
 
     await expect(page.getByRole('heading', { name: /São Paulo/i })).toBeVisible()
 
-    await page.locator('a[href="/alerts"]').first().click()
+    await page.goto('/alerts')
     await expect(page).toHaveURL(/\/login/)
 
     await page.locator('a[href="/register"]').first().click()

@@ -4,8 +4,18 @@ export interface AuthUser {
   id: string
   email: string
   name: string
+  phone: string | null
+  defaultCityId: string | null
+  preferredLocale: string
   createdAt: string
   updatedAt: string
+}
+
+export type UpdateProfilePayload = {
+  name?: string
+  phone?: string | null
+  defaultCityId?: string | null
+  preferredLocale?: 'pt' | 'en' | 'es'
 }
 
 export const authService = {
@@ -29,6 +39,11 @@ export const authService = {
 
   me: async (): Promise<AuthUser> => {
     const { data } = await api.get<AuthUser>('/auth/me')
+    return data
+  },
+
+  updateProfile: async (payload: UpdateProfilePayload): Promise<AuthUser> => {
+    const { data } = await api.patch<AuthUser>('/auth/me', payload)
     return data
   },
 

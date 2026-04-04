@@ -86,10 +86,6 @@
     "whoLimit": "OMS: {{limit}} {{unit}}",
     "pollutantsHeading": "POLUENTES"
   },
-  "pwa": {
-    "install": "Instalar app",
-    "installing": "Instalando…"
-  },
   "header": {
     "detectLocation": "Detectar minha localização",
     "location": "Localização",
@@ -442,6 +438,23 @@
     "tooltipDesc": "A Organização Mundial da Saúde recomenda concentração de PM2.5 inferior a 5 µg/m³ (média anual).",
     "tooltipCompliant": "Esta cidade está dentro do limite recomendado.",
     "tooltipNonCompliant": "A concentração de PM2.5 supera o limite recomendado pela OMS."
+  },
+  "profile": {
+    "title": "Perfil",
+    "subtitle": "Nome, telefone, cidade padrão e idioma da interface.",
+    "phone": "Telefone",
+    "phoneHint": "Brasil: +55, DDD e número (formato internacional salvo no servidor).",
+    "defaultCity": "Cidade padrão",
+    "citySelected": "Selecionada",
+    "clearCity": "Remover cidade",
+    "preferredLanguage": "Idioma preferido",
+    "langPt": "Português",
+    "langEn": "English",
+    "langEs": "Español",
+    "save": "Salvar alterações",
+    "saved": "Perfil atualizado",
+    "saveError": "Não foi possível salvar o perfil",
+    "phoneInvalid": "Telefone inválido. Complete o DDD e o número."
   },
   "common": {
     "loading": "Carregando...",

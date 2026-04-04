@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 
 import { AuthService, hashPasswordResetToken } from './AuthService'
 import { User } from '@domain/entities/User'
+import type { ICityRepository } from '@domain/repositories/ICityRepository'
 import type { IPasswordResetTokenRepository } from '@domain/repositories/IPasswordResetTokenRepository'
 import type { IUserRepository } from '@domain/repositories/IUserRepository'
 import { AppError } from '@shared/errors/AppError'
@@ -78,11 +79,21 @@ class CaptureEmailSender {
   }
 }
 
+function stubCityRepository(): ICityRepository {
+  return {
+    findAll: async () => [],
+    findAllPaginated: async () => ({ data: [], total: 0 }),
+    findById: async () => null,
+    findByName: async () => [],
+    findNearby: async () => [],
+  }
+}
+
 function makeSut() {
   const users = new InMemoryUserRepository()
   const tokens = new InMemoryPasswordResetTokenRepository()
   const email = new CaptureEmailSender()
-  const sut = new AuthService(users, tokens, email)
+  const sut = new AuthService(users, tokens, email, stubCityRepository())
   return { sut, users, tokens, email }
 }
 
@@ -111,6 +122,9 @@ describe('AuthService', () => {
       email: 'test@airbr.dev',
       name: 'Test',
       passwordHash: 'hash',
+      phone: null,
+      defaultCityId: null,
+      preferredLocale: 'pt',
       createdAt: now,
       updatedAt: now,
     })
@@ -133,6 +147,9 @@ describe('AuthService', () => {
       email: 'login@airbr.dev',
       name: 'Login User',
       passwordHash,
+      phone: null,
+      defaultCityId: null,
+      preferredLocale: 'pt',
       createdAt: now,
       updatedAt: now,
     })
@@ -166,6 +183,9 @@ describe('AuthService', () => {
         email: 'reset@airbr.dev',
         name: 'Reset',
         passwordHash: 'x',
+        phone: null,
+        defaultCityId: null,
+        preferredLocale: 'pt',
         createdAt: now,
         updatedAt: now,
       }),
@@ -195,6 +215,9 @@ describe('AuthService', () => {
         email: 'rp@airbr.dev',
         name: 'RP',
         passwordHash: await bcrypt.hash('old-pass-12', 10),
+        phone: null,
+        defaultCityId: null,
+        preferredLocale: 'pt',
         createdAt: now,
         updatedAt: now,
       }),

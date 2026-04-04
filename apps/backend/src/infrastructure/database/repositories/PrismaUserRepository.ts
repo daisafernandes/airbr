@@ -9,6 +9,9 @@ const toDomain = (row: {
   name: string
   email: string
   passwordHash: string
+  phone: string | null
+  defaultCityId: string | null
+  preferredLocale: string
   createdAt: Date
   updatedAt: Date
 }): User =>
@@ -17,6 +20,9 @@ const toDomain = (row: {
     name: row.name,
     email: row.email,
     passwordHash: row.passwordHash,
+    phone: row.phone,
+    defaultCityId: row.defaultCityId,
+    preferredLocale: row.preferredLocale,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   })
@@ -57,6 +63,9 @@ export class PrismaUserRepository implements IUserRepository {
         passwordHash: user.passwordHash,
         email: user.email.toLowerCase().trim(),
         name: user.name,
+        phone: user.phone,
+        defaultCityId: user.defaultCityId,
+        preferredLocale: user.preferredLocale,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -70,6 +79,9 @@ export class PrismaUserRepository implements IUserRepository {
         passwordHash: user.passwordHash,
         email: user.email.toLowerCase().trim(),
         name: user.name,
+        phone: user.phone,
+        defaultCityId: user.defaultCityId,
+        preferredLocale: user.preferredLocale,
         updatedAt: user.updatedAt,
       },
     })

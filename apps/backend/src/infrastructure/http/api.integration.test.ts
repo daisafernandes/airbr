@@ -56,6 +56,22 @@ describe('API integration (auth + alerts)', () => {
     const me = await request(app).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`)
     expect(me.status).toBe(200)
     expect(me.body.email).toBe(userEmail)
+    expect(me.body.preferredLocale).toBe('pt')
+
+    const patchProfile = await request(app)
+      .patch('/api/v1/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: `User ${s} Updated`, preferredLocale: 'en', defaultCityId: cityId })
+    expect(patchProfile.status).toBe(200)
+    expect(patchProfile.body.name).toBe(`User ${s} Updated`)
+    expect(patchProfile.body.preferredLocale).toBe('en')
+    expect(patchProfile.body.defaultCityId).toBe(cityId)
+
+    const badCity = await request(app)
+      .patch('/api/v1/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ defaultCityId: 'ckf9q1k1g0000z01k8k4b1k2x' })
+    expect(badCity.status).toBe(400)
 
     const create = await request(app)
       .post('/api/v1/alerts')

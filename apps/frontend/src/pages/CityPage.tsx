@@ -1,27 +1,25 @@
-import { Wind, ArrowLeft, ExternalLink } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 
-import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import { formatDateTime } from '@/utils/formatters'
 import type { AqiReadingApi } from '@app-types/airQuality.types'
 import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
-import { AuthHeaderActions } from '@components/shared/AuthHeaderActions'
 import { AQIGauge } from '@components/shared/CityDashboard/AQIGauge'
 import { AQIHistoryChart } from '@components/shared/CityDashboard/AQIHistoryChart'
 import { HealthAlertsCard } from '@components/shared/CityDashboard/HealthAlertsCard'
 import { OutdoorSafetyCard } from '@components/shared/CityDashboard/OutdoorSafetyCard'
 import { PollutantCards } from '@components/shared/CityDashboard/PollutantCards'
 import { SmokeSourceCard, EMPTY_NEARBY_FIRES } from '@components/shared/CityDashboard/SmokeSourceCard'
-import { LiveIndicator } from '@components/shared/LiveIndicator'
+import { Header } from '@components/shared/Header'
 import { OmsComplianceBadge } from '@components/shared/OmsComplianceBadge'
 import { useCity } from '@hooks/useCity'
 import { useCityHistory } from '@hooks/useCityHistory'
 import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
 import { useWindSmoke } from '@hooks/useWindSmoke'
-import { isDevelopmentSource } from '@utils/dataSource'
 import { getAQILabel, getHealthAlerts, getPollutantInfo } from '@utils/aqiInfo'
+import { isDevelopmentSource } from '@utils/dataSource'
 
 type Period = '7d' | '30d' | '1y'
 
@@ -96,50 +94,21 @@ export const CityPage = () => {
     outdoorSafety?.breakdown.pollen ?? city?.latestAqi?.pollen ?? null
   const temperature = outdoorSafety?.breakdown.temperature ?? city?.latestAqi?.temperature ?? null
 
-  const navLinks = [
-    { to: '/', label: t('nav.dashboard') },
-    { to: '/ranking', label: t('nav.ranking') },
-    { to: '/maps', label: t('nav.fireMap') },
-    { to: '/guide', label: t('nav.guide') },
-  ]
+  const handleCitySelect = useCallback(
+    (cityId: string) => {
+      navigate(`/city/${cityId}`)
+    },
+    [navigate],
+  )
 
   return (
     <div className="grain-overlay min-h-screen bg-background relative overflow-hidden">
       <div className="ambient-blob blob-cyan" style={{ top: '-200px', left: '-100px' }} />
       <div className="ambient-blob blob-blue" style={{ bottom: '-150px', right: '-100px' }} />
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border">
-        <div className="flex items-center justify-between px-6 py-3 max-w-[1400px] mx-auto gap-4">
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <Wind className="w-6 h-6 text-primary" />
-            <span className="font-heading text-2xl tracking-wider text-foreground">
-              Respir<span className="text-primary">A</span>
-            </span>
-            <span className="text-xs font-mono text-muted-foreground ml-2 hidden sm:block">AirBR</span>
-          </Link>
+      <Header onCitySelect={handleCitySelect} />
 
-          <nav className="hidden md:flex items-center gap-0.5">
-            {navLinks.map(link => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <LanguageSelector />
-            <LiveIndicator />
-            <AuthHeaderActions />
-          </div>
-        </div>
-      </header>
-
-      <main className="pt-20 pb-12 px-4 max-w-[1000px] mx-auto relative z-10">
+      <main className="pt-16 pb-12 px-4 max-w-[1000px] mx-auto relative z-10">
         {/* Back button */}
         <button
           onClick={() => navigate(-1)}

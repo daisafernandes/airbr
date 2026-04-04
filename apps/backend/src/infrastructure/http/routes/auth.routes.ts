@@ -26,12 +26,23 @@ const resetPasswordSchema = z.object({
   password: z.string().min(8),
 })
 
+const updateProfileSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  phone: z.preprocess(
+    (v) => (v === '' ? null : v),
+    z.union([z.string(), z.null()]).optional(),
+  ),
+  defaultCityId: z.union([z.string().cuid(), z.null()]).optional(),
+  preferredLocale: z.enum(['pt', 'en', 'es']).optional(),
+})
+
 export const buildAuthRoutes = (controller: AuthController): Router => {
   const router = Router()
 
   router.post('/register', validateBody(registerSchema), asyncHandler(controller.register))
   router.post('/login', validateBody(loginSchema), asyncHandler(controller.login))
   router.get('/me', requireAuth, asyncHandler(controller.me))
+  router.patch('/me', requireAuth, validateBody(updateProfileSchema), asyncHandler(controller.updateMe))
   router.post('/forgot-password', validateBody(forgotPasswordSchema), asyncHandler(controller.forgotPassword))
   router.post('/reset-password', validateBody(resetPasswordSchema), asyncHandler(controller.resetPassword))
 
