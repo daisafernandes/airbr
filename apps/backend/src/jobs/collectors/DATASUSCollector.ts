@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import type { ICityRepository } from '@domain/repositories/ICityRepository'
+import { env } from '@infrastructure/config/env'
 import type { IHealthRepository } from '@domain/repositories/IHealthRepository'
 
 /**
@@ -102,6 +103,12 @@ export class DATASUSCollector {
         internacoes: parseInt(r.internacoes ?? '0', 10),
       }))
     } catch {
+      if (!env.DATASUS_ALLOW_POPULATION_ESTIMATE) {
+        console.warn(
+          '[DATASUS] API unavailable — skipping synthetic SIH rows (set DATASUS_ALLOW_POPULATION_ESTIMATE=true to enable estimates)',
+        )
+        return []
+      }
       return this.fetchSIHFallback(year, month)
     }
   }
@@ -109,7 +116,7 @@ export class DATASUSCollector {
   /**
    * Fallback: generate plausible estimates based on average Brazilian statistics.
    * Average respiratory hospitalizations: ~180/100k/month.
-   * Used when the DATASUS API is unavailable.
+   * Only used when the DATASUS HTTP API fails and DATASUS_ALLOW_POPULATION_ESTIMATE is true.
    */
   private async fetchSIHFallback(year: number, month: number): Promise<SIHRecord[]> {
     console.warn('[DATASUS] API unavailable — using population-based estimates')

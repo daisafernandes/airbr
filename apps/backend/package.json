@@ -17,6 +17,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "import:municipalities": "tsx scripts/import-municipalities.ts",
+    "validate:collectors-env": "tsx scripts/validate-collectors-env.ts",
     "db:studio": "prisma studio"
   },
   "prisma": {

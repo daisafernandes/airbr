@@ -37,7 +37,7 @@ Corrigir inconsistências do scaffold atual antes de qualquer desenvolvimento no
 ### Agente D — Configuração Base ✅ CONCLUÍDO
 
 - ✅ Criar `docker-compose.yml` na raiz com serviços: **PostgreSQL 16 + PostGIS** (`postgis/postgis:16-3.4`), healthcheck via `pg_isready`, volume persistente
-- ✅ Criar `apps/backend/jest.config.ts` (Jest + ts-jest — migrado de `.js` para `.ts` com tipagem `Config`)
+- ✅ Criar `apps/backend/jest.config.js` (Jest + ts-jest; config em JS com JSDoc `/** @type {import('jest').Config} */`)
 - ✅ Criar `apps/frontend/vitest.config.ts` (Vitest — ambiente `jsdom`, `globals: true`, aliases herdados do `vite.config.ts`)
 - ✅ Configurar **GitHub Actions** básico (`.github/workflows/ci.yml`): jobs paralelos de lint + type-check (`tsc --noEmit`) em cada push/PR, Node 20
 - ✅ Atualizar `apps/backend/.env.example` com comentários explicativos por variável e `DATABASE_URL` apontando para o Docker Compose local
@@ -74,7 +74,7 @@ Conectar ao banco real e trazer os primeiros dados externos. O Agente A prepara 
 - ✅ `INPEFiresCollector` — focos de queimada em CSV, polling a cada 3h
 - ✅ `OpenMeteoCollector` — clima + UV + AQI, sem necessidade de chave de API
 - ✅ `Normalizer` com retry (exponential backoff) e persistência via `JobLog`
-- ✅ `apps/backend/data/cities.json` com 50 cidades brasileiras monitoradas
+- ✅ `apps/backend/data/cities.json` com **50** cidades brasileiras monitoradas (fonte do seed)
 - ✅ `JobScheduler` com `node-cron` (adiantado da Fase 2): AQI a cada 1h, queimadas a cada 3h, cleanup diário às 03:00
 
 **Entregas:** Prisma + PostgreSQL ✅, migration aplicada ✅, seed com 50 cidades + 1200 leituras AQI ✅, `ICacheService` + `NodeCacheService` ✅, 4 coletores funcionando ✅, Normalizer unificado ✅.
@@ -136,7 +136,7 @@ Construir as telas principais que definem a identidade visual do produto.
 
 - ✅ `apps/frontend/src/components/shared/BrazilMap.tsx` com mapa do Brasil centralizado (tiles CARTO dark), dados via `useCities` hook
 - ✅ Marcadores coloridos por faixa de AQI (escala 0–500: verde → amarelo → laranja → vermelho → marrom)
-- ✅ Popup de marcador com AQI e link `→ Ver página completa` apontando para `/cidade/:id`
+- ✅ Popup de marcador com AQI e link para a página da cidade (rota canônica `/city/:id`; `/cidade/:id` redireciona)
 - ✅ Camada de focos de queimada INPE sobrepostos (toggle `showFires`) — dados via `useFires` hook
 - ✅ Camada de desmatamento (toggle `showDeforestation`) — dados mock PRODES (substituir na Fase 4)
 - ✅ Toggle de camadas: Queimadas | Desmatamento | Estações — controles em `DashboardPage`
@@ -146,8 +146,8 @@ Construir as telas principais que definem a identidade visual do produto.
 ### Agente C2 — Páginas de Conteúdo ✅ CONCLUÍDO
 
 - ✅ `apps/frontend/src/services/airQualityService.ts` — 7 métodos mapeados para todos os endpoints da Fase 2
-- ✅ Hooks TanStack Query: `useCities`, `useCity`, `useCityHistory`, `useFires`, `useRanking`, `useSearchCities`
-- ✅ `apps/frontend/src/pages/CityPage.tsx` — página dedicada `/cidade/:id`: gauge AQI, poluentes, histórico (7d/30d/1y), segurança ao ar livre, alertas de saúde, metadados
+- ✅ Hooks TanStack Query (núcleo Fase 2): `useCities`, `useCity`, `useCityHistory`, `useFires`, `useRanking`, `useSearchCities` — **+** hooks da Fase 4+: `useHealthData`, `useWindSmoke`, `useOutdoorSafety`, `useDeforestation`, `useOMSCompliance`, `useFire`
+- ✅ `apps/frontend/src/pages/CityPage.tsx` — página dedicada `/city/:id` (legado `/cidade/:id` → redirect): gauge AQI, poluentes, histórico (7d/30d/1y), segurança ao ar livre, alertas de saúde, metadados
 - ✅ `apps/frontend/src/pages/RankingPage.tsx` — ranking completo com filtros por região/estado, dados via `useCities` com sort client-side
 - ✅ `apps/frontend/src/components/shared/CitySearchBar.tsx` — autocomplete com debounce 300ms, integrado ao `GET /cities/search`
 - ✅ `apps/frontend/src/components/shared/CityDashboard/AQIGauge.tsx` — gauge reutilizável com escala colorida e nível textual
@@ -159,9 +159,11 @@ Construir as telas principais que definem a identidade visual do produto.
 
 > **Design system:** tokens de cor e tipografia (DM Sans, Bebas Neue, DM Mono em `global.css`). Componentes shadcn/ui. Mapa com esquema escuro alinhado ao brand.
 >
+> **Evoluções além do plano original (já no código):** i18n (`react-i18next`, `src/lib/i18n.ts`), rotas `/guide` (glossário), `/profile`, fluxo de recuperação de senha (`/forgot-password`, `/reset-password`), e metadados de foco de queimada (`/maps/foco/:id`).
+>
 > **Campos diferidos para Fase 4:** `windDirection`/`windSpeed` (vento real Open-Meteo), `nearbyFires` cross-referenciado por proximidade, `forecast` de AQI, dados DATASUS (internações respiratórias), camada PRODES (desmatamento real).
 
-**Entregas:** `airQualityService.ts` ✅, 6 hooks TanStack Query ✅, `CityPage` full-page ✅, `CityDashboard` panel ✅, `CitySearchBar` com debounce ✅, `RankingPage` ✅, `FireMapPage` com dados reais ✅, `Header` navegação + geolocalização ✅, limpeza de artefatos ✅.
+**Entregas:** `airQualityService.ts` ✅, hooks TanStack Query (core + Fase 4) ✅, `CityPage` full-page ✅, `CityDashboard` panel ✅, `CitySearchBar` com debounce ✅, `RankingPage` ✅, `FireMapPage` com dados reais ✅, `Header` navegação + geolocalização ✅, limpeza de artefatos ✅.
 
 > **Fase 3 concluída integralmente.**
 
@@ -209,6 +211,7 @@ Integrar as fontes que fazem o diferencial do produto: dados oficiais brasileiro
 
 - ✅ `apps/backend/src/jobs/collectors/IEMACollector.ts` — coletor para o Instituto Estadual do Meio Ambiente (IEMA), 11 estados, dados históricos, 82 localidades; registrado no `aqiCollectors` (schedule AQI 1h via `JobScheduler`)
 - ✅ `apps/backend/src/jobs/collectors/IATCollector.ts` — coletor para o Instituto Água e Terra (IAT/Paraná), IQA diário da Região Metropolitana de Curitiba; registrado no `aqiCollectors`
+- ✅ `apps/backend/src/infrastructure/config/collectorEnv.ts` — resumo de tokens/flags de coletores (sem expor segredos), alinhado a `env` e scripts de validação
 
 > **Fase 4 concluída integralmente.**
 
@@ -252,14 +255,16 @@ Sistema de alertas proativo: o usuário define limites e é notificado quando o 
 
 Preparar o produto para produção real: testes, performance e infraestrutura de deploy.
 
+> **Estado no código (abr/2026):** parte do item **Agente A** (testes, HTTP) e **Agente C** (PWA, E2E) já está implementada; **Dockerfiles** e **compose multi-serviço** ainda não. Redis continua fora do escopo v1 (cache em processo — Fase 7).
+
 ### Agente D — Infraestrutura de Produção
 
-- Criar `apps/backend/Dockerfile` multi-stage (build TypeScript → runtime Node mínimo)
-- Criar `apps/frontend/Dockerfile` (build Vite → Nginx)
-- Atualizar `docker-compose.yml` da raiz com todos os serviços (backend, frontend, postgres, redis)
-- Atualizar GitHub Actions (`.github/workflows/ci.yml`) com pipeline completo: test → build → push imagem → deploy
-- Configurar variáveis de ambiente por ambiente (development / staging / production)
-- Adicionar `GET /api/v1/health` para monitoramento externo (uptime, versão, status do DB e Redis)
+- ❌ **Pendente:** `apps/backend/Dockerfile` multi-stage (build TypeScript → runtime Node mínimo)
+- ❌ **Pendente:** `apps/frontend/Dockerfile` (build Vite → Nginx)
+- ❌ **Pendente:** `docker-compose.yml` na raiz com backend + frontend + postgres + redis (hoje só **PostgreSQL/PostGIS** para desenvolvimento local)
+- ❌ **Pendente:** pipeline CI que faça **build de imagem** + push + deploy (o `.github/workflows/ci.yml` atual cobre lint, type-check, testes backend e E2E — ver abaixo)
+- ⚠️ **Parcial:** variáveis por ambiente documentadas em `.env.example`; automação staging/production ainda manual
+- ⚠️ **Parcial:** `GET /api/v1/health` — verifica **PostgreSQL** (`SELECT 1`); **sem Redis** (coerente com adiar Redis à Fase 7)
 
 ### Agente A — Performance e Testes
 
@@ -267,31 +272,33 @@ Preparar o produto para produção real: testes, performance e infraestrutura de
   - **Resultado esperado:** suíte de testes unitários cobrindo `services`, `collectors` e `normalizer`, além de testes de integração para endpoints críticos (`/cities`, `/cities/:id`, `/cities/:id/history`, `/fires`, `/alerts`) com banco de teste isolado.
   - **Critério objetivo de aceite:** cobertura global mínima de **70%** (linhas) no backend e execução dos testes de integração sem dependência de banco de desenvolvimento.
   - **Evidência de validação:** `npm run test --filter=@airbr/backend -- --coverage` e job de CI `test-backend` verde com relatório de cobertura anexado.
-  - **Status (31/03/2026):** ✅ **Concluído neste ciclo** para o escopo inicial de serviços/repositório crítico.
-  - **Implementado:**
-    - Testes unitários adicionados em `apps/backend/src/application/services/AuthService.test.ts`, `apps/backend/src/application/services/AlertService.test.ts` e `apps/backend/src/application/services/CityService.test.ts`.
-    - Teste de integração com banco isolado adicionado em `apps/backend/src/infrastructure/database/repositories/PrismaAlertRepository.integration.test.ts` (com seed/cleanup por teste).
-    - Configuração de testes atualizada para execução estável de coverage via `apps/backend/jest.config.js`.
-  - **Resultado aferido localmente:** `npm run test:cov` em `apps/backend` com **75.77% de cobertura de linhas** no escopo medido e 14/14 testes passando.
+  - **Status:** ✅ **Concluído** para o **escopo atual** do `collectCoverageFrom` em `jest.config.js` (serviços críticos, repositórios, utilidades alinhadas ao threshold).
+  - **Implementado no repositório:**
+    - Unitários: `AuthService.test.ts`, `AlertService.test.ts`, `CityService.test.ts`, `alertNotificationCopy.test.ts`, `AlertChecker.test.ts`, entre outros.
+    - Integração: `PrismaAlertRepository.integration.test.ts`, `api.integration.test.ts` (fluxo auth + alertas + métricas), etc.
+    - Config: `apps/backend/jest.config.js` com `coverageThreshold` no conjunto coletado.
+  - **Resultado aferido (referência histórica 31/03/2026):** ~**75%+** de linhas no escopo medido; revalidar com `npm run test:cov` no backend.
 - **2) Performance HTTP**
-  - **Resultado esperado:** endpoints de lista com paginação padronizada (`page`, `limit`) e metadados de resposta (`total`, `page`, `limit`, `totalPages`), `express-rate-limit` ativo na API pública e `compression` habilitado para respostas elegíveis.
-  - **Critério objetivo de aceite:** todos os endpoints de lista da API v1 aceitam `page` e `limit` com limites seguros; requisições acima do limite de taxa retornam **429**; respostas JSON elegíveis retornam `Content-Encoding: gzip`.
-  - **Evidência de validação:** testes de integração cobrindo paginação e status **429**, verificação de headers com `curl -I` em ambiente de staging e job de CI `test-backend` passando.
+  - **Implementado:** `compression` em `createApp.ts`; `express-rate-limit` em `/api/v1` (`apiRateLimiter`) e limite mais restrito em `/api/v1/admin` (`adminRateLimiter`); paginação via `sanitizePagination` e query `page`/`limit` onde aplicável (ex.: `CityController`).
+  - **Pendente:** testes automatizados que garantam **429** sob carga e `Content-Encoding: gzip` nos cenários previstos; validação manual com `curl` em staging ainda não substitui o critério de aceite.
 - **3) Performance de banco**
-  - **Resultado esperado:** mapeamento das queries mais lentas dos endpoints críticos via `EXPLAIN ANALYZE` e plano de indexação aplicado onde houver ganho.
-  - **Critério objetivo de aceite:** cada query priorizada possui evidência de antes/depois com redução mensurável de tempo de execução (meta inicial: **>=20%** nas queries tratadas) ou justificativa técnica documentada quando índice não for recomendado.
-  - **Evidência de validação:** registro no PR com output de `EXPLAIN ANALYZE` (antes/depois) e migrations de índice versionadas quando aplicável.
+  - **Pendente:** rodada formal de `EXPLAIN ANALYZE` + migrations de índice adicionais além do já existente (ex.: PostGIS na Fase 4), com evidência antes/depois.
 
 ### Agente C — Performance e PWA
 
-- Configurar **PWA** com `vite-plugin-pwa` (Web App Manifest + Service Worker de cache)
-- Implementar **code splitting** por rota com `React.lazy` + `Suspense`
-- Otimizar o mapa: **marker clustering** (`react-leaflet-cluster`) para lidar com > 500 pontos sem travamento
-- Adicionar **skeleton screens** em todos os componentes com loading assíncrono
-- Testes E2E com **Playwright**: fluxo completo mapa → busca → cidade → configurar alerta
+- ✅ **PWA** — `vite-plugin-pwa` em `apps/frontend/vite.config.ts` (manifest, `injectManifest` com `src/sw.ts`)
+- ❌ **Pendente:** **code splitting** por rota com `React.lazy` + `Suspense` (rotas ainda importadas de forma estática em `App.tsx`)
+- ⚠️ **Parcial:** dependência `leaflet.markercluster` presente no `package.json`, mas **sem uso** no mapa ainda — clustering não está ligado
+- ⚠️ **Parcial:** componente base `Skeleton` (shadcn) existe; não há skeleton em **todas** as telas com loading assíncrono
+- ✅ **E2E Playwright** — `apps/frontend/tests/e2e/critical-map-search-city-alerts.spec.ts` (mapa → busca → cidade → registro → alerta); job `e2e` no CI com Postgres + `prisma migrate deploy`
 
-**Entregas:** Dockerfiles multi-stage, CI/CD completo, cobertura > 70%, rate limiting, PWA instalável, marker clustering, E2E com Playwright.
-**Progresso atual (31/03/2026):** cobertura backend `>= 70%` para o escopo inicial de testes desta fase ✅; demais entregas da Fase 6 seguem em andamento.
+### CI (GitHub Actions)
+
+- ✅ Jobs: **lint**, **type-check** (`tsc --noEmit` backend + frontend), **test-backend** (Postgres service + migrations + `npm run test` no workspace backend), **e2e** (Postgres + Playwright Chromium + `npm run test:e2e` no frontend)
+
+**Entregas alvo da fase:** Dockerfiles multi-stage, CI/CD completo com imagens, cobertura > 70% (escopo ampliado), rate limiting validado em testes, PWA instalável, marker clustering no mapa, E2E com Playwright.
+
+**Progresso (abr/2026):** testes backend (escopo atual) ✅ · compressão + rate limit + paginação ✅ · CI com testes + E2E ✅ · PWA ✅ · Playwright ✅ · Docker / compose produção ❌ · lazy routes ❌ · clustering no mapa ❌ · testes 429/gzip ❌ · EXPLAIN/indexação adicional ❌
 
 ---
 
@@ -335,43 +342,36 @@ Features de crescimento orgânico e abertura do ecossistema. Iniciar apenas apó
 
 Introduzir sistema de identidade completo, vinculando alertas e relatos a contas de usuário e habilitando experiências personalizadas.
 
+> **Estado no código (abr/2026):** o núcleo de **conta + JWT + alertas por `userId`** já está implementado (Fase 5 + evolução). O que falta em relação ao texto original desta fase é sobretudo **Community Reports**, **gamificação** e alguns **detalhes de UX** (ex.: indicação na página da cidade).
+
 ### Agente A — Backend de Autenticação
 
-- Instalar `bcryptjs`, `@types/bcryptjs`, `jsonwebtoken` e `@types/jsonwebtoken`
-- Adicionar modelo `User` ao schema Prisma: `id`, `email`, `passwordHash`, `name`, `createdAt`
-- Criar `apps/backend/src/infrastructure/http/middlewares/authMiddleware.ts` com verificação do Bearer token
-- `POST /api/v1/auth/register` — criação de conta com hash de senha
-- `POST /api/v1/auth/login` — autenticação com retorno de JWT
-- `GET /api/v1/users/:id` — perfil do usuário autenticado
-- Migrar modelo `Alert`: substituir campo `email` por `userId`, vinculando alertas à conta
-- Vincular `CommunityReport` a `userId` para rastreabilidade
-- Proteger `GET /api/v1/admin/jobs` com JWT
-- Gamificação: badge "Colaborador AirBR" para reporters frequentes
+- ✅ `bcryptjs` + JWT (`@infrastructure/auth/jwt`, `AuthService` com hash de senha)
+- ✅ Modelo `User` no Prisma (`email`, `passwordHash`, `name`, `phone`, `defaultCityId`, `preferredLocale`, relações com `Alert` e `PushSubscription`)
+- ✅ Middleware `requireAuth` (`apps/backend/src/infrastructure/http/middlewares/requireAuth.ts`) — Bearer JWT nas rotas protegidas
+- ✅ `POST /api/v1/auth/register`, `POST /api/v1/auth/login`
+- ✅ `GET /api/v1/auth/me`, `PATCH /api/v1/auth/me` — perfil do usuário autenticado
+- ✅ `POST /api/v1/auth/forgot-password`, `POST /api/v1/auth/reset-password`
+- ✅ Modelo `Alert` com `userId` (sem e-mail solto no alerta)
+- ❌ **Pendente (v2):** `CommunityReport` + `userId`; gamificação "Colaborador AirBR"
+- ⚠️ **`/api/v1/admin/*`:** proteção por **`ADMIN_API_KEY`** (`requireAdminAuth` — Bearer ou `X-Admin-Key`), **não** por JWT de usuário (diverge do bullet original "JWT no admin")
 
 ### Agente C — Frontend de Autenticação
 
-> **Infraestrutura antecipada — já implementada antes desta fase:**
+> **Infraestrutura e fluxos já presentes no repositório:**
 >
 > | Item | Arquivo | Status |
 > |------|---------|--------|
-> | `AuthContext` com JWT + localStorage | `apps/frontend/src/contexts/AuthContext.tsx` | ✅ pre-built |
-> | Axios interceptor 401 → `/login` | `apps/frontend/src/services/api.ts` | ✅ pre-built |
-> | `userService.ts` (create + getById) | `apps/frontend/src/services/userService.ts` | ✅ pre-built |
-> | `useCreateUser` hook (TanStack Query) | `apps/frontend/src/hooks/useCreateUser.ts` | ✅ pre-built |
-> | `user.types.ts` + `api.types.ts` | `apps/frontend/src/types/` | ✅ pre-built |
-> | Zod schema `createUserSchema` | `apps/frontend/src/utils/validators.ts` | ✅ pre-built |
->
-> **Delta restante para completar esta fase:**
+> | `AuthContext` + `authService.me()` ao iniciar sessão | `apps/frontend/src/contexts/AuthContext.tsx` | ✅ |
+> | `authService` (`login`, `register`, `me`, `updateMe`, recuperação de senha) | `apps/frontend/src/services/authService.ts` | ✅ |
+> | Interceptor 401 → `/login` | `apps/frontend/src/services/api.ts` | ✅ |
+> | `LoginPage`, `RegisterPage`, `ForgotPasswordPage`, `ResetPasswordPage`, `ProfilePage` | `apps/frontend/src/pages/` + rotas em `App.tsx` | ✅ |
+> | Rotas protegidas (ex.: alertas) | `ProtectedRoute` / fluxo que redireciona anônimos | ✅ |
 
-- ❌ Criar `apps/frontend/src/services/authService.ts` com métodos `login`, `register` e `logout`
-- ❌ Criar `apps/frontend/src/pages/LoginPage.tsx` + rota `/login`
-- ❌ Criar `apps/frontend/src/pages/RegisterPage.tsx` + rota `/register` (usando o hook `useCreateUser`)
-- ❌ Conectar `AuthContext.signIn` ao endpoint real `POST /api/v1/auth/login` (atualmente o contexto existe mas sem endpoint real)
-- ✅ Interceptor Axios para redirecionar ao `/login` em respostas 401 — já implementado em `services/api.ts`
-- ❌ Indicador visual na `CityPage` quando o usuário autenticado já tem um alerta ativo para aquela cidade
-- ❌ Persistência de alertas vinculada à conta entre dispositivos
+- ❌ **Pendente:** indicador na **`CityPage`** quando o usuário logado já tem **alerta ativo** para aquela cidade (API de alertas por cidade ou filtro client-side)
+- ✅ **Entregue:** alertas persistidos por **conta** via API (`GET/POST/PATCH/DELETE /alerts` com JWT) — já comportamento entre dispositivos ao usar a mesma conta
 
-**Entregas:** Modelo `User` no banco, `POST /auth/register`, `POST /auth/login`, JWT + authMiddleware, páginas `/login` e `/register`, alertas vinculados à conta, gamificação de reporters.
+**Entregas originais da fase:** em grande parte **atendidas** para auth + perfil + alertas por usuário; **pendentes** para fechar o texto do plano: Community Reports, gamificação, proteção admin conforme desenho (hoje é API key), UX de alerta na cidade.
 
 ---
 
@@ -404,6 +404,8 @@ Cada agente trabalha em sua própria branch seguindo o padrão `feat/phase-N-age
 
 ### Pacote de tipos compartilhados
 Criar `packages/shared-types/` no workspace npm com os tipos de response da API. Tanto o backend (Agente A) quanto o frontend (Agente C) importam deste pacote, garantindo consistência sem duplicação.
+
+> **Estado (abr/2026):** ainda **não** existe o pacote `packages/shared-types/`; tipos duplicados permanecem em `apps/frontend/src/types/` e DTOs no backend.
 
 ### Seed de dados obrigatório
 O Agente B mantém `apps/backend/prisma/seed.ts` com dados de exemplo: 50 cidades e as últimas 24h de leituras de AQI mockadas. Isso permite o Agente C desenvolver e testar o frontend sem depender dos jobs de ingestão estarem rodando.

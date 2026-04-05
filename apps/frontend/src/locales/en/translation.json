@@ -216,18 +216,18 @@
     "stations": "Stations",
     "compareCities": "Compare cities",
     "exitComparison": "Exit comparison",
-    "lastUpdate": "Last update",
-    "sources": "Sources",
-    "sourcesFooter": "CETESB · INPE · IBAMA · AQI · DATASUS · Open-Meteo"
-  },
-  "cityPage": {
-    "sourcesFooter": "{{source}} · INPE · DATASUS · Open-Meteo · AQI"
-  },
-  "map": {
-    "loadingCities": "Loading cities...",
-    "viewFullPage": "View full page",
-    "aqiAbbrev": "AQI",
-    "stationOfficialTitle": "Official station — {{city}}"
+    "dataCoverage": {
+      "title": "Time windows differ by layer: National Ranking and Map AQI use each city: Last hour.",
+      "fires": "Wildfire hotspots: Last 48 hours.",
+      "deforestation": "Deforestation: Last ~24 months.",
+      "stations": "Stations: Latest readings available.",
+      "compareCities": "Compare cities: Latest readings available.",  
+      "exitComparison": "Exit comparison: Latest readings available.",
+      "consultedAt": "Viewed on this page",
+      "sources": "Sources: Latest readings available.",
+      "sourcesFooter": "CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo"
+    },
+    "sourcesFooter": "CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo"
   },
   "cityDashboard": {
     "forecast": "3-DAY FORECAST",

@@ -40,6 +40,15 @@ const envSchema = z
     VAPID_SUBJECT: z.string().default('mailto:alerts@airbr.local'),
     /** Minimum hours between repeat notifications for the same alert (cooldown). */
     ALERT_COOLDOWN_HOURS: z.coerce.number().min(1).default(6),
+    /**
+     * When false (default), DATASUSCollector does not write population-based SIH estimates
+     * if the public DATASUS HTTP API fails — avoids fake “real” demo data.
+     * Set true only for local/dev when you accept synthetic health numbers.
+     */
+    DATASUS_ALLOW_POPULATION_ESTIMATE: z.preprocess(
+      (v: unknown) => v === 'true' || v === '1',
+      z.boolean(),
+    ),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === 'production' && !data.ADMIN_API_KEY) {

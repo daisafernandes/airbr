@@ -158,9 +158,22 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        <footer className="mt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground py-3 border-t border-border">
-          <span className="font-mono">{t('dashboard.lastUpdate')}: {lastUpdate}</span>
-          <span>{t('dashboard.sources')}: {t('dashboard.sourcesFooter')}</span>
+        <footer className="mt-4 space-y-3 py-3 border-t border-border">
+          <p className="text-xs text-muted-foreground font-body leading-relaxed max-w-4xl">
+            {t('dashboard.dataCoverage.title')}
+            <br />
+            {t('dashboard.dataCoverage.fires')}
+            <br />
+            {t('dashboard.dataCoverage.deforestation')}
+          </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span className="font-mono shrink-0">
+              {t('dashboard.dataCoverage.consultedAt')}: {lastUpdate}
+            </span>
+            <span className="sm:text-right">
+              {t('dashboard.dataCoverage.sources')}
+            </span>
+          </div>
         </footer>
       </main>
     </div>

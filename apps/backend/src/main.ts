@@ -1,5 +1,6 @@
 import 'dotenv/config'
 
+import { formatCollectorEnvSummary, getCollectorEnvSummary } from '@infrastructure/config/collectorEnv'
 import { env } from '@infrastructure/config/env'
 import { prisma } from '@infrastructure/database/prisma'
 import { JobScheduler } from '@jobs/JobScheduler'
@@ -7,6 +8,9 @@ import { JobScheduler } from '@jobs/JobScheduler'
 import { createApp } from './createApp'
 
 const { app, normalizer, alertChecker } = createApp()
+
+// eslint-disable-next-line no-console -- startup diagnostics for collectors / Normalizer wiring
+console.warn(formatCollectorEnvSummary(getCollectorEnvSummary()))
 
 const scheduler = new JobScheduler(normalizer, alertChecker)
 scheduler.start()

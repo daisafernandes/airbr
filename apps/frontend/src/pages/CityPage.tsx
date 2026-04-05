@@ -183,12 +183,12 @@ export const CityPage = () => {
                 <div className="bg-card border border-border rounded p-6 flex flex-col items-center">
                   <AQIGauge aqi={aqi} label={aqiLabel} />
                 </div>
-
+                {/* Health Alerts */}
+                <HealthAlertsCard alerts={healthAlerts} aqiLabel={aqiLabel} />
                 {/* Pollutants */}
                 {pollutants.length > 0 && <PollutantCards pollutants={pollutants} />}
 
-                {/* Health alerts */}
-                <HealthAlertsCard alerts={healthAlerts} aqiLabel={aqiLabel} />
+                
               </div>
 
               {/* Right column */}
@@ -289,10 +289,8 @@ export const CityPage = () => {
             </div>
 
             <footer className="mt-10 text-xs text-muted-foreground text-center font-mono">
-              {t('dashboard.sources')}:{' '}
-              {t('cityPage.sourcesFooter', {
-                source: isDevelopmentSource(city.source) ? t('cityDashboard.sourceDevelopment') : city.source,
-              })}
+              {t('dashboard.dataCoverage.sources')}:{' '}
+              {t('dashboard.dataCoverage.sourcesFooter')}
             </footer>
           </>
         )}
