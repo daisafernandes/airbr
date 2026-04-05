@@ -11,7 +11,15 @@ const envSchema = z
       .string()
       .url()
       .default('postgresql://postgres:postgres@localhost:5432/airbr'),
-    OWM_API_KEY: z.string().optional(),
+    /** Trimmed; empty after trim is treated as unset (avoids 401 from stray whitespace). */
+    OWM_API_KEY: z.preprocess((v: unknown) => {
+      if (v === undefined || v === null || v === '') return undefined
+      if (typeof v === 'string') {
+        const t = v.trim()
+        return t === '' ? undefined : t
+      }
+      return v
+    }, z.string().optional()),
     AQICN_TOKEN: z.string().optional(),
     CETESB_USERNAME: z.string().optional(),
     CETESB_PASSWORD: z.string().optional(),

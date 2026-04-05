@@ -1,8 +1,9 @@
-import axios from 'axios'
+import axios, { isAxiosError } from 'axios'
 
 import type { ICityRepository } from '@domain/repositories/ICityRepository'
 import { env } from '@infrastructure/config/env'
 import { RateLimiter } from '@shared/utils/RateLimiter'
+
 import type { ICollector, NormalizedReading } from './ICollector'
 
 /**
@@ -81,7 +82,16 @@ export class OpenWeatherMapCollector implements ICollector {
           source: 'openweathermap',
         })
       } catch (err) {
-        console.error(`[OWM] Failed for ${city.name}:`, err instanceof Error ? err.message : err)
+        if (isAxiosError(err) && err.response) {
+          const body = err.response.data
+          console.error(
+            `[OWM] Failed for ${city.name}:`,
+            err.response.status,
+            typeof body === 'object' && body !== null ? JSON.stringify(body) : body ?? err.message,
+          )
+        } else {
+          console.error(`[OWM] Failed for ${city.name}:`, err instanceof Error ? err.message : err)
+        }
       }
     }
 
