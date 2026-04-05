@@ -8,18 +8,25 @@ import type { AqiReadingApi } from '@app-types/airQuality.types'
 import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
 import { AQIGauge } from '@components/shared/CityDashboard/AQIGauge'
 import { AQIHistoryChart } from '@components/shared/CityDashboard/AQIHistoryChart'
+import { ExplainAirTodayCard } from '@components/shared/CityDashboard/ExplainAirTodayCard'
 import { HealthAlertsCard } from '@components/shared/CityDashboard/HealthAlertsCard'
+import { HourlyAirForecastCard } from '@components/shared/CityDashboard/HourlyAirForecastCard'
 import { OutdoorSafetyCard } from '@components/shared/CityDashboard/OutdoorSafetyCard'
 import { PollutantCards } from '@components/shared/CityDashboard/PollutantCards'
+import { PublicHealthCard } from '@components/shared/CityDashboard/PublicHealthCard'
 import { SmokeSourceCard, EMPTY_NEARBY_FIRES } from '@components/shared/CityDashboard/SmokeSourceCard'
 import { Header } from '@components/shared/Header'
 import { OmsComplianceBadge } from '@components/shared/OmsComplianceBadge'
 import { useCity } from '@hooks/useCity'
+import { useCityAirForecast } from '@hooks/useCityAirForecast'
 import { useCityHistory } from '@hooks/useCityHistory'
+import { useHealthData } from '@hooks/useHealthData'
 import { useOutdoorSafety } from '@hooks/useOutdoorSafety'
 import { useWindSmoke } from '@hooks/useWindSmoke'
 import { getAQILabel, getHealthAlerts, getPollutantInfo } from '@utils/aqiInfo'
-import { isDevelopmentSource } from '@utils/dataSource'
+import { isDevelopmentReadingSource } from '@utils/dataSource'
+import { explainAirTodayKey } from '@utils/explainAirToday'
+import { getReadingSourceDisplay } from '@utils/readingSourceMeta'
 
 type Period = '7d' | '30d' | '1y'
 
@@ -74,6 +81,8 @@ export const CityPage = () => {
   const { data: historyReadings = [], isLoading: historyLoading } = useCityHistory(id ?? null, period === '1y' ? '1y' : period)
   const { data: outdoorSafety } = useOutdoorSafety(id ?? null)
   const { data: windSmoke, isLoading: windSmokeLoading } = useWindSmoke(id ?? null)
+  const { data: healthData, isLoading: healthLoading } = useHealthData(id ?? null)
+  const { data: airForecast, isLoading: forecastLoading } = useCityAirForecast(id ?? null)
 
   const pollutantInfo = getPollutantInfo(t)
   const aqi = city?.latestAqi?.aqi ?? 0
@@ -93,6 +102,23 @@ export const CityPage = () => {
   const pollenLevel =
     outdoorSafety?.breakdown.pollen ?? city?.latestAqi?.pollen ?? null
   const temperature = outdoorSafety?.breakdown.temperature ?? city?.latestAqi?.temperature ?? null
+
+  const readingSource = city?.latestAqi?.source
+  const readingDisplay = getReadingSourceDisplay(t, readingSource)
+  const showOfficialReading =
+    !!readingSource && !isDevelopmentReadingSource(readingSource)
+
+  const explainKey =
+    city && windSmoke
+      ? explainAirTodayKey({
+          aqi,
+          pm25,
+          cityLat: city.lat,
+          cityLng: city.lng,
+          windDirection: windSmoke.wind.direction,
+          nearbyFires: windSmoke.nearbyFires,
+        })
+      : 'moderateDefault'
 
   const handleCitySelect = useCallback(
     (cityId: string) => {
@@ -157,22 +183,37 @@ export const CityPage = () => {
                   </Link>
                 </div>
               </div>
-              <p className="text-[10px] font-mono text-muted-foreground mt-2">
-                {t('cityDashboard.sourceLabel')}:{' '}
-                {isDevelopmentSource(city.source)
-                  ? t('cityDashboard.sourceDevelopment')
-                  : city.source}{' '}
-                · {t('cityDashboard.lastUpdateLabel')}:{' '}
-                {city.latestAqi
-                  ? formatDateTime(new Date(city.latestAqi.timestamp), {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : '—'}
-              </p>
+              <div className="text-[10px] font-mono text-muted-foreground mt-2 space-y-0.5">
+                <p>
+                  {t('cityDashboard.lastUpdateLabel')}:{' '}
+                  {city.latestAqi
+                    ? formatDateTime(new Date(city.latestAqi.timestamp), {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '—'}
+                </p>
+                {showOfficialReading && (
+                  <p className="flex flex-wrap items-center gap-x-1 gap-y-0">
+                    <span>{t('cityDashboard.readingNetwork')}:</span>
+                    {readingDisplay.url ? (
+                      <a
+                        href={readingDisplay.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline underline-offset-2"
+                      >
+                        {readingDisplay.label}
+                      </a>
+                    ) : (
+                      <span className="text-foreground">{readingDisplay.label}</span>
+                    )}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Main grid */}
@@ -249,6 +290,8 @@ export const CityPage = () => {
                   />
                 )}
 
+                {!windSmokeLoading && windSmoke && <ExplainAirTodayCard explainKey={explainKey} />}
+
                 {/* Metadata */}
                 <div className="bg-card border border-border rounded p-4">
                   <h3 className="font-heading text-lg tracking-wide text-foreground mb-3">{t('cityDashboard.information')}</h3>
@@ -265,10 +308,25 @@ export const CityPage = () => {
                       <span className="text-muted-foreground">{t('cityDashboard.region')}</span>
                       <span className="text-foreground">{city.region}</span>
                     </div>
-                    {/* <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('cityDashboard.dataSource')}</span>
-                      <span className="text-foreground">{city.source}</span>
-                    </div> */}
+                    {showOfficialReading && (
+                      <div className="flex justify-between gap-2 items-start">
+                        <span className="text-muted-foreground shrink-0">{t('cityDashboard.readingNetwork')}</span>
+                        <span className="text-foreground text-right">
+                          {readingDisplay.url ? (
+                            <a
+                              href={readingDisplay.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {readingDisplay.label}
+                            </a>
+                          ) : (
+                            readingDisplay.label
+                          )}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('cityDashboard.temperature')}</span>
                       <span className="text-foreground">
@@ -286,6 +344,31 @@ export const CityPage = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {healthLoading ? (
+              <div className="mt-6 bg-card border border-border rounded p-4 animate-pulse">
+                <div className="h-5 bg-muted rounded w-40 mb-4" />
+                <div className="h-12 bg-muted rounded w-24 mb-4" />
+                <div className="h-12 bg-muted rounded" />
+              </div>
+            ) : (
+              healthData &&
+              healthData.monthlyData.length > 0 && (
+                <div className="mt-6">
+                  <PublicHealthCard
+                    hospitalizations={
+                      healthData.monthlyData[healthData.monthlyData.length - 1]?.hospitalizations ?? 0
+                    }
+                    history={healthData.monthlyData.map(d => d.hospitalizations)}
+                    dataSource={healthData.dataSource}
+                  />
+                </div>
+              )
+            )}
+
+            <div className="mt-6">
+              <HourlyAirForecastCard hours={airForecast?.hours ?? []} isLoading={forecastLoading} />
             </div>
 
             <footer className="mt-10 text-xs text-muted-foreground text-center font-mono">

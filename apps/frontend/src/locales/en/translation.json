@@ -209,6 +209,19 @@
       "description": "Brazilian Institute of Environment and Renewable Natural Resources — environmental enforcement."
     }
   },
+  "readingSources": {
+    "cetesb": { "name": "CETESB (Qualar)" },
+    "iema": { "name": "IEMA – ES monitoring" },
+    "iat": { "name": "IAT – Curitiba metro" },
+    "aqicn": { "name": "AQICN / WAQI" },
+    "open-meteo": { "name": "Open-Meteo (model)" },
+    "openweathermap": { "name": "OpenWeatherMap" },
+    "inpe": { "name": "INPE" },
+    "prodes": { "name": "PRODES" },
+    "datasus-sih": { "name": "DATASUS SIH" },
+    "seed": { "name": "Demo data" },
+    "seed-mock": { "name": "Demo data" }
+  },
   "dashboard": {
     "layers": "Layers",
     "fires": "Wildfires",
@@ -297,7 +310,22 @@
     "backToDashboard": "Back to dashboard",
     "sourceLabel": "Source",
     "lastUpdateLabel": "Last update",
-    "year1": "1 year"
+    "year1": "1 year",
+    "readingNetwork": "Network / reading",
+    "hourlyForecast": "HOURLY AQI FORECAST",
+    "hourlyForecastSubtitle": "European index (Open-Meteo), next 48 h",
+    "hourlyForecastUnavailable": "Hourly forecast unavailable.",
+    "hourlyForecastFooter": "Source: Open-Meteo Air Quality API. Values are modeled, not station measurements.",
+    "explainAir": {
+      "title": "Why does it look like this today?",
+      "goodAir": "AQI and PM2.5 look favorable; there is no strong smoke signal with the current data.",
+      "smokeLikely": "Several upwind fire hotspots and high AQI suggest likely influence from regional wildfire smoke.",
+      "smokePossible": "Upwind hotspots and high pollution may indicate smoke contribution; urban sources may also play a role.",
+      "localMixHigh": "High pollution without a clear wind–fire alignment: likely a mix of local sources (traffic, industry) and weather.",
+      "moderateDefault": "Moderate conditions; local factors and air circulation explain part of today’s variability.",
+      "inconclusiveNoWind": "There are nearby hotspots, but without wind data we cannot estimate whether smoke moves toward the city.",
+      "disclaimer": "Heuristic estimate from modeled wind and satellite hotspots — not a medical diagnosis or proof of origin."
+    }
   },
   "healthAlerts": {
     "good_0": "Good air quality. No restrictions for outdoor activities.",

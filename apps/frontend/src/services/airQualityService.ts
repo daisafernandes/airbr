@@ -10,6 +10,7 @@ import type {
   WindSmokeApi,
   OutdoorSafetyApi,
   HealthDataApi,
+  AirQualityForecastApi,
   DeforestationAlertApi,
   DeforestationFilters,
   OMSComplianceApi,
@@ -71,6 +72,10 @@ export const airQualityService = {
 
   getHealthData(cityId: string): Promise<HealthDataApi> {
     return api.get<HealthDataApi>(`/cities/${cityId}/health`).then(r => r.data)
+  },
+
+  getAirQualityForecast(cityId: string): Promise<AirQualityForecastApi> {
+    return api.get<AirQualityForecastApi>(`/cities/${cityId}/air-quality-forecast`).then(r => r.data)
   },
 
   getDeforestation(filters?: DeforestationFilters): Promise<DeforestationAlertApi[]> {

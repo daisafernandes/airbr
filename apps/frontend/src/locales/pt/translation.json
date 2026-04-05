@@ -209,6 +209,19 @@
       "description": "Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis — fiscalização ambiental."
     }
   },
+  "readingSources": {
+    "cetesb": { "name": "CETESB (Qualar)" },
+    "iema": { "name": "IEMA – Monitoramento ES" },
+    "iat": { "name": "IAT – RMC Curitiba" },
+    "aqicn": { "name": "AQICN / WAQI" },
+    "open-meteo": { "name": "Open-Meteo (modelo)" },
+    "openweathermap": { "name": "OpenWeatherMap" },
+    "inpe": { "name": "INPE" },
+    "prodes": { "name": "PRODES" },
+    "datasus-sih": { "name": "DATASUS SIH" },
+    "seed": { "name": "Dados de demonstração" },
+    "seed-mock": { "name": "Dados de demonstração" }
+  },
   "dashboard": {
     "layers": "Camadas",
     "fires": "Queimadas",
@@ -296,7 +309,22 @@
     "backToDashboard": "Voltar ao dashboard",
     "sourceLabel": "Fonte",
     "lastUpdateLabel": "Última atualização",
-    "year1": "1 ano"
+    "year1": "1 ano",
+    "readingNetwork": "Rede / leitura",
+    "hourlyForecast": "PREVISÃO HORÁRIA (IQAr)",
+    "hourlyForecastSubtitle": "Modelo europeu (Open-Meteo), próximas 48 h",
+    "hourlyForecastUnavailable": "Previsão horária indisponível.",
+    "hourlyForecastFooter": "Fonte: Open-Meteo Air Quality API. Valores são modelados, não medições de estação.",
+    "explainAir": {
+      "title": "Por que está assim hoje?",
+      "goodAir": "IQAr e PM2.5 indicam condições favoráveis; não há sinal forte de fumaça de queimadas com os dados atuais.",
+      "smokeLikely": "Vários focos de fogo situados a sotavento e IQAr elevado sugerem provável influência de fumaça de queimadas na região.",
+      "smokePossible": "Focos a sotavento e poluição elevada podem indicar contribuição de fumaça; outras fontes urbanas também podem atuar.",
+      "localMixHigh": "Poluição elevada sem alinhamento claro vento–focos: provável mistura de fontes locais (tráfego, indústria) e meteorologia.",
+      "moderateDefault": "Condições moderadas; fatores locais e circulação do ar explicam parte da variabilidade do dia.",
+      "inconclusiveNoWind": "Há focos próximos, mas sem dados de vento não dá para estimar se a fumaça caminha em direção à cidade.",
+      "disclaimer": "Estimativa heurística a partir de vento (modelo) e focos de satélite — não é diagnóstico médico nem prova de origem."
+    }
   },
   "healthAlerts": {
     "good_0": "Qualidade do ar boa. Sem restrições para atividades ao ar livre.",

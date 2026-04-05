@@ -3,6 +3,7 @@ import cors from 'cors'
 import express, { type Express } from 'express'
 import helmet from 'helmet'
 
+import { AirQualityForecastService } from '@application/services/AirQualityForecastService'
 import { AlertService } from '@application/services/AlertService'
 import { AqiService } from '@application/services/AqiService'
 import { AuthService } from '@application/services/AuthService'
@@ -95,6 +96,7 @@ export function createApp(): CreateAppResult {
   const windSmokeService = new WindSmokeService(aqiRepository, fireRepository, cacheService)
   const outdoorSafetyService = new OutdoorSafetyService(aqiRepository, cacheService)
   const healthService = new HealthService(healthRepository, aqiRepository, cityRepository, cacheService)
+  const airQualityForecastService = new AirQualityForecastService(cacheService)
   const deforestationService = new DeforestationService(deforestationRepository, cacheService)
 
   const authService = new AuthService(userRepository, passwordResetTokenRepository, transactionalEmailSender, cityRepository)
@@ -124,7 +126,14 @@ export function createApp(): CreateAppResult {
     ibgeCollector,
   )
 
-  const cityController = new CityController(cityService, aqiService, windSmokeService, outdoorSafetyService, healthService)
+  const cityController = new CityController(
+    cityService,
+    aqiService,
+    windSmokeService,
+    outdoorSafetyService,
+    healthService,
+    airQualityForecastService,
+  )
   const fireController = new FireController(fireService)
   const adminController = new AdminController(jobLogRepository, normalizer)
   const deforestationController = new DeforestationController(deforestationService)

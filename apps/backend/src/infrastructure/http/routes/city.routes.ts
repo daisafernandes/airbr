@@ -16,6 +16,7 @@ export const buildCityRoutes = (controller: CityController): Router => {
   router.get('/:id/wind-smoke', asyncHandler(controller.getWindSmoke))
   router.get('/:id/outdoor-safety', asyncHandler(controller.getOutdoorSafety))
   router.get('/:id/health', asyncHandler(controller.getHealthData))
+  router.get('/:id/air-quality-forecast', asyncHandler(controller.getAirQualityForecast))
 
   return router
 }

@@ -209,6 +209,19 @@
       "description": "Instituto Brasileño del Medio Ambiente y los Recursos Naturales Renovables — fiscalización ambiental."
     }
   },
+  "readingSources": {
+    "cetesb": { "name": "CETESB (Qualar)" },
+    "iema": { "name": "IEMA – Monitoreo ES" },
+    "iat": { "name": "IAT – RMC Curitiba" },
+    "aqicn": { "name": "AQICN / WAQI" },
+    "open-meteo": { "name": "Open-Meteo (modelo)" },
+    "openweathermap": { "name": "OpenWeatherMap" },
+    "inpe": { "name": "INPE" },
+    "prodes": { "name": "PRODES" },
+    "datasus-sih": { "name": "DATASUS SIH" },
+    "seed": { "name": "Datos de demostración" },
+    "seed-mock": { "name": "Datos de demostración" }
+  },
   "dashboard": {
     "layers": "Capas",
     "fires": "Incendios",
@@ -296,7 +309,22 @@
     "backToDashboard": "Volver al dashboard",
     "sourceLabel": "Fuente",
     "lastUpdateLabel": "Última actualización",
-    "year1": "1 año"
+    "year1": "1 año",
+    "readingNetwork": "Red / lectura",
+    "hourlyForecast": "PRONÓSTICO HORARIO (AQI)",
+    "hourlyForecastSubtitle": "Índice europeo (Open-Meteo), próximas 48 h",
+    "hourlyForecastUnavailable": "Pronóstico horario no disponible.",
+    "hourlyForecastFooter": "Fuente: Open-Meteo Air Quality API. Valores modelados, no mediciones de estación.",
+    "explainAir": {
+      "title": "¿Por qué está así hoy?",
+      "goodAir": "El AQI y el PM2.5 se ven favorables; no hay una señal fuerte de humo con los datos actuales.",
+      "smokeLikely": "Varios focos a sotavento y AQI alto sugieren una probable influencia de humo de incendios en la región.",
+      "smokePossible": "Focos a sotavento y contaminación alta pueden indicar aporte de humo; también pueden actuar fuentes urbanas.",
+      "localMixHigh": "Alta contaminación sin alineación clara viento–focos: probable mezcla de fuentes locales (tráfico, industria) y meteorología.",
+      "moderateDefault": "Condiciones moderadas; factores locales y circulación explican parte de la variabilidad del día.",
+      "inconclusiveNoWind": "Hay focos cercanos, pero sin datos de viento no se puede estimar si el humo se dirige a la ciudad.",
+      "disclaimer": "Estimación heurística con viento (modelo) y focos satelitales — no es diagnóstico médico ni prueba de origen."
+    }
   },
   "healthAlerts": {
     "good_0": "Buena calidad del aire. Sin restricciones para actividades al aire libre.",

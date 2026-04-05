@@ -130,6 +130,17 @@ export interface HealthDataApi {
   totalHospitalizations: number
 }
 
+export interface AirQualityForecastHourApi {
+  time: string
+  aqi: number | null
+}
+
+export interface AirQualityForecastApi {
+  cityId: string
+  hours: AirQualityForecastHourApi[]
+  source: string
+}
+
 export interface DeforestationAlertApi {
   id: string
   state: string

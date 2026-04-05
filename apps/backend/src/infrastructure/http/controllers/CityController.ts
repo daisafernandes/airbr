@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 
+import type { AirQualityForecastService } from '@application/services/AirQualityForecastService'
 import type { AqiService } from '@application/services/AqiService'
 import type { CityService } from '@application/services/CityService'
 import type { HealthService } from '@application/services/HealthService'
@@ -18,6 +19,7 @@ export class CityController {
     private readonly windSmokeService: WindSmokeService,
     private readonly outdoorSafetyService: OutdoorSafetyService,
     private readonly healthService: HealthService,
+    private readonly airQualityForecastService: AirQualityForecastService,
   ) {}
 
   listCities = async (req: Request, res: Response): Promise<void> => {
@@ -111,6 +113,15 @@ export class CityController {
     if (!city) throw new AppError('City not found', 404)
 
     const result = await this.healthService.getHealthData(id)
+    res.json(result)
+  }
+
+  getAirQualityForecast = async (req: Request, res: Response): Promise<void> => {
+    const id = req.params['id'] ?? ''
+    const city = await this.cityService.getCityById(id)
+    if (!city) throw new AppError('City not found', 404)
+
+    const result = await this.airQualityForecastService.getForecast(id, city.lat, city.lng)
     res.json(result)
   }
 
