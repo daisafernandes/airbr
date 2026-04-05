@@ -8,6 +8,7 @@ import type { AqiReadingApi } from '@app-types/airQuality.types'
 import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
 import { AQIGauge } from '@components/shared/CityDashboard/AQIGauge'
 import { AQIHistoryChart } from '@components/shared/CityDashboard/AQIHistoryChart'
+import { CurrentWeatherMetricsCard } from '@components/shared/CityDashboard/CurrentWeatherMetricsCard'
 import { ExplainAirTodayCard } from '@components/shared/CityDashboard/ExplainAirTodayCard'
 import { HealthAlertsCard } from '@components/shared/CityDashboard/HealthAlertsCard'
 import { HourlyAirForecastCard } from '@components/shared/CityDashboard/HourlyAirForecastCard'
@@ -234,6 +235,17 @@ export const CityPage = () => {
 
               {/* Right column */}
               <div className="space-y-6">
+                <CurrentWeatherMetricsCard
+                  temperature={temperature}
+                  humidity={city.latestAqi?.humidity ?? null}
+                  pressure={city.latestAqi?.pressure ?? null}
+                  windDirection={
+                    windSmoke?.wind.direction ?? city.latestAqi?.windDirection ?? null
+                  }
+                  windSpeed={windSmoke?.wind.speed ?? city.latestAqi?.windSpeed ?? null}
+                  windCompassLabel={windSmoke?.wind.compassLabel ?? null}
+                />
+
                 {/* History chart */}
                 <div className="bg-card border border-border rounded p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -327,14 +339,6 @@ export const CityPage = () => {
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('cityDashboard.temperature')}</span>
-                      <span className="text-foreground">
-                        {temperature != null && !Number.isNaN(temperature)
-                          ? `${temperature.toFixed(1)} ${t('cityDashboard.temperatureUnit')}`
-                          : '—'}
-                      </span>
-                    </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('cityDashboard.whoLimitPM25')}</span>
                       <span className={omsCompliant ? 'text-primary' : 'text-accent'}>

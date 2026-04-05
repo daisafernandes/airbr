@@ -16,6 +16,8 @@ export interface NormalizedReading {
   windDirection?: number | null
   windSpeed?: number | null
   temperature?: number | null
+  humidity?: number | null
+  pressure?: number | null
   timestamp: Date
   source: string
   /** Fire-focus fields — only set by INPEFiresCollector */

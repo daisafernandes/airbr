@@ -53,6 +53,8 @@ interface OpenMeteoWeatherResponse {
     wind_direction_10m?: number
     wind_speed_10m?: number
     temperature_2m?: number
+    relative_humidity_2m?: number
+    surface_pressure?: number
   }
 }
 
@@ -102,7 +104,13 @@ export class OpenMeteoCollector implements ICollector {
               params: {
                 latitude: city.lat,
                 longitude: city.lng,
-                current: ['wind_direction_10m', 'wind_speed_10m', 'temperature_2m'].join(','),
+                current: [
+                  'wind_direction_10m',
+                  'wind_speed_10m',
+                  'temperature_2m',
+                  'relative_humidity_2m',
+                  'surface_pressure',
+                ].join(','),
               },
               timeout: 8_000,
             },
@@ -131,6 +139,8 @@ export class OpenMeteoCollector implements ICollector {
           windDirection: w?.wind_direction_10m ?? null,
           windSpeed: w?.wind_speed_10m ?? null,
           temperature: w?.temperature_2m ?? null,
+          humidity: w?.relative_humidity_2m ?? null,
+          pressure: w?.surface_pressure ?? null,
           timestamp: new Date(),
           source: 'open-meteo',
         })

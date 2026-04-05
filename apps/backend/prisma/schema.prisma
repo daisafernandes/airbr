@@ -124,6 +124,8 @@ model AqiReading {
   windDirection  Float?
   windSpeed      Float?
   temperature    Float?
+  humidity       Float?
+  pressure       Float?
   timestamp      DateTime @default(now())
   source         String
 

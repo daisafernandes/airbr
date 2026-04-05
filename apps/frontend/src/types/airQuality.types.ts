@@ -24,6 +24,8 @@ export interface AqiReadingApi {
   windDirection?: number | null
   windSpeed?: number | null
   temperature?: number | null
+  humidity?: number | null
+  pressure?: number | null
   timestamp: string
   source: string
 }

@@ -29,6 +29,8 @@ function mergeLatestWithOpenMeteoWeather(
     windDirection: latest.windDirection ?? openMeteo.windDirection,
     windSpeed: latest.windSpeed ?? openMeteo.windSpeed,
     uv: latest.uv ?? openMeteo.uv,
+    humidity: latest.humidity ?? openMeteo.humidity,
+    pressure: latest.pressure ?? openMeteo.pressure,
   }
 }
 

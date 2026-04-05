@@ -33,6 +33,8 @@ const reading: AqiReadingData = {
   windDirection: null,
   windSpeed: null,
   temperature: null,
+  humidity: null,
+  pressure: null,
   timestamp: now,
   source: 'open-meteo',
 }
@@ -76,6 +78,9 @@ class AqiRepoMock implements IAqiRepository {
   }
   async findLatestForAllCities(): Promise<AqiReadingData[]> {
     return [reading]
+  }
+  async findLatestForCityIds(cityIds: string[]): Promise<AqiReadingData[]> {
+    return cityIds.includes(city.id) ? [reading] : []
   }
   async findHistoryByCity(_cityId: string, _period: HistoryPeriod): Promise<AqiReadingData[]> {
     return [reading]

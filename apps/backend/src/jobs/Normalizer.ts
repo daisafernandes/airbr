@@ -58,6 +58,8 @@ export class Normalizer {
             windDirection: reading.windDirection ?? null,
             windSpeed: reading.windSpeed ?? null,
             temperature: reading.temperature ?? null,
+            humidity: reading.humidity ?? null,
+            pressure: reading.pressure ?? null,
             timestamp: reading.timestamp,
             source: reading.source,
           })

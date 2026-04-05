@@ -12,6 +12,8 @@ export interface AqiReadingData {
   windDirection: number | null
   windSpeed: number | null
   temperature: number | null
+  humidity: number | null
+  pressure: number | null
   timestamp: Date
   source: string
 }
@@ -29,6 +31,8 @@ export interface AqiUpsertInput {
   windDirection?: number | null
   windSpeed?: number | null
   temperature?: number | null
+  humidity?: number | null
+  pressure?: number | null
   timestamp: Date
   source: string
 }
