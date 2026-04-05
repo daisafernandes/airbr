@@ -228,6 +228,12 @@
       "sourcesFooter": "CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo"
     }
   },
+  "map": {
+    "aqiAbbrev": "ICA",
+    "viewFullPage": "Ver página completa de la ciudad",
+    "stationOfficialTitle": "Estación oficial — {{city}}",
+    "loadingCities": "Cargando ciudades..."
+  },
   "cityDashboard": {
     "forecast": "PRONÓSTICO 3 DÍAS",
     "healthAlerts": "ALERTAS DE SALUD",

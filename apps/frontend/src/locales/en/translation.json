@@ -229,6 +229,12 @@
     },
     "sourcesFooter": "CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo"
   },
+  "map": {
+    "aqiAbbrev": "AQI",
+    "viewFullPage": "View full city page",
+    "stationOfficialTitle": "Official station — {{city}}",
+    "loadingCities": "Loading cities..."
+  },
   "cityDashboard": {
     "forecast": "3-DAY FORECAST",
     "healthAlerts": "HEALTH ALERTS",

@@ -224,8 +224,15 @@
       "compareCities": "Comparar cidades: Últimas leituras disponíveis.",
       "exitComparison": "Sair da comparação: Últimas leituras disponíveis.",
       "consultedAt": "Consulta nesta página: Últimas leituras disponíveis.",
-      "sources": "Fontes: Últimas leituras disponíveis." 
+      "sources": "Fontes: Últimas leituras disponíveis.",
+      "sourcesFooter": "IQAir · AQICN · CETESB · DATASUS · IBGE · Open-Meteo"
     }
+  },
+  "map": {
+    "aqiAbbrev": "IQAr",
+    "viewFullPage": "Ver página completa da cidade",
+    "stationOfficialTitle": "Estação oficial — {{city}}",
+    "loadingCities": "Carregando cidades..."
   },
   "cityDashboard": {
     "forecast": "PREVISÃO 3 DIAS",
