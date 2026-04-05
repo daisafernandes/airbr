@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
 import type { AqiReadingApi } from '@app-types/airQuality.types'
 import type { Pollutant, AQIHistoryPoint } from '@app-types/city.types'
@@ -135,8 +136,13 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
       <div className="bg-card border border-border rounded p-4">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="font-heading text-2xl tracking-wide text-foreground leading-tight">
-              {city.name}
+            <h2 className="font-heading text-2xl tracking-wide leading-tight">
+              <Link
+                to={`/city/${cityId}`}
+                className="text-foreground hover:text-primary hover:underline underline-offset-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                {city.name}
+              </Link>
             </h2>
             <p className="text-xs text-muted-foreground font-body uppercase tracking-widest mt-0.5">
               {city.state} · {city.region}

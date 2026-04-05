@@ -18,6 +18,7 @@ describe('AlertChecker', () => {
     alertId: 'a1',
     userId: 'u1',
     userEmail: 'u@test.dev',
+    preferredLocale: 'en',
     cityId: 'c1',
     cityName: 'Test City',
     state: 'TS',
@@ -47,7 +48,11 @@ describe('AlertChecker', () => {
 
     await checker.run()
 
-    expect(emailSender.send).toHaveBeenCalledWith(row.userEmail, expect.any(String), expect.any(String))
+    expect(emailSender.send).toHaveBeenCalledWith(
+      row.userEmail,
+      'Air quality alert: Test City (TS)',
+      'AQI is 150, at or above your threshold of 100.',
+    )
     expect(alerts.recordDispatch).toHaveBeenCalledWith(row.alertId, 'EMAIL', 150)
     expect(pushSender.send).not.toHaveBeenCalled()
   })

@@ -133,7 +133,7 @@ export class PrismaAlertRepository implements IAlertRepository {
     const rows = await prisma.alert.findMany({
       where: { active: true },
       include: {
-        user: { select: { email: true, name: true } },
+        user: { select: { email: true, name: true, preferredLocale: true } },
         city: { select: { name: true, state: true } },
       },
     })
@@ -143,6 +143,7 @@ export class PrismaAlertRepository implements IAlertRepository {
       userId: row.userId,
       userEmail: row.user.email,
       userName: row.user.name,
+      preferredLocale: row.user.preferredLocale,
       cityId: row.cityId,
       cityName: row.city.name,
       state: row.city.state,

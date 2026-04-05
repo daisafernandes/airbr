@@ -11,6 +11,7 @@ export interface ActiveAlertForJob {
   userId: string
   userEmail: string
   userName: string
+  preferredLocale: string
   cityId: string
   cityName: string
   state: string

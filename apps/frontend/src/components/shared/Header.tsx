@@ -43,8 +43,9 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
     { to: '/guide', label: t('nav.guide') },
   ]
 
-  /** Busca + geolocalização só no dashboard, mapa, cidade, login etc. — não em alertas, guia, ranking, perfil */
-  const hideSearchAndLocation = ['/alerts', '/guide', '/ranking', '/profile'].includes(location.pathname)
+  /** Busca de cidade escondida em várias rotas; em /maps a busca fica na sidebar do mapa de focos. */
+  const hideCitySearch = ['/alerts', '/guide', '/ranking', '/profile', '/maps'].includes(location.pathname)
+  const hideGeolocation = ['/alerts', '/guide', '/ranking', '/profile'].includes(location.pathname)
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 min-h-16 bg-card/80 backdrop-blur-xl border-b border-border">
@@ -82,23 +83,23 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
 
         <div className="flex items-center gap-2 flex-1 md:flex-none justify-end">
           <LiveIndicator />
-          {!hideSearchAndLocation && (
-            <>
-              <CitySearchBar
-                onSelect={(cityId) => onCitySelect(cityId)}
-                className="w-48 sm:w-64 md:w-56 lg:w-72"
-                testId="header-city-search"
-              />
-              <button
-                type="button"
-                onClick={handleLocation}
-                title={t('header.detectLocation')}
-                className="flex items-center gap-1 px-3 py-2 text-xs font-body bg-muted border border-border rounded hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary shrink-0"
-              >
-                <MapPin className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t('header.location')}</span>
-              </button>
-            </>
+          {!hideCitySearch && (
+            <CitySearchBar
+              onSelect={(cityId) => onCitySelect(cityId)}
+              className="w-48 sm:w-64 md:w-56 lg:w-72"
+              testId="header-city-search"
+            />
+          )}
+          {!hideGeolocation && (
+            <button
+              type="button"
+              onClick={handleLocation}
+              title={t('header.detectLocation')}
+              className="flex items-center gap-1 px-3 py-2 text-xs font-body bg-muted border border-border rounded hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary shrink-0"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('header.location')}</span>
+            </button>
           )}
           <LanguageSelector />
           <AuthHeaderActions />

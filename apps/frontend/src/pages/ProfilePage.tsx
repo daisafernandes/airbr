@@ -24,6 +24,7 @@ import { Header } from '@components/shared/Header'
 import { useAuth } from '@contexts/AuthContext'
 import { airQualityService } from '@services/airQualityService'
 import { authService } from '@services/authService'
+import { normalizeAppLocale } from '@utils/appLocale'
 import { brMaskedToE164, e164ToBrMasked } from '@utils/brPhoneE164'
 
 const profileFormSchema = z.object({
@@ -34,7 +35,7 @@ const profileFormSchema = z.object({
 type ProfileForm = z.infer<typeof profileFormSchema>
 
 const ProfileContent = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const { user, applySessionUser } = useAuth()
   const [phoneValue, setPhoneValue] = useState('')
@@ -68,12 +69,12 @@ const ProfileContent = () => {
     if (!user) return
     reset({
       name: user.name,
-      preferredLocale:
-        user.preferredLocale === 'en' || user.preferredLocale === 'es' ? user.preferredLocale : 'pt',
+      preferredLocale: normalizeAppLocale(user.preferredLocale?.trim() || i18n.language),
     })
     setPhoneValue(e164ToBrMasked(user.phone))
     setDefaultCityId(user.defaultCityId)
     if (!user.defaultCityId) setDefaultCityLabel('')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-sync only when `user` loads/updates; omit i18n.language so changing the globe does not reset the form
   }, [user, reset])
 
   useEffect(() => {
@@ -184,6 +185,7 @@ const ProfileContent = () => {
           <div>
             <Label htmlFor="profile-locale">{t('profile.preferredLanguage')}</Label>
             <Select
+              key={user.id}
               value={preferredLocale}
               onValueChange={v => setValue('preferredLocale', v as ProfileForm['preferredLocale'])}
             >

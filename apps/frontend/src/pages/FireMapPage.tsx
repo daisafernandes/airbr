@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import type { CityApiData, FireFocusApi } from '@app-types/airQuality.types'
+import { CitySearchBar } from '@components/shared/CitySearchBar'
 import { FireFocusDetailDialog } from '@components/shared/FireFocusDetailDialog'
 import { FireMap } from '@components/shared/FireMap'
 import { Header } from '@components/shared/Header'
@@ -98,6 +99,7 @@ function ImpactCard({
 function FilterControls({
   stateFilter,
   onStateChange,
+  onCitySelect,
   period,
   onPeriodChange,
   showFires,
@@ -108,6 +110,7 @@ function FilterControls({
 }: {
   stateFilter: string
   onStateChange: (v: string) => void
+  onCitySelect: (cityId: string) => void
   period: Period
   onPeriodChange: (v: Period) => void
   showFires: boolean
@@ -159,6 +162,17 @@ function FilterControls({
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{t('firemap.searchCity')}</p>
+        <CitySearchBar
+          onSelect={cityId => onCitySelect(cityId)}
+          placeholder={t('common.search')}
+          className="w-full"
+          useFixedDropdown
+          testId="firemap-city-search"
+        />
       </div>
 
       {/* Layer toggles */}
@@ -228,8 +242,14 @@ export const FireMapPage = () => {
   const [showFires, setShowFires] = useState(true)
   const [showDeforestation, setShowDeforestation] = useState(false)
   const [stateFilter, setStateFilter] = useState('')
+  const [selectedCityId, setSelectedCityId] = useState<string | null>(null)
   const [period, setPeriod] = useState<Period>('hoje')
   const { t } = useTranslation()
+
+  const handleStateChange = useCallback((v: string) => {
+    setSelectedCityId(null)
+    setStateFilter(v)
+  }, [])
 
   const openFireDetail = (id: string) => {
     setSearchParams(
@@ -272,7 +292,8 @@ export const FireMapPage = () => {
   const filterControls = (
     <FilterControls
       stateFilter={stateFilter}
-      onStateChange={setStateFilter}
+      onStateChange={handleStateChange}
+      onCitySelect={setSelectedCityId}
       period={period}
       onPeriodChange={setPeriod}
       showFires={showFires}
@@ -333,6 +354,7 @@ export const FireMapPage = () => {
             showFires={showFires}
             showDeforestation={showDeforestation}
             stateFilter={stateFilter}
+            selectedCityId={selectedCityId}
             fires={fires}
             onOpenFireDetail={openFireDetail}
           />

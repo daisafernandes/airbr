@@ -5,6 +5,7 @@ import { env } from '@infrastructure/config/env'
 import { TransactionalEmailSender } from '@infrastructure/providers/TransactionalEmailSender'
 import { WebPushSender } from '@infrastructure/providers/WebPushSender'
 import { productMetrics } from '@shared/metrics/productMetrics'
+import { buildAqiAlertNotification } from '@shared/utils/alertNotificationCopy'
 import { logger } from '@shared/utils/logger'
 
 const COOLDOWN_MS = () => env.ALERT_COOLDOWN_HOURS * 60 * 60 * 1_000
@@ -41,8 +42,13 @@ export class AlertChecker {
         continue
       }
 
-      const title = `Air quality alert: ${row.cityName} (${row.state})`
-      const body = `AQI is ${reading.aqi}, at or above your threshold of ${row.thresholdAqi}.`
+      const { title, body } = buildAqiAlertNotification({
+        preferredLocale: row.preferredLocale,
+        cityName: row.cityName,
+        state: row.state,
+        aqi: reading.aqi,
+        thresholdAqi: row.thresholdAqi,
+      })
 
       if (row.channels.includes('EMAIL')) {
         try {

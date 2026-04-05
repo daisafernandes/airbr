@@ -49,16 +49,30 @@ function toArray<T>(value: unknown): T[] {
   return []
 }
 
+function toFiniteNumber(value: unknown): number | null {
+  const n = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
 interface FireMapProps {
   showFires: boolean
   showDeforestation: boolean
   stateFilter: string
+  /** When set, map flies to this city (same behavior as dashboard BrazilMap). */
+  selectedCityId?: string | null
   fires?: FireFocusApi[]
   /** Opens fire detail in a modal on the parent page instead of navigating away. */
   onOpenFireDetail?: (fireId: string) => void
 }
 
-export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [], onOpenFireDetail }: FireMapProps) => {
+export const FireMap = ({
+  showFires,
+  showDeforestation,
+  stateFilter,
+  selectedCityId = null,
+  fires = [],
+  onOpenFireDetail,
+}: FireMapProps) => {
   const { t, i18n } = useTranslation()
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
@@ -237,19 +251,36 @@ export const FireMap = ({ showFires, showDeforestation, stateFilter, fires = [],
     else fireLayerRef.current.remove()
   }, [showFires])
 
-  // Fly to state when filter changes
+  // Fly to selected city (priority over state-wide view)
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map || !selectedCityId) return
+    const city = cities.find(c => c.id === selectedCityId)
+    if (!city) return
+    const lat = toFiniteNumber(city.lat)
+    const lng = toFiniteNumber(city.lng)
+    if (lat == null || lng == null) return
+    map.flyTo([lat, lng], 10, { duration: 1.5 })
+  }, [selectedCityId, cities])
+
+  // Fly to state when filter changes (skipped while a city is selected)
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
+    if (selectedCityId) return
     if (!stateFilter) {
       map.flyTo([-14.24, -51.93], 4, { duration: 1.2 })
       return
     }
     const city = cities.find(c => c.state === stateFilter)
     if (city) {
-      map.flyTo([city.lat, city.lng], 7, { duration: 1.2 })
+      const lat = toFiniteNumber(city.lat)
+      const lng = toFiniteNumber(city.lng)
+      if (lat != null && lng != null) {
+        map.flyTo([lat, lng], 7, { duration: 1.2 })
+      }
     }
-  }, [stateFilter, cities])
+  }, [stateFilter, cities, selectedCityId])
 
   return <div ref={mapRef} className="w-full h-full" />
 }

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 import i18n from '@/lib/i18n'
 import { authService, type AuthUser } from '@services/authService'
+import { normalizeAppLocale } from '@utils/appLocale'
 
 interface AuthState {
   token: string | null
@@ -19,8 +20,7 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 function applyPreferredLocale(user: AuthUser): void {
-  const lng = user.preferredLocale === 'en' || user.preferredLocale === 'es' ? user.preferredLocale : 'pt'
-  void i18n.changeLanguage(lng)
+  void i18n.changeLanguage(normalizeAppLocale(user.preferredLocale))
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
