@@ -6,16 +6,19 @@ import 'leaflet/dist/leaflet.css'
 import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
+import { getAqiBandColorHex, getAqiBandMapLabelKey } from '@utils/aqiInfo'
 import { isDevelopmentSource } from '@utils/dataSource'
+import { fireIntensityLabel, getFireIntensityHexColor } from '@utils/fireIntensity'
 import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
+import {
+  escapeAttrForLeaflet,
+  escapeHtmlForLeafletPopup,
+  toArray,
+  toFiniteNumber,
+} from '@utils/leafletMapUtils'
 
-function escapePopupHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-}
+const escapePopupHtml = escapeHtmlForLeafletPopup
+const escapeAttr = escapeAttrForLeaflet
 
 function nearestCitiesSummaryHtml(
   spot: Pick<FireFocusApi, 'nearestMunicipalities' | 'lat' | 'lng'>,
@@ -36,46 +39,6 @@ function nearestCitiesSummaryHtml(
       return `${escapePopupHtml(c.name)} (${escapePopupHtml(c.state)}) · ${d} km`
     })
     .join('; ')
-}
-
-function getAQIColor(aqi: number): string {
-  if (aqi <= 50) return '#22c55e'
-  if (aqi <= 100) return '#eab308'
-  if (aqi <= 150) return '#f97316'
-  if (aqi <= 200) return '#ef4444'
-  if (aqi <= 300) return '#a855f7'
-  return '#7f1d1d'
-}
-
-function aqiBandLabelKey(aqi: number):
-  | 'aqi.bands.good.label'
-  | 'aqi.bands.moderate.label'
-  | 'aqi.bands.sensitiveGroup.label'
-  | 'aqi.bands.unhealthy.label'
-  | 'aqi.bands.veryUnhealthy.label'
-  | 'aqi.bands.hazardous.label' {
-  if (aqi <= 50) return 'aqi.bands.good.label'
-  if (aqi <= 100) return 'aqi.bands.moderate.label'
-  if (aqi <= 150) return 'aqi.bands.sensitiveGroup.label'
-  if (aqi <= 200) return 'aqi.bands.unhealthy.label'
-  if (aqi <= 300) return 'aqi.bands.veryUnhealthy.label'
-  return 'aqi.bands.hazardous.label'
-}
-
-function toFiniteNumber(value: unknown): number | null {
-  const n = typeof value === 'number' ? value : Number(value)
-  return Number.isFinite(n) ? n : null
-}
-
-function toArray<T>(value: unknown): T[] {
-  if (Array.isArray(value)) return value as T[]
-  if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>
-    if (Array.isArray(record.items)) return record.items as T[]
-    if (Array.isArray(record.data)) return record.data as T[]
-    if (Array.isArray(record.results)) return record.results as T[]
-  }
-  return []
 }
 
 interface BrazilMapProps {
@@ -169,11 +132,11 @@ export const BrazilMap = ({
       if (lat == null || lng == null) return
 
       const aqi = city.latestAqi?.aqi ?? 0
-      const color = getAQIColor(aqi)
+      const color = getAqiBandColorHex(aqi)
       const radius = Math.max(6, aqi / 12)
 
       const cityPageUrl = `/city/${city.id}`
-      const bandLabel = t(aqiBandLabelKey(aqi))
+      const bandLabel = t(getAqiBandMapLabelKey(aqi))
       const aqiAbbr = t('map.aqiAbbrev')
       const cityPopup = `<div style="font-family:'DM Sans',sans-serif;color:#0a0f1e;min-width:160px">
             <strong style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.05em">
@@ -262,11 +225,10 @@ export const BrazilMap = ({
       const lng = toFiniteNumber(spot.lng)
       if (lat == null || lng == null) return
 
-      const intensity = spot.intensity ?? 0
-      const color = intensity >= 70 ? '#ef4444' : intensity >= 40 ? '#ff9f4a' : '#facc15'
-      const radius = intensity >= 70 ? 8 : intensity >= 40 ? 6 : 4
-      const label =
-        intensity >= 70 ? t('firemap.intensityHigh') : intensity >= 40 ? t('firemap.intensityMedium') : t('firemap.intensityLow')
+      const intensityForUi = spot.intensity ?? 0
+      const color = getFireIntensityHexColor(intensityForUi)
+      const radius = intensityForUi >= 70 ? 8 : intensityForUi >= 40 ? 6 : 4
+      const label = fireIntensityLabel(intensityForUi, t)
       const nearSummary = nearestCitiesSummaryHtml(spot, cities)
       const detailLink = onOpenFireDetail
         ? `<button type="button" class="airbr-fire-detail-btn" style="font-size:11px;color:#3b82f6;text-decoration:underline;display:inline-block;margin-top:6px;cursor:pointer;background:none;border:none;padding:0;font-family:inherit" data-airbr-fire-id="${escapeAttr(spot.id)}">${escapePopupHtml(t('firemap.viewFireDetailLink'))}</button>`

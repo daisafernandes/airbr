@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { CityApiData } from '@app-types/airQuality.types'
 import { useCity } from '@hooks/useCity'
+import { getAqiBandColorHex } from '@utils/aqiInfo'
 
 import { CitySearchBar } from './CitySearchBar'
 import { OmsComplianceBadge } from './OmsComplianceBadge'
@@ -14,15 +15,6 @@ interface ComparisonPanelProps {
   onChangeCityA: (cityId: string) => void
   onChangeCityB: (cityId: string) => void
   onClose: () => void
-}
-
-function getAQIColor(aqi: number): string {
-  if (aqi <= 50) return '#22c55e'
-  if (aqi <= 100) return '#eab308'
-  if (aqi <= 150) return '#f97316'
-  if (aqi <= 200) return '#ef4444'
-  if (aqi <= 300) return '#a855f7'
-  return '#7f1d1d'
 }
 
 function getAQILabel(aqi: number, t: TFunction): string {
@@ -55,7 +47,7 @@ function getPollutantStatusColor(value: number, limit: number): string {
 }
 
 function MiniGauge({ aqi, t }: { aqi: number; t: TFunction }) {
-  const color = getAQIColor(aqi)
+  const color = getAqiBandColorHex(aqi)
   const label = getAQILabel(aqi, t)
   const size = 120
   const cx = size / 2

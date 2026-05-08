@@ -3,15 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import type { AirQualityForecastHourApi } from '@app-types/airQuality.types'
-
-function getAQIColor(aqi: number): string {
-  if (aqi <= 50) return '#4af0c4'
-  if (aqi <= 100) return '#facc15'
-  if (aqi <= 150) return '#ff9f4a'
-  if (aqi <= 200) return '#ef4444'
-  if (aqi <= 300) return '#a855f7'
-  return '#be123c'
-}
+import { getAqiBandColorHex } from '@utils/aqiInfo'
 
 const TooltipContent = ({
   active,
@@ -26,7 +18,7 @@ const TooltipContent = ({
   return (
     <div className="bg-card border border-border rounded px-2 py-1 text-[10px] font-mono">
       <div className="text-muted-foreground">{p.label}</div>
-      <div style={{ color: getAQIColor(p.aqi) }}>{p.aqi}</div>
+      <div style={{ color: getAqiBandColorHex(p.aqi) }}>{p.aqi}</div>
     </div>
   )
 }

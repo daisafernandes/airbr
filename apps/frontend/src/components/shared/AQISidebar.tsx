@@ -4,23 +4,7 @@ import { Link } from 'react-router-dom'
 
 import type { RankedCityApi } from '@app-types/airQuality.types'
 import { useRanking } from '@hooks/useRanking'
-
-
-function getAQIColor(aqi: number): string {
-  if (aqi <= 50) return 'text-primary'
-  if (aqi <= 100) return 'text-yellow-400'
-  if (aqi <= 150) return 'text-accent'
-  if (aqi <= 200) return 'text-red-500'
-  return 'text-purple-500'
-}
-
-function getAQIBg(aqi: number): string {
-  if (aqi <= 50) return 'bg-primary/10'
-  if (aqi <= 100) return 'bg-yellow-400/10'
-  if (aqi <= 150) return 'bg-accent/10'
-  if (aqi <= 200) return 'bg-red-500/10'
-  return 'bg-purple-500/10'
-}
+import { getAqiSidebarToneClasses } from '@utils/aqiInfo'
 
 const RankingCard = ({
   title,
@@ -60,7 +44,9 @@ const RankingCard = ({
               <div className="h-4 bg-muted animate-pulse rounded w-10" />
             </div>
           ))
-        : data.map((item, i) => (
+        : data.map((item, i) => {
+            const tone = getAqiSidebarToneClasses(item.aqi)
+            return (
             <Link
               key={item.cityId}
               to={`/city/${item.cityId}`}
@@ -73,11 +59,12 @@ const RankingCard = ({
                   <span className="text-xs text-muted-foreground ml-1">{item.state}</span>
                 </div>
               </div>
-              <span className={`font-mono text-sm font-medium px-2 py-0.5 rounded ${getAQIColor(item.aqi)} ${getAQIBg(item.aqi)}`}>
+              <span className={`font-mono text-sm font-medium px-2 py-0.5 rounded ${tone.textClass} ${tone.bgClass}`}>
                 {item.aqi}
               </span>
             </Link>
-          ))}
+            )
+          })}
     </div>
   </div>
 )

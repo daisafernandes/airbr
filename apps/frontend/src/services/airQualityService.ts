@@ -15,21 +15,13 @@ import type {
   DeforestationFilters,
   OMSComplianceApi,
 } from '@app-types/airQuality.types'
+import { unwrapArrayOrPaginated } from '@utils/apiResponse'
 
 import { api } from './api'
 
-interface PaginatedResponse<T> {
-  data: T[]
-}
-
 export const airQualityService = {
   getCities(): Promise<CityApiData[]> {
-    return api.get<CityApiData[] | PaginatedResponse<CityApiData>>('/cities').then(r => {
-      if (Array.isArray(r.data)) {
-        return r.data
-      }
-      return Array.isArray(r.data.data) ? r.data.data : []
-    })
+    return api.get('/cities').then(r => unwrapArrayOrPaginated(r.data as CityApiData[] | { data: CityApiData[] }))
   },
 
   getCity(id: string): Promise<CityApiData> {

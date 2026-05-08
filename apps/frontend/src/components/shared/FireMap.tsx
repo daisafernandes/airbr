@@ -1,4 +1,3 @@
-import type { TFunction } from 'i18next'
 import L from 'leaflet'
 import { useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -7,52 +6,17 @@ import 'leaflet/dist/leaflet.css'
 import type { CityApiData, DeforestationAlertApi, FireFocusApi } from '@app-types/airQuality.types'
 import { useCities } from '@hooks/useCities'
 import { useDeforestation } from '@hooks/useDeforestation'
+import { fireIntensityLabel, getFireIntensityHexColor, getFireMarkerRadius } from '@utils/fireIntensity'
 import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
+import {
+  escapeAttrForLeaflet,
+  escapeHtmlForLeafletPopup,
+  toArray,
+  toFiniteNumber,
+} from '@utils/leafletMapUtils'
 
-function escapePopupText(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-}
-
-function getFireColor(intensity: number | null): string {
-  if (intensity === null) return '#facc15'
-  if (intensity >= 70) return '#ef4444'
-  if (intensity >= 40) return '#ff9f4a'
-  return '#facc15'
-}
-
-function getFireRadius(intensity: number | null): number {
-  if (intensity === null) return 5
-  if (intensity >= 70) return 9
-  if (intensity >= 40) return 7
-  return 5
-}
-
-function fireIntensityLabel(intensity: number | null, t: TFunction): string {
-  if (intensity === null) return t('firemap.intensityUnknown')
-  if (intensity >= 70) return t('firemap.intensityHigh')
-  if (intensity >= 40) return t('firemap.intensityMedium')
-  return t('firemap.intensityLow')
-}
-
-function toArray<T>(value: unknown): T[] {
-  if (Array.isArray(value)) return value as T[]
-  if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>
-    if (Array.isArray(record.items)) return record.items as T[]
-    if (Array.isArray(record.data)) return record.data as T[]
-    if (Array.isArray(record.results)) return record.results as T[]
-  }
-  return []
-}
-
-function toFiniteNumber(value: unknown): number | null {
-  const n = typeof value === 'number' ? value : Number(value)
-  return Number.isFinite(n) ? n : null
-}
+const escapePopupText = escapeHtmlForLeafletPopup
+const escapeAttr = escapeAttrForLeaflet
 
 interface FireMapProps {
   showFires: boolean
@@ -122,8 +86,8 @@ export const FireMap = ({
     normalizedFires.forEach(spot => {
       const apiMun = spot.nearestMunicipalities ?? []
       const fallbackTop = getTopNearestByHaversine(spot.lat, spot.lng, cities, 3)
-      const color = getFireColor(spot.intensity)
-      const radius = getFireRadius(spot.intensity)
+      const color = getFireIntensityHexColor(spot.intensity)
+      const radius = getFireMarkerRadius(spot.intensity)
       const label = fireIntensityLabel(spot.intensity, t)
       const stateLine = spot.state
         ? `<span style="font-size:12px">${escapePopupText(t('firemap.popupState'))}: <b>${escapePopupText(spot.state)}</b></span><br/>`

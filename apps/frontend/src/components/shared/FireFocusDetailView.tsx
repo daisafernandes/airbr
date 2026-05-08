@@ -1,5 +1,4 @@
 import { isAxiosError } from 'axios'
-import type { TFunction } from 'i18next'
 import { Flame } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -8,16 +7,8 @@ import { Link } from 'react-router-dom'
 import { useCities } from '@hooks/useCities'
 import { useFire } from '@hooks/useFire'
 import { formatStateLabel } from '@utils/brazilStates'
+import { fireIntensityLabel } from '@utils/fireIntensity'
 import { getTopNearestByHaversine, haversineKm } from '@utils/geoDistance'
-
-const MONITORED_RADIUS_KM = 200
-
-function intensityLabel(intensity: number | null, t: TFunction): string {
-  if (intensity === null) return t('firemap.intensityUnknown')
-  if (intensity >= 70) return t('firemap.intensityHigh')
-  if (intensity >= 40) return t('firemap.intensityMedium')
-  return t('firemap.intensityLow')
-}
 
 interface FireFocusDetailViewProps {
   fireId: string
@@ -45,16 +36,6 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
     if (!fire) return null
     return getTopNearestByHaversine(fire.lat, fire.lng, cities, 1)[0] ?? null
   }, [fire, cities])
-
-  const monitoredWithin200 = useMemo(() => {
-    if (!fire) return []
-    const nearestId = nearestMonitored?.id
-    return cities
-      .map(c => ({ c, d: haversineKm(fire.lat, fire.lng, c.lat, c.lng) }))
-      .filter(x => x.d <= MONITORED_RADIUS_KM)
-      .filter(x => !nearestId || x.c.id !== nearestId)
-      .sort((a, b) => a.d - b.d)
-  }, [fire, cities, nearestMonitored])
 
   const notFound = isAxiosError(error) && error.response?.status === 404
 
@@ -133,7 +114,7 @@ export const FireFocusDetailView = ({ fireId }: FireFocusDetailViewProps) => {
           )}
           <div>
             <dt className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.intensity')}</dt>
-            <dd className="text-foreground mt-0.5">{intensityLabel(fire.intensity, t)}</dd>
+            <dd className="text-foreground mt-0.5">{fireIntensityLabel(fire.intensity, t)}</dd>
           </div>
           <div>
             <dt className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('fireFocus.detectedAt')}</dt>

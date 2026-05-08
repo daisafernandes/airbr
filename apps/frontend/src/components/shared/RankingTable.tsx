@@ -1,19 +1,11 @@
 import { MapPin } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
 import type { CityApiData } from '@app-types/airQuality.types'
-import { OmsComplianceBadge } from './OmsComplianceBadge'
-import { getAQILabel } from '@utils/aqiInfo'
+import { getAqiBandColorHex, getAQILabel } from '@utils/aqiInfo'
 
-function getAQIColor(aqi: number): string {
-  if (aqi <= 50) return '#22c55e'
-  if (aqi <= 100) return '#eab308'
-  if (aqi <= 150) return '#f97316'
-  if (aqi <= 200) return '#ef4444'
-  if (aqi <= 300) return '#a855f7'
-  return '#7f1d1d'
-}
+import { OmsComplianceBadge } from './OmsComplianceBadge'
 
 interface RankingTableProps {
   cities: CityApiData[]
@@ -29,7 +21,7 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
       <div className="space-y-2">
         {cities.map((city, idx) => {
           const aqi = city.latestAqi?.aqi ?? 0
-          const color = getAQIColor(aqi)
+          const color = getAqiBandColorHex(aqi)
           const pm25 = city.latestAqi?.pm25 ?? null
           const omsCompliant = pm25 !== null ? pm25 <= 5 : false
           return (
@@ -77,7 +69,7 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
         <tbody>
           {cities.map((city, idx) => {
             const aqi = city.latestAqi?.aqi ?? 0
-            const color = getAQIColor(aqi)
+            const color = getAqiBandColorHex(aqi)
             const pm25 = city.latestAqi?.pm25 ?? null
             const omsCompliant = pm25 !== null ? pm25 <= 5 : false
             return (

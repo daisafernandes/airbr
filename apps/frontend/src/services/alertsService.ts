@@ -1,3 +1,5 @@
+import { unwrapArrayOrPaginated } from '@utils/apiResponse'
+
 import { api } from './api'
 
 export type AlertChannel = 'EMAIL' | 'PUSH'
@@ -22,18 +24,9 @@ export interface AlertDto {
   recentDispatches?: AlertDispatchDto[]
 }
 
-interface AlertListResponse {
-  data: AlertDto[]
-}
-
 export const alertsService = {
   list: (): Promise<AlertDto[]> =>
-    api.get<AlertDto[] | AlertListResponse>('/alerts').then(r => {
-      if (Array.isArray(r.data)) {
-        return r.data
-      }
-      return Array.isArray(r.data.data) ? r.data.data : []
-    }),
+    api.get('/alerts').then(r => unwrapArrayOrPaginated(r.data as AlertDto[] | { data: AlertDto[] })),
 
   create: (payload: {
     cityId: string

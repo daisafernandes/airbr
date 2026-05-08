@@ -1,20 +1,12 @@
 import { Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
+
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { AQI_BANDS } from '@utils/aqiInfo'
+import { AQI_BANDS, getAqiBandColorHex } from '@utils/aqiInfo'
 
 interface AQIGaugeProps {
   aqi: number
   label: string
-}
-
-function getAQIColor(aqi: number): string {
-  if (aqi <= 50) return '#4af0c4'
-  if (aqi <= 100) return '#facc15'
-  if (aqi <= 150) return '#ff9f4a'
-  if (aqi <= 200) return '#ef4444'
-  if (aqi <= 300) return '#a855f7'
-  return '#be123c'
 }
 
 export const AQIGauge = ({ aqi, label }: AQIGaugeProps) => {
@@ -28,7 +20,7 @@ export const AQIGauge = ({ aqi, label }: AQIGaugeProps) => {
   const totalDeg = 240
   const clampedAqi = Math.min(aqi, 500)
   const fillDeg = (clampedAqi / 500) * totalDeg
-  const color = getAQIColor(aqi)
+  const color = getAqiBandColorHex(aqi)
 
   const toRad = (deg: number) => (deg * Math.PI) / 180
   const pointOnArc = (deg: number) => ({

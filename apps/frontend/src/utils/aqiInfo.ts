@@ -52,6 +52,57 @@ const AQI_BAND_BASES = [
   { min: 301, max: 500, color: '#be123c', key: 'hazardous' },
 ] as const
 
+/** US EPA AQI band index 0..5, aligned with `AQI_BAND_BASES` order. */
+function getAqiBandIndex(aqi: number): number {
+  if (aqi <= 50) return 0
+  if (aqi <= 100) return 1
+  if (aqi <= 150) return 2
+  if (aqi <= 200) return 3
+  if (aqi <= 300) return 4
+  return 5
+}
+
+/** Hex fill/stroke for charts and Leaflet markers — single source: `AQI_BAND_BASES`. */
+export function getAqiBandColorHex(aqi: number): string {
+  return AQI_BAND_BASES[getAqiBandIndex(aqi)]!.color
+}
+
+export type AqiBandMapLabelKey =
+  | 'aqi.bands.good.label'
+  | 'aqi.bands.moderate.label'
+  | 'aqi.bands.sensitiveGroup.label'
+  | 'aqi.bands.unhealthy.label'
+  | 'aqi.bands.veryUnhealthy.label'
+  | 'aqi.bands.hazardous.label'
+
+const AQI_MAP_LABEL_KEYS: readonly AqiBandMapLabelKey[] = [
+  'aqi.bands.good.label',
+  'aqi.bands.moderate.label',
+  'aqi.bands.sensitiveGroup.label',
+  'aqi.bands.unhealthy.label',
+  'aqi.bands.veryUnhealthy.label',
+  'aqi.bands.hazardous.label',
+]
+
+/** i18n key for map popups (uses full band labels, not `aqi.sensitiveShort`). */
+export function getAqiBandMapLabelKey(aqi: number): AqiBandMapLabelKey {
+  return AQI_MAP_LABEL_KEYS[getAqiBandIndex(aqi)]!
+}
+
+const AQI_SIDEBAR_TONE: readonly { textClass: string; bgClass: string }[] = [
+  { textClass: 'text-primary', bgClass: 'bg-primary/10' },
+  { textClass: 'text-yellow-400', bgClass: 'bg-yellow-400/10' },
+  { textClass: 'text-accent', bgClass: 'bg-accent/10' },
+  { textClass: 'text-red-500', bgClass: 'bg-red-500/10' },
+  { textClass: 'text-purple-500', bgClass: 'bg-purple-500/10' },
+  { textClass: 'text-purple-500', bgClass: 'bg-purple-500/10' },
+]
+
+/** Tailwind classes for ranking sidebar cards — breakpoints match `getAqiBandIndex`. */
+export function getAqiSidebarToneClasses(aqi: number): { textClass: string; bgClass: string } {
+  return AQI_SIDEBAR_TONE[getAqiBandIndex(aqi)]!
+}
+
 const UV_LEVEL_BASES = [
   { max: 2,  color: '#4af0c4', key: 'low' },
   { max: 5,  color: '#facc15', key: 'moderate' },
