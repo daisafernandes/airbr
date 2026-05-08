@@ -15,9 +15,12 @@ import type {
   DeforestationFilters,
   OMSComplianceApi,
 } from '@app-types/airQuality.types'
-import { unwrapArrayOrPaginated } from '@utils/apiResponse'
+import { parsePaginatedFirstPage, unwrapArrayOrPaginated } from '@utils/apiResponse'
 
 import { api } from './api'
+
+/** Same as backend `MAX_LIMIT` — one GET /fires page size when fetching the full map dataset. */
+const FIRES_PAGE_LIMIT = 100
 
 export const airQualityService = {
   getCities(): Promise<CityApiData[]> {
@@ -32,8 +35,20 @@ export const airQualityService = {
     return api.get<AqiReadingApi[]>(`/cities/${id}/history`, { params: { period } }).then(r => r.data)
   },
 
-  getFires(filters?: FireFilters): Promise<FireFocusApi[]> {
-    return api.get<FireFocusApi[]>('/fires', { params: filters }).then(r => r.data)
+  async getFires(filters?: FireFilters): Promise<FireFocusApi[]> {
+    const baseParams = { ...filters, limit: FIRES_PAGE_LIMIT, page: 1 }
+    const first = await api.get<unknown>('/fires', { params: baseParams })
+    const { items, totalPages } = parsePaginatedFirstPage<FireFocusApi>(first.data)
+    if (totalPages <= 1) return items
+
+    const rest: FireFocusApi[][] = []
+    for (let page = 2; page <= totalPages; page++) {
+      const res = await api.get<unknown>('/fires', {
+        params: { ...filters, limit: FIRES_PAGE_LIMIT, page },
+      })
+      rest.push(parsePaginatedFirstPage<FireFocusApi>(res.data).items)
+    }
+    return items.concat(...rest)
   },
 
   getFireById(id: string): Promise<FireFocusApi> {

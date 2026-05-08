@@ -428,6 +428,7 @@
     "today": "Today",
     "days7": "7 days",
     "days30": "30 days",
+    "days90": "90 days",
     "noFireFoci": "No wildfire foci for the selected period and filters — good news for air quality in this view. Change state or period to explore other regions.",
     "fireLayerOffHint": "Turn on the \"Fire foci\" layer to see counts and potentially affected cities.",
     "intensityUnknown": "Unknown",

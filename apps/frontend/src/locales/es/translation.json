@@ -427,6 +427,7 @@
     "today": "Hoy",
     "days7": "7 días",
     "days30": "30 días",
+    "days90": "90 días",
     "noFireFoci": "No hay focos de incendio para el período y filtros seleccionados — buena señal para el aire en esta vista. Cambie el estado o el período para explorar otras regiones.",
     "fireLayerOffHint": "Active la capa \"Focos de incendio\" para ver el conteo y las ciudades potencialmente afectadas.",
     "intensityUnknown": "No informada",

@@ -427,6 +427,7 @@
     "today": "Hoje",
     "days7": "7 dias",
     "days30": "30 dias",
+    "days90": "90 dias",
     "noFireFoci": "Nenhum foco de queimada registrado no período e filtros selecionados. Isso é um bom sinal para o ar nesta visão — ajuste o estado ou o período se quiser explorar outras regiões.",
     "fireLayerOffHint": "Ative a camada \"Focos de Queimada\" para ver a contagem e as cidades potencialmente afetadas.",
     "intensityUnknown": "Não informada",

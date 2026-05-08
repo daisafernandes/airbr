@@ -19,12 +19,13 @@ import { useIsMobile } from '@hooks/use-mobile'
 import { useCities } from '@hooks/useCities'
 import { useFires } from '@hooks/useFires'
 
-type Period = 'hoje' | '7d' | '30d'
+type Period = 'hoje' | '7d' | '30d' | '90d'
 
 const PERIOD_DAYS: Record<Period, number> = {
   hoje: 1,
   '7d': 7,
   '30d': 30,
+  '90d': 90,
 }
 
 const AFFECTED_CITIES_PREVIEW = 6
@@ -125,6 +126,7 @@ function FilterControls({
     hoje: t('firemap.today'),
     '7d': t('firemap.days7'),
     '30d': t('firemap.days30'),
+    '90d': t('firemap.days90'),
   }
 
   return (
@@ -132,8 +134,8 @@ function FilterControls({
       {/* Period */}
       <div>
         <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{t('firemap.period')}</p>
-        <div className="flex gap-1.5">
-          {(['hoje', '7d', '30d'] as Period[]).map(p => (
+        <div className="flex flex-wrap gap-1.5">
+          {(['hoje', '7d', '30d', '90d'] as Period[]).map(p => (
             <button
               key={p}
               onClick={() => onPeriodChange(p)}

@@ -3,6 +3,9 @@ import type { Request, Response } from 'express'
 import type { FireService } from '@application/services/FireService'
 import { sanitizePagination } from '@shared/utils/pagination'
 
+/** Caps `days` on GET /fires to limit DB scan size and cache cardinality (matches longest preset + margin). */
+const MAX_FIRE_HISTORY_DAYS = 366
+
 export class FireController {
   constructor(private readonly fireService: FireService) {}
 
@@ -12,7 +15,7 @@ export class FireController {
     let daysNum: number | undefined
     if (typeof days === 'string') {
       const n = Number.parseInt(days, 10)
-      if (!Number.isNaN(n) && n > 0) daysNum = n
+      if (!Number.isNaN(n) && n > 0) daysNum = Math.min(n, MAX_FIRE_HISTORY_DAYS)
     }
 
     const paginated = await this.fireService.listFiresPaginated({

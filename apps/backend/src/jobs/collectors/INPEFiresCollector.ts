@@ -4,6 +4,7 @@ import type { ICollector, NormalizedReading } from './ICollector'
 
 /**
  * INPE publishes fire-focus CSV data updated every 3 hours.
+ * Multi-year backfill is out of scope here — see docs/solutions/fire-focus-historical-ingestion.md.
  * Public endpoint: https://queimadas.dgi.inpe.br/queimadas/geoserver/ows
  * Columns (WFS CSV): FID, lat, lon, data_hora_gmt, pais, estado, municipio,
  *   bioma, satelite, frp (fire radiative power as intensity proxy)
