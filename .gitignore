@@ -8,10 +8,15 @@ dist
 build
 .next
 out
+.vercel
+*.tsbuildinfo
 
-# Environment files
+# Environment files (keep *.example in repo)
 .env
 .env.local
+.env.development
+.env.production
+.env.test
 .env.development.local
 .env.test.local
 .env.production.local
@@ -48,3 +53,10 @@ test-results
 # Cache
 .eslintcache
 .cache
+
+# Local Docker overrides
+docker-compose.override.yml
+
+# Secrets / keys (accidental commits)
+*.pem
+*.key
