@@ -5,8 +5,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { App } from './App'
 import './styles/global.css'
 
-// Single registration path via vite-plugin-pwa (injectManifest → sw.ts). Push uses
-// navigator.serviceWorker.ready; do not unregister SWs in dev or push cannot attach.
+// Single registration path via vite-plugin-pwa (injectManifest → sw.ts) for precache.
 registerSW({ immediate: true })
 
 const rootElement = document.getElementById('root')

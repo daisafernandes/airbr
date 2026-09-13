@@ -6,7 +6,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import { airQualityService } from '@services/airQualityService'
 
-import { AuthHeaderActions } from './AuthHeaderActions'
 import { CitySearchBar } from './CitySearchBar'
 import { LiveIndicator } from './LiveIndicator'
 
@@ -44,8 +43,8 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
   ]
 
   /** Busca de cidade escondida em várias rotas; em /maps a busca fica na sidebar do mapa de focos. */
-  const hideCitySearch = ['/alerts', '/guide', '/ranking', '/profile', '/maps'].includes(location.pathname)
-  const hideGeolocation = ['/alerts', '/guide', '/ranking', '/profile'].includes(location.pathname)
+  const hideCitySearch = ['/guide', '/ranking', '/maps'].includes(location.pathname)
+  const hideGeolocation = ['/guide', '/ranking'].includes(location.pathname)
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 min-h-16 bg-card/80 backdrop-blur-xl border-b border-border">
@@ -102,7 +101,6 @@ export const Header = ({ onCitySelect }: HeaderProps) => {
             </button>
           )}
           <LanguageSelector />
-          <AuthHeaderActions />
         </div>
       </div>
     </header>

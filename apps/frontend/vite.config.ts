@@ -18,7 +18,7 @@ export default defineConfig({
       manifest: {
         name: 'RespirA — AirBR',
         short_name: 'AirBR',
-        description: 'Air quality monitoring and AQI alerts for Brazil.',
+        description: 'Air quality monitoring for Brazil.',
         theme_color: '#0c1222',
         background_color: '#0c1222',
         display: 'standalone',
