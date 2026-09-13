@@ -2,6 +2,8 @@ import L from 'leaflet'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { LEAFLET_TILE_LAYER_OPTIONS, LEAFLET_TILE_LAYER_URL } from '@utils/leafletTileLayer'
+
 /** Stable empty list to avoid remounting the map when wind-smoke is still loading */
 export const EMPTY_NEARBY_FIRES: Array<{ lat: number; lng: number }> = []
 
@@ -44,7 +46,7 @@ export const SmokeSourceCard = ({
       keyboard: false,
     })
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map)
+    L.tileLayer(LEAFLET_TILE_LAYER_URL, LEAFLET_TILE_LAYER_OPTIONS).addTo(map)
 
     L.circleMarker([lat, lng], {
       radius: 7,

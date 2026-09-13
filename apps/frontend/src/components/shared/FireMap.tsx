@@ -14,6 +14,7 @@ import {
   toArray,
   toFiniteNumber,
 } from '@utils/leafletMapUtils'
+import { LEAFLET_TILE_LAYER_OPTIONS, LEAFLET_TILE_LAYER_URL } from '@utils/leafletTileLayer'
 
 const escapePopupText = escapeHtmlForLeafletPopup
 const escapeAttr = escapeAttrForLeaflet
@@ -64,10 +65,7 @@ export const FireMap = ({
       zoomControl: true,
     })
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-      maxZoom: 18,
-    }).addTo(map)
+    L.tileLayer(LEAFLET_TILE_LAYER_URL, LEAFLET_TILE_LAYER_OPTIONS).addTo(map)
 
     mapInstanceRef.current = map
 

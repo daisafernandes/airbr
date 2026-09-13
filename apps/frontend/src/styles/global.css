@@ -154,6 +154,10 @@
   z-index: 0;
 }
 
+.leaflet-tile-osm-fallback {
+  filter: brightness(0.55) contrast(1.2) saturate(0.75) hue-rotate(180deg) invert(1);
+}
+
 .leaflet-control-zoom a {
   background: hsl(225 35% 9%) !important;
   color: hsl(210 20% 85%) !important;
