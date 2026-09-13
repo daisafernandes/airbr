@@ -1,4 +1,4 @@
-/** City catalog source (e.g. Prisma `City.source`). */
+/** City catalog or live reading source. */
 export function isDevelopmentSource(source: string | null | undefined): boolean {
   if (source == null || source === '') return false
   const s = source.toLowerCase()

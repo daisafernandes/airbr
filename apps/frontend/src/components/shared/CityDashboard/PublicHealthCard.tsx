@@ -29,12 +29,9 @@ export const PublicHealthCard = ({ hospitalizations, history, dataSource }: Publ
 
   const chartData = history.map((v, i) => ({ month: i + 1, value: v }))
 
-  const footerKey =
-    dataSource === 'datasus-sih'
-      ? 'cityDashboard.healthFooterDatasus'
-      : dataSource
-        ? 'cityDashboard.healthFooterGeneric'
-        : 'cityDashboard.healthFooterUnknown'
+  const footerKey = dataSource
+    ? 'cityDashboard.healthFooterGeneric'
+    : 'cityDashboard.healthFooterUnknown'
 
   return (
     <div className="bg-card border border-border rounded p-4">

@@ -11,7 +11,7 @@ import { fetchPRODESAlerts } from '@infrastructure/providers/prodesClient'
 
 const TTL_1_HOUR = 60 * 60
 const CACHE_ALL = 'live-deforestation:all'
-/** PRODES scenes span the monitoring year; default ~24 months like Prisma repo. */
+/** PRODES scenes span the monitoring year; default window is about 24 months. */
 const DEFAULT_SINCE_MS = 730 * 24 * 60 * 60 * 1000
 
 export class LiveDeforestationRepository implements IDeforestationRepository {

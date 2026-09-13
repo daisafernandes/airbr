@@ -4,7 +4,7 @@ import type {
   IHealthRepository,
 } from '@domain/repositories/IHealthRepository'
 
-/** No persisted DATASUS history — health endpoints degrade to empty series. */
+/** No persisted public-health history; health endpoints degrade to empty series. */
 export class EmptyHealthRepository implements IHealthRepository {
   async upsert(input: HealthDataUpsertInput): Promise<HealthDataRecord> {
     return {

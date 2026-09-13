@@ -148,7 +148,6 @@
     "openweathermap": { "name": "OpenWeatherMap" },
     "inpe": { "name": "INPE" },
     "prodes": { "name": "PRODES" },
-    "datasus-sih": { "name": "DATASUS SIH" },
     "seed": { "name": "Datos de demostración" },
     "seed-mock": { "name": "Datos de demostración" }
   },
@@ -214,7 +213,6 @@
     "sourceDevelopment": "Datos de demostración",
     "pollenUnavailable": "No disponible",
     "healthUnavailable": "La serie pública de salud no está disponible en el modo sin base de datos. El panel permanece visible, pero no muestra hospitalizaciones históricas.",
-    "healthFooterDatasus": "Fuente: DATASUS SIH (hospitalizaciones SUS, causas respiratorias J00–J99). Los valores son totales estatales repartidos entre los municipios del estado — no son cifras municipales individuales.",
     "healthFooterGeneric": "Fuente de datos de salud: {{source}}.",
     "healthFooterUnknown": "Sin fuente activa de serie de salud.",
     "safetyLabel": {

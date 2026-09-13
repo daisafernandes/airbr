@@ -148,7 +148,6 @@
     "openweathermap": { "name": "OpenWeatherMap" },
     "inpe": { "name": "INPE" },
     "prodes": { "name": "PRODES" },
-    "datasus-sih": { "name": "DATASUS SIH" },
     "seed": { "name": "Demo data" },
     "seed-mock": { "name": "Demo data" }
   },
@@ -215,7 +214,6 @@
     "sourceDevelopment": "Demo data",
     "pollenUnavailable": "Unavailable",
     "healthUnavailable": "Public health time series is unavailable in the no-database mode. This panel stays visible, but historical hospitalizations are not shown.",
-    "healthFooterDatasus": "Source: DATASUS SIH (SUS hospitalizations, respiratory J00–J99). Values are state totals divided among cities in the state — not individual municipal counts.",
     "healthFooterGeneric": "Health data source: {{source}}.",
     "healthFooterUnknown": "No active health time-series source.",
     "safetyLabel": {

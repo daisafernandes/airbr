@@ -148,7 +148,6 @@
     "openweathermap": { "name": "OpenWeatherMap" },
     "inpe": { "name": "INPE" },
     "prodes": { "name": "PRODES" },
-    "datasus-sih": { "name": "DATASUS SIH" },
     "seed": { "name": "Dados de demonstração" },
     "seed-mock": { "name": "Dados de demonstração" }
   },
@@ -214,7 +213,6 @@
     "sourceDevelopment": "Dados de demonstração",
     "pollenUnavailable": "Indisponível",
     "healthUnavailable": "Série pública de saúde indisponível neste modo sem banco. O painel permanece ativo, mas não exibe internações históricas.",
-    "healthFooterDatasus": "Fonte: DATASUS SIH (internações SUS, causas respiratórias J00–J99). Valores são totais estaduais repartidos entre os municípios do estado — não são contagens municipais individuais.",
     "healthFooterGeneric": "Fonte dos dados de saúde: {{source}}.",
     "healthFooterUnknown": "Sem fonte de série de saúde ativa.",
     "safetyLabel": {
