@@ -1,6 +1,7 @@
 import type { ICacheService } from '@domain/cache/ICacheService'
-import { LiveFireRepository } from './LiveFireRepository'
 import * as inpe from '@infrastructure/providers/inpeFiresClient'
+
+import { LiveFireRepository } from './LiveFireRepository'
 
 jest.mock('@infrastructure/providers/inpeFiresClient', () => ({
   fetchINPEFires: jest.fn(),

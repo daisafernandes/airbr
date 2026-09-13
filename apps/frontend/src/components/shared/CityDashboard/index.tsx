@@ -215,7 +215,7 @@ export const CityDashboard = ({ cityId, onClose }: CityDashboardProps) => {
         nearbyFires={windSmoke?.nearbyFires ?? EMPTY_NEARBY_FIRES}
       />
 
-      {healthData && healthData.monthlyData.length > 0 && (
+      {healthData && (
         <PublicHealthCard
           hospitalizations={healthData.monthlyData[healthData.monthlyData.length - 1]?.hospitalizations ?? 0}
           history={healthData.monthlyData.map(d => d.hospitalizations)}

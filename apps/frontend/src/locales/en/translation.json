@@ -168,9 +168,9 @@
       "exitComparison": "Exit comparison: Latest readings available.",
       "consultedAt": "Viewed on this page",
       "sources": "Sources: Latest readings available.",
-      "sourcesFooter": "CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo"
+      "sourcesFooter": "Open-Meteo · INPE · PRODES"
     },
-    "sourcesFooter": "CETESB · INPE · IBAMA · IQAir · DATASUS · Open-Meteo"
+    "sourcesFooter": "Open-Meteo · INPE · PRODES"
   },
   "map": {
     "aqiAbbrev": "AQI",
@@ -214,9 +214,10 @@
     "simulatedData": "Simulated data · last 12 months",
     "sourceDevelopment": "Demo data",
     "pollenUnavailable": "Unavailable",
+    "healthUnavailable": "Public health time series is unavailable in the no-database mode. This panel stays visible, but historical hospitalizations are not shown.",
     "healthFooterDatasus": "Source: DATASUS SIH (SUS hospitalizations, respiratory J00–J99). Values are state totals divided among cities in the state — not individual municipal counts.",
     "healthFooterGeneric": "Health data source: {{source}}.",
-    "healthFooterUnknown": "Health data source is not specified.",
+    "healthFooterUnknown": "No active health time-series source.",
     "safetyLabel": {
       "safe": "Safe",
       "moderate": "Moderate",
@@ -420,7 +421,7 @@
     "source": "Source",
     "search": "Search city...",
     "sources": "Sources",
-    "sourcesFooter": "AQI · AQICN · CETESB · DATASUS · IBGE · Open-Meteo",
+    "sourcesFooter": "Open-Meteo · INPE · PRODES",
     "selectPlaceholder": "Select..."
   },
   "notFound": {

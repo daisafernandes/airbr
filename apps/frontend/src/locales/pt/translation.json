@@ -168,7 +168,7 @@
       "exitComparison": "Sair da comparação: Últimas leituras disponíveis.",
       "consultedAt": "Consulta nesta página: Últimas leituras disponíveis.",
       "sources": "Fontes: Últimas leituras disponíveis.",
-      "sourcesFooter": "IQAir · AQICN · CETESB · DATASUS · IBGE · Open-Meteo"
+      "sourcesFooter": "Open-Meteo · INPE · PRODES"
     }
   },
   "map": {
@@ -213,9 +213,10 @@
     "simulatedData": "Dados simulados · últimos 12 meses",
     "sourceDevelopment": "Dados de demonstração",
     "pollenUnavailable": "Indisponível",
+    "healthUnavailable": "Série pública de saúde indisponível neste modo sem banco. O painel permanece ativo, mas não exibe internações históricas.",
     "healthFooterDatasus": "Fonte: DATASUS SIH (internações SUS, causas respiratórias J00–J99). Valores são totais estaduais repartidos entre os municípios do estado — não são contagens municipais individuais.",
     "healthFooterGeneric": "Fonte dos dados de saúde: {{source}}.",
-    "healthFooterUnknown": "Fonte da série de saúde não informada.",
+    "healthFooterUnknown": "Sem fonte de série de saúde ativa.",
     "safetyLabel": {
       "safe": "Seguro",
       "moderate": "Moderado",
@@ -419,7 +420,7 @@
     "source": "Fonte",
     "search": "Buscar cidade...",
     "sources": "Fontes",
-    "sourcesFooter": "IQAir · AQICN · CETESB · DATASUS · IBGE · Open-Meteo",
+    "sourcesFooter": "Open-Meteo · INPE · PRODES",
     "selectPlaceholder": "Selecionar..."
   },
   "notFound": {

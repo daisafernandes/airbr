@@ -1,7 +1,8 @@
-import { CityService } from './CityService'
 import type { ICacheService } from '@domain/cache/ICacheService'
 import type { AqiReadingData, IAqiRepository, HistoryPeriod, OMSComplianceCity, RankedCity } from '@domain/repositories/IAqiRepository'
 import type { CityData, ICityRepository, NearbyCity } from '@domain/repositories/ICityRepository'
+
+import { CityService } from './CityService'
 
 const now = new Date('2026-01-01T00:00:00.000Z')
 
@@ -60,6 +61,9 @@ class InMemoryCache implements ICacheService {
 class CityRepoMock implements ICityRepository {
   async findAll(): Promise<CityData[]> {
     return [city]
+  }
+  async findAllPaginated(): Promise<{ data: CityData[]; total: number }> {
+    return { data: [city], total: 1 }
   }
   async findById(id: string): Promise<CityData | null> {
     return id === city.id ? city : null

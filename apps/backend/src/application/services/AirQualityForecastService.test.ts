@@ -1,6 +1,7 @@
 import type { ICacheService } from '@domain/cache/ICacheService'
-import { AirQualityForecastService } from './AirQualityForecastService'
 import * as openMeteo from '@infrastructure/providers/openMeteoClient'
+
+import { AirQualityForecastService } from './AirQualityForecastService'
 
 jest.mock('@infrastructure/providers/openMeteoClient', () => ({
   fetchOpenMeteoForecast: jest.fn(),

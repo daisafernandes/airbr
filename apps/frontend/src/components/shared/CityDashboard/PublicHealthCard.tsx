@@ -22,6 +22,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
 
 export const PublicHealthCard = ({ hospitalizations, history, dataSource }: PublicHealthCardProps) => {
   const { t } = useTranslation()
+  const hasHistory = history.length > 0
   const prevMonth = history[history.length - 2] ?? hospitalizations
   const delta = hospitalizations - prevMonth
   const isUp = delta > 0
@@ -42,30 +43,38 @@ export const PublicHealthCard = ({ hospitalizations, history, dataSource }: Publ
         <h3 className="font-heading text-lg tracking-wide text-foreground">{t('cityDashboard.publicHealth')}</h3>
       </div>
 
-      <div className="flex items-end justify-between mb-3">
-        <div>
-          <p className="font-mono text-3xl font-bold text-foreground">{hospitalizations.toLocaleString()}</p>
-          <p className="text-[10px] text-muted-foreground font-body mt-0.5">
-            {t('cityDashboard.hospitalizationsMonth')}
-          </p>
-        </div>
-        <div className="text-right">
-          <span
-            className="text-xs font-mono font-bold"
-            style={{ color: isUp ? '#ef4444' : '#4af0c4' }}
-          >
-            {isUp ? '+' : ''}{delta}
-          </span>
-          <p className="text-[10px] text-muted-foreground font-body">{t('cityDashboard.vsPrevMonth')}</p>
-        </div>
-      </div>
+      {hasHistory ? (
+        <>
+          <div className="flex items-end justify-between mb-3">
+            <div>
+              <p className="font-mono text-3xl font-bold text-foreground">{hospitalizations.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground font-body mt-0.5">
+                {t('cityDashboard.hospitalizationsMonth')}
+              </p>
+            </div>
+            <div className="text-right">
+              <span
+                className="text-xs font-mono font-bold"
+                style={{ color: isUp ? '#ef4444' : '#4af0c4' }}
+              >
+                {isUp ? '+' : ''}{delta}
+              </span>
+              <p className="text-[10px] text-muted-foreground font-body">{t('cityDashboard.vsPrevMonth')}</p>
+            </div>
+          </div>
 
-      <ResponsiveContainer width="100%" height={48}>
-        <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-          <Bar dataKey="value" fill="#ef4444" opacity={0.6} radius={[2, 2, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={48}>
+            <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+              <Bar dataKey="value" fill="#ef4444" opacity={0.6} radius={[2, 2, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </>
+      ) : (
+        <p className="text-xs text-muted-foreground font-body leading-relaxed">
+          {t('cityDashboard.healthUnavailable')}
+        </p>
+      )}
       <p className="text-[9px] text-muted-foreground font-body mt-1 text-right leading-snug">
         {t(footerKey, { source: dataSource ?? '' })}
       </p>

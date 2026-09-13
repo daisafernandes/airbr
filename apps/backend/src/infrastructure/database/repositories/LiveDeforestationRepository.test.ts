@@ -1,6 +1,7 @@
 import type { ICacheService } from '@domain/cache/ICacheService'
-import { LiveDeforestationRepository } from './LiveDeforestationRepository'
 import * as prodes from '@infrastructure/providers/prodesClient'
+
+import { LiveDeforestationRepository } from './LiveDeforestationRepository'
 
 jest.mock('@infrastructure/providers/prodesClient', () => ({
   fetchPRODESAlerts: jest.fn(),

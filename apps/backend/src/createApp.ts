@@ -1,6 +1,6 @@
 import compression from 'compression'
 import cors from 'cors'
-import express, { type Express } from 'express'
+import express, { json, type Express } from 'express'
 import helmet from 'helmet'
 
 import { AirQualityForecastService } from '@application/services/AirQualityForecastService'
@@ -44,7 +44,7 @@ export function createApp(): CreateAppResult {
   app.use(helmet({ contentSecurityPolicy: false }))
   app.use(cors({ origin: env.CORS_ORIGIN.split(',').map((o) => o.trim()), credentials: true }))
   app.use(compression())
-  app.use(express.json({ limit: '256kb' }))
+  app.use(json({ limit: '256kb' }))
   app.use('/api/v1', apiRateLimiter)
 
   const cacheService = new NodeCacheService()

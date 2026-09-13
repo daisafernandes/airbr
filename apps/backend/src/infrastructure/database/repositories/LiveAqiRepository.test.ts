@@ -1,7 +1,8 @@
 import type { ICacheService } from '@domain/cache/ICacheService'
 import type { CityData, ICityRepository, NearbyCity } from '@domain/repositories/ICityRepository'
-import { LiveAqiRepository } from './LiveAqiRepository'
 import * as openMeteo from '@infrastructure/providers/openMeteoClient'
+
+import { LiveAqiRepository } from './LiveAqiRepository'
 
 jest.mock('@infrastructure/providers/openMeteoClient', () => ({
   fetchOpenMeteoCurrent: jest.fn(),

@@ -358,7 +358,7 @@ export const CityPage = () => {
               </div>
             ) : (
               healthData &&
-              healthData.monthlyData.length > 0 && (
+              (
                 <div className="mt-6">
                   <PublicHealthCard
                     hospitalizations={
