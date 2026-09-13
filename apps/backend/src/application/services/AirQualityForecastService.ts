@@ -1,6 +1,5 @@
-import axios from 'axios'
-
 import type { ICacheService } from '@domain/cache/ICacheService'
+import { fetchOpenMeteoForecast } from '@infrastructure/providers/openMeteoClient'
 
 const TTL_1_HOUR = 60 * 60
 
@@ -15,13 +14,6 @@ export interface AirQualityForecastResult {
   source: 'open-meteo'
 }
 
-interface OpenMeteoHourlyAirResponse {
-  hourly?: {
-    time?: string[]
-    european_aqi?: (number | null)[]
-  }
-}
-
 export class AirQualityForecastService {
   constructor(private readonly cache: ICacheService) {}
 
@@ -30,26 +22,7 @@ export class AirQualityForecastService {
     const cached = this.cache.get<AirQualityForecastResult>(key)
     if (cached) return cached
 
-    const { data } = await axios.get<OpenMeteoHourlyAirResponse>(
-      'https://air-quality-api.open-meteo.com/v1/air-quality',
-      {
-        params: {
-          latitude: lat,
-          longitude: lng,
-          hourly: 'european_aqi',
-          forecast_days: 2,
-          timezone: 'auto',
-        },
-        timeout: 12_000,
-      },
-    )
-
-    const times = data.hourly?.time ?? []
-    const aqis = data.hourly?.european_aqi ?? []
-    const hours: AirQualityHourPoint[] = times.map((time, i) => ({
-      time,
-      aqi: typeof aqis[i] === 'number' && Number.isFinite(aqis[i] as number) ? (aqis[i] as number) : null,
-    }))
+    const hours = await fetchOpenMeteoForecast(lat, lng, 2)
 
     const result: AirQualityForecastResult = {
       cityId,
