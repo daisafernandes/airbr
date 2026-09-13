@@ -7,11 +7,3 @@ export const apiRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 })
-
-/** Stricter limit for `/api/v1/admin` (runs in addition to the global API limiter). */
-export const adminRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-})
