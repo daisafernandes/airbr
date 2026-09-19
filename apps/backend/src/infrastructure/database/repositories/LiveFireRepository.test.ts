@@ -99,7 +99,7 @@ describe('LiveFireRepository', () => {
   it('parses sample CSV via real helper', () => {
     const csv =
       'lat,lon,data_hora_gmt,estado,bioma,satelite,frp\n' +
-      '-10.5,-55.2,2024-01-01T12:00:00Z,MT,Amazônia,AQUA,12.5\n'
+      '-10.5,-55.2,2024-01-01T12:00:00Z,MATO GROSSO,Amazônia,AQUA,12.5\n'
     const actual = jest.requireActual<typeof inpe>('@infrastructure/providers/inpeFiresClient')
     const foci = actual.rowsToFireFoci(actual.parseINPECSV(csv))
     expect(foci).toHaveLength(1)
@@ -110,5 +110,23 @@ describe('LiveFireRepository', () => {
       intensity: 12.5,
     })
     expect(foci[0]?.id).toHaveLength(24)
+  })
+
+  it('parses current INPE daily CSV shape', () => {
+    const csv =
+      'id,lat,lon,data_hora_gmt,satelite,municipio,estado,pais,municipio_id,estado_id,pais_id,numero_dias_sem_chuva,precipitacao,risco_fogo,bioma,frp\n' +
+      'ed18f5e4-5e05-3746-aa7b-8112e2025d65,  -4.614800, -42.948800,2026-09-19 00:00:00,GOES-19,CAXIAS,MARANHÃO,Brasil,2103000,21,33,,,,Cerrado,33.6\n'
+    const actual = jest.requireActual<typeof inpe>('@infrastructure/providers/inpeFiresClient')
+    const foci = actual.rowsToFireFoci(actual.parseINPECSV(csv))
+    expect(foci).toHaveLength(1)
+    expect(foci[0]).toMatchObject({
+      lat: -4.6148,
+      lng: -42.9488,
+      state: 'MA',
+      biome: 'Cerrado',
+      satellite: 'GOES-19',
+      intensity: 33.6,
+    })
+    expect(foci[0]?.detectedAt.toISOString()).toBe('2026-09-19T00:00:00.000Z')
   })
 })

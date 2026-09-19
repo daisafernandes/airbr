@@ -5,22 +5,90 @@ import axios from 'axios'
 import type { FireFocusData } from '@domain/repositories/IFireRepository'
 
 /**
- * INPE publishes fire-focus CSV updated every ~3 hours.
- * Public WFS: https://queimadas.dgi.inpe.br/queimadas/geoserver/ows
+ * INPE publishes fire-focus CSV files in its open-data server.
+ * Official index: https://www.terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_downloads/dados-abertos/index.html
  */
-export const INPE_CSV_URL =
-  'https://queimadas.dgi.inpe.br/queimadas/geoserver/ows?' +
-  'service=WFS&version=2.0.0&request=GetFeature' +
-  '&typeName=ms:ref_focos_qmd_24h&outputFormat=csv'
+export const INPE_DAILY_CSV_BASE_URL =
+  'https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/diario/Brasil'
 
 interface ParsedRow {
   lat: number
   lon: number
   data_hora_gmt: string
+  data?: string
   estado: string
   bioma: string
   satelite: string
   frp: string
+}
+
+const STATE_NAME_TO_UF: Record<string, string> = {
+  ACRE: 'AC',
+  ALAGOAS: 'AL',
+  AMAPA: 'AP',
+  AMAZONAS: 'AM',
+  BAHIA: 'BA',
+  CEARA: 'CE',
+  'DISTRITO FEDERAL': 'DF',
+  'ESPIRITO SANTO': 'ES',
+  GOIAS: 'GO',
+  MARANHAO: 'MA',
+  'MATO GROSSO': 'MT',
+  'MATO GROSSO DO SUL': 'MS',
+  'MINAS GERAIS': 'MG',
+  PARA: 'PA',
+  PARAIBA: 'PB',
+  PARANA: 'PR',
+  PERNAMBUCO: 'PE',
+  PIAUI: 'PI',
+  'RIO DE JANEIRO': 'RJ',
+  'RIO GRANDE DO NORTE': 'RN',
+  'RIO GRANDE DO SUL': 'RS',
+  RONDONIA: 'RO',
+  RORAIMA: 'RR',
+  'SANTA CATARINA': 'SC',
+  'SAO PAULO': 'SP',
+  SERGIPE: 'SE',
+  TOCANTINS: 'TO',
+}
+
+function normalizeText(value: string): string {
+  return value
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+}
+
+export function normalizeState(value: string): string | null {
+  const normalized = normalizeText(value)
+  if (/^[A-Z]{2}$/.test(normalized)) return normalized
+  return STATE_NAME_TO_UF[normalized] ?? (value.trim() || null)
+}
+
+function formatINPEDate(date: Date): string {
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  return `${year}${month}${day}`
+}
+
+function recentDailyUrls(days: number): string[] {
+  const urls: string[] = []
+  const now = new Date()
+
+  for (let i = 0; i < days; i++) {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i))
+    urls.push(`${INPE_DAILY_CSV_BASE_URL}/focos_diario_br_${formatINPEDate(date)}.csv`)
+  }
+
+  return urls
+}
+
+function parseINPEDate(value: string): Date {
+  const normalized = value.trim()
+  const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalized)
+  return new Date(hasTimezone ? normalized : `${normalized.replace(' ', 'T')}Z`)
 }
 
 /** Handles quoted fields and commas within values */
@@ -87,7 +155,8 @@ export function rowsToFireFoci(rows: ParsedRow[]): FireFocusData[] {
     const lng = parseFloat(String(row.lon))
     if (Number.isNaN(lat) || Number.isNaN(lng)) continue
 
-    const detectedAt = row.data_hora_gmt ? new Date(row.data_hora_gmt) : new Date()
+    const detectedAtValue = row.data_hora_gmt || row.data
+    const detectedAt = detectedAtValue ? parseINPEDate(detectedAtValue) : new Date()
     if (Number.isNaN(detectedAt.getTime())) continue
 
     const frp = row.frp ? parseFloat(row.frp) : null
@@ -99,7 +168,7 @@ export function rowsToFireFoci(rows: ParsedRow[]): FireFocusData[] {
       intensity: frp !== null && !Number.isNaN(frp) ? frp : null,
       satellite: row.satelite || null,
       biome: row.bioma || null,
-      state: row.estado || null,
+      state: row.estado ? normalizeState(row.estado) : null,
       detectedAt,
     })
   }
@@ -108,11 +177,18 @@ export function rowsToFireFoci(rows: ParsedRow[]): FireFocusData[] {
 }
 
 export async function fetchINPEFires(): Promise<FireFocusData[]> {
-  const { data } = await axios.get<string>(INPE_CSV_URL, {
-    responseType: 'text',
-    timeout: 30_000,
-    headers: { Accept: 'text/csv,text/plain,*/*' },
-  })
+  const results = await Promise.allSettled(
+    recentDailyUrls(3).map((url) =>
+      axios.get<string>(url, {
+        responseType: 'text',
+        timeout: 30_000,
+        headers: { Accept: 'text/csv,text/plain,*/*' },
+      }),
+    ),
+  )
 
-  return rowsToFireFoci(parseINPECSV(data))
+  return results.flatMap((result) => {
+    if (result.status === 'rejected') return []
+    return rowsToFireFoci(parseINPECSV(result.value.data))
+  })
 }
