@@ -8,6 +8,7 @@ import { OMSCompliancePanel } from '@components/shared/OMSCompliancePanel'
 import { RankingTable } from '@components/shared/RankingTable'
 import { useIsMobile } from '@hooks/use-mobile'
 import { useCities } from '@hooks/useCities'
+import { useRanking } from '@hooks/useRanking'
 import { formatDateTime } from '@utils/formatters'
 
 type SortMode = 'polluted' | 'clean'
@@ -42,31 +43,23 @@ export const RankingPage = () => {
   const [stateFilter, setStateFilter] = useState<string>('all')
   const { t } = useTranslation()
 
-  const { data: cities = [], isLoading } = useCities()
+  const { data: cities = [], isLoading: isLoadingCities } = useCities()
+  const rankingFilters = useMemo(() => ({
+    limit: 20,
+    ...(regionFilter !== 'all' ? { region: regionFilter } : {}),
+    ...(stateFilter !== 'all' ? { state: stateFilter } : {}),
+  }), [regionFilter, stateFilter])
+  const { data: ranking, isLoading: isLoadingRanking } = useRanking(rankingFilters)
+  const isLoading = isLoadingCities || isLoadingRanking
 
   const states = useMemo(() => {
     const set = new Set(cities.map(c => c.state))
     return Array.from(set).sort()
   }, [cities])
 
-  const filteredAndSorted = useMemo(() => {
-    let list = [...cities]
-
-    if (regionFilter !== 'all') {
-      list = list.filter(c => c.region === regionFilter)
-    }
-    if (stateFilter !== 'all') {
-      list = list.filter(c => c.state === stateFilter)
-    }
-
-    list.sort((a, b) => {
-      const aAqi = a.latestAqi?.aqi ?? 0
-      const bAqi = b.latestAqi?.aqi ?? 0
-      return sortMode === 'polluted' ? bAqi - aAqi : aAqi - bAqi
-    })
-
-    return list
-  }, [cities, regionFilter, stateFilter, sortMode])
+  const filteredAndSorted = sortMode === 'polluted'
+    ? ranking?.mostPolluted ?? []
+    : ranking?.leastPolluted ?? []
 
   const stats = useMemo(() => {
     if (!cities.length) return null

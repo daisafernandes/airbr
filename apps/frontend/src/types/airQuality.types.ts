@@ -56,6 +56,7 @@ export interface RankedCityApi {
   state: string
   region: string
   aqi: number
+  pm25: number | null
 }
 
 export interface RankingResponse {
@@ -78,6 +79,7 @@ export interface FireFilters {
 export interface RankingFilters {
   region?: string
   state?: string
+  limit?: number
 }
 
 // Phase 4 types

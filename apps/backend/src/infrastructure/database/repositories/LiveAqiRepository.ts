@@ -177,6 +177,7 @@ export class LiveAqiRepository implements IAqiRepository {
         state: city.state,
         region: city.region,
         aqi: reading.aqi,
+        pm25: reading.pm25,
       })
     }
 

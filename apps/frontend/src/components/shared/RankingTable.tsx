@@ -2,16 +2,21 @@ import { MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import type { CityApiData } from '@app-types/airQuality.types'
+import type { CityApiData, RankedCityApi } from '@app-types/airQuality.types'
 import { getAqiBandColorHex, getAQILabel } from '@utils/aqiInfo'
 
 import { OmsComplianceBadge } from './OmsComplianceBadge'
 
 interface RankingTableProps {
-  cities: CityApiData[]
+  cities: Array<CityApiData | RankedCityApi>
   onCityClick?: (cityId: string) => void
   isMobile?: boolean
 }
+
+const getCityId = (city: CityApiData | RankedCityApi) => 'cityId' in city ? city.cityId : city.id
+const getCityName = (city: CityApiData | RankedCityApi) => 'cityName' in city ? city.cityName : city.name
+const getCityAqi = (city: CityApiData | RankedCityApi) => 'aqi' in city ? city.aqi : city.latestAqi?.aqi ?? 0
+const getCityPm25 = (city: CityApiData | RankedCityApi) => 'pm25' in city ? city.pm25 : city.latestAqi?.pm25 ?? null
 
 export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingTableProps) => {
   const { t } = useTranslation()
@@ -20,21 +25,23 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
     return (
       <div className="space-y-2">
         {cities.map((city, idx) => {
-          const aqi = city.latestAqi?.aqi ?? 0
+          const cityId = getCityId(city)
+          const cityName = getCityName(city)
+          const aqi = getCityAqi(city)
           const color = getAqiBandColorHex(aqi)
-          const pm25 = city.latestAqi?.pm25 ?? null
+          const pm25 = getCityPm25(city)
           const omsCompliant = pm25 !== null ? pm25 <= 5 : false
           return (
             <button
-              key={city.id}
-              onClick={() => onCityClick?.(city.id)}
+              key={cityId}
+              onClick={() => onCityClick?.(cityId)}
               className="w-full bg-card border border-border rounded p-3 flex items-center gap-3 hover:border-primary/30 transition-colors text-left"
             >
               <span className="w-7 text-center font-mono text-sm text-muted-foreground shrink-0">
                 #{idx + 1}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="font-body font-semibold text-foreground text-sm truncate">{city.name}</p>
+                <p className="font-body font-semibold text-foreground text-sm truncate">{cityName}</p>
                 <p className="text-xs text-muted-foreground font-mono">
                   {city.state} · {city.region}
                 </p>
@@ -68,14 +75,16 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
         </thead>
         <tbody>
           {cities.map((city, idx) => {
-            const aqi = city.latestAqi?.aqi ?? 0
+            const cityId = getCityId(city)
+            const cityName = getCityName(city)
+            const aqi = getCityAqi(city)
             const color = getAqiBandColorHex(aqi)
-            const pm25 = city.latestAqi?.pm25 ?? null
+            const pm25 = getCityPm25(city)
             const omsCompliant = pm25 !== null ? pm25 <= 5 : false
             return (
               <tr
-                key={city.id}
-                onClick={() => onCityClick?.(city.id)}
+                key={cityId}
+                onClick={() => onCityClick?.(cityId)}
                 className={`border-b border-border/50 transition-colors ${onCityClick ? 'cursor-pointer hover:bg-muted/40' : ''}`}
               >
                 <td className="px-4 py-3 font-mono text-muted-foreground">{idx + 1}</td>
@@ -83,11 +92,11 @@ export const RankingTable = ({ cities, onCityClick, isMobile = false }: RankingT
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
                     <Link
-                      to={`/city/${city.id}`}
+                      to={`/city/${cityId}`}
                       className="font-body font-medium text-foreground hover:text-primary transition-colors"
                       onClick={e => e.stopPropagation()}
                     >
-                      {city.name}
+                      {cityName}
                     </Link>
                   </div>
                 </td>

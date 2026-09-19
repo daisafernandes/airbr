@@ -79,11 +79,15 @@ export class CityController {
   }
 
   getRanking = async (req: Request, res: Response): Promise<void> => {
-    const { region, state } = req.query
+    const { limit, region, state } = req.query
+    const parsedLimit = typeof limit === 'string' ? Number(limit) : undefined
 
     const ranking = await this.aqiService.getRanking({
       region: typeof region === 'string' ? region : undefined,
       state: typeof state === 'string' ? state : undefined,
+      limit: parsedLimit && Number.isFinite(parsedLimit)
+        ? Math.min(Math.max(parsedLimit, 1), 100)
+        : undefined,
     })
 
     res.json(ranking)

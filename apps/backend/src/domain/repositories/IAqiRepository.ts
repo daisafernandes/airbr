@@ -43,6 +43,7 @@ export interface RankedCity {
   state: string
   region: string
   aqi: number
+  pm25: number | null
 }
 
 export type HistoryPeriod = '24h' | '7d' | '30d' | '1y'
@@ -62,6 +63,10 @@ export interface IAqiRepository {
   findLatestForCityIds(cityIds: string[]): Promise<AqiReadingData[]>
   findHistoryByCity(cityId: string, period: HistoryPeriod): Promise<AqiReadingData[]>
   upsert(input: AqiUpsertInput): Promise<AqiReadingData>
-  getRanking(options?: { region?: string; state?: string; limit?: number }): Promise<{ mostPolluted: RankedCity[]; leastPolluted: RankedCity[] }>
+  getRanking(options?: {
+    region?: string
+    state?: string
+    limit?: number
+  }): Promise<{ mostPolluted: RankedCity[]; leastPolluted: RankedCity[] }>
   getOMSCompliance(): Promise<{ cities: OMSComplianceCity[]; compliantPct: number }>
 }

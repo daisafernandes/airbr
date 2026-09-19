@@ -171,6 +171,7 @@ describe('LiveAqiRepository', () => {
 
     const ranking = await repo.getRanking({ limit: 10 })
     expect(ranking.mostPolluted[0]?.cityId).toBe('sao-paulo-sp')
+    expect(ranking.mostPolluted[0]?.pm25).toBe(12)
     expect(ranking.leastPolluted[0]?.cityId).toBe('curitiba-pr')
 
     const oms = await repo.getOMSCompliance()

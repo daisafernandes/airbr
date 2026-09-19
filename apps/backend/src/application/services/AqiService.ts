@@ -24,12 +24,14 @@ export class AqiService {
   async getRanking(options?: {
     region?: string
     state?: string
+    limit?: number
   }): Promise<{ mostPolluted: RankedCity[]; leastPolluted: RankedCity[] }> {
-    const key = `ranking:${options?.region ?? 'all'}:${options?.state ?? 'all'}`
+    const limit = options?.limit ?? 10
+    const key = `ranking:${options?.region ?? 'all'}:${options?.state ?? 'all'}:${limit}`
     const cached = this.cache.get<{ mostPolluted: RankedCity[]; leastPolluted: RankedCity[] }>(key)
     if (cached) return cached
 
-    const result = await this.aqiRepository.getRanking({ ...options, limit: 10 })
+    const result = await this.aqiRepository.getRanking({ ...options, limit })
     this.cache.set(key, result, TTL_15_MIN)
     return result
   }
