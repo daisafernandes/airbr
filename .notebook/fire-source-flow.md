@@ -10,5 +10,6 @@ Key details:
 - INPE daily CSV returns full state names; the backend normalizes them to UF codes so frontend filters such as `state=MA` match city state values.
 - `LiveFireRepository` caches all fetched live fires under `live-fires:all` for 1 hour.
 - `FireService.listFiresPaginated()` adds nearest municipalities and caches paginated responses for 3 hours.
+- Frontend `airQualityService.getFires()` fetches only the first paginated page for map rendering and preserves the backend `total` on the returned array for counters.
 
 Gotcha: If the INPE fetch fails, `LiveFireRepository.loadAll()` logs `[LiveFire] INPE fetch failed` and returns an empty list. The UI can look like there are simply no fires, so check backend logs and the provider URL first.

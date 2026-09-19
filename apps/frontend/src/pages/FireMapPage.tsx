@@ -18,6 +18,7 @@ import {
 import { useIsMobile } from '@hooks/use-mobile'
 import { useCities } from '@hooks/useCities'
 import { useFires } from '@hooks/useFires'
+import type { FireFocusList } from '@services/airQualityService'
 
 type Period = 'hoje' | '7d' | '30d' | '90d'
 
@@ -278,7 +279,7 @@ export const FireMapPage = () => {
   }, [cities])
 
   const impactStats = useMemo(() => {
-    const fireCount = fires.length
+    const fireCount = (firesData as FireFocusList).total ?? fires.length
     const affectedStates = new Set(fires.filter(f => f.state).map(f => f.state!))
     const inImpact = cities.filter(c =>
       stateFilter ? c.state === stateFilter : affectedStates.has(c.state),

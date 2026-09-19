@@ -19,8 +19,13 @@ import { parsePaginatedFirstPage, unwrapArrayOrPaginated } from '@utils/apiRespo
 
 import { api } from './api'
 
-/** Same as backend `MAX_LIMIT` — one GET /fires page size when fetching the full map dataset. */
+/** Same as backend `MAX_LIMIT` for the initial map sample. */
 const FIRES_PAGE_LIMIT = 100
+
+export type FireFocusList = FireFocusApi[] & {
+  total?: number
+  totalPages?: number
+}
 
 export const airQualityService = {
   getCities(): Promise<CityApiData[]> {
@@ -35,20 +40,11 @@ export const airQualityService = {
     return api.get<AqiReadingApi[]>(`/cities/${id}/history`, { params: { period } }).then(r => r.data)
   },
 
-  async getFires(filters?: FireFilters): Promise<FireFocusApi[]> {
+  async getFires(filters?: FireFilters): Promise<FireFocusList> {
     const baseParams = { ...filters, limit: FIRES_PAGE_LIMIT, page: 1 }
     const first = await api.get<unknown>('/fires', { params: baseParams })
-    const { items, totalPages } = parsePaginatedFirstPage<FireFocusApi>(first.data)
-    if (totalPages <= 1) return items
-
-    const rest: FireFocusApi[][] = []
-    for (let page = 2; page <= totalPages; page++) {
-      const res = await api.get<unknown>('/fires', {
-        params: { ...filters, limit: FIRES_PAGE_LIMIT, page },
-      })
-      rest.push(parsePaginatedFirstPage<FireFocusApi>(res.data).items)
-    }
-    return items.concat(...rest)
+    const { items, total, totalPages } = parsePaginatedFirstPage<FireFocusApi>(first.data)
+    return Object.assign(items, { total, totalPages })
   },
 
   getFireById(id: string): Promise<FireFocusApi> {
