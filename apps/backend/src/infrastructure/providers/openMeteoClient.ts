@@ -7,7 +7,7 @@ const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast'
 const REQUEST_TIMEOUT_MS = 12_000
 
 export interface OpenMeteoAirQualityCurrent {
-  european_aqi?: number
+  us_aqi?: number
   pm10?: number
   pm2_5?: number
   carbon_monoxide?: number
@@ -39,7 +39,7 @@ interface OpenMeteoWeatherCurrentResponse {
 interface OpenMeteoHourlyAirResponse {
   hourly?: {
     time?: string[]
-    european_aqi?: (number | null)[]
+    us_aqi?: (number | null)[]
     pm2_5?: (number | null)[]
     pm10?: (number | null)[]
     ozone?: (number | null)[]
@@ -56,7 +56,7 @@ const PERIOD_TO_DAYS: Record<HistoryPeriod, number> = {
 }
 
 const CURRENT_AQ_VARS = [
-  'european_aqi',
+  'us_aqi',
   'pm10',
   'pm2_5',
   'carbon_monoxide',
@@ -80,7 +80,7 @@ const CURRENT_WX_VARS = [
 ].join(',')
 
 const HISTORY_HOURLY_VARS = [
-  'european_aqi',
+  'us_aqi',
   'pm2_5',
   'pm10',
   'ozone',
@@ -164,14 +164,14 @@ export async function fetchOpenMeteoCurrent(
   ])
 
   const c = aqRes.data.current
-  if (!c || c.european_aqi == null || !Number.isFinite(c.european_aqi)) return null
+  if (!c || c.us_aqi == null || !Number.isFinite(c.us_aqi)) return null
 
   const w = wxRes.data.current
   const timestamp = new Date()
 
   return {
     ...emptyReading(cityId, timestamp),
-    aqi: c.european_aqi,
+    aqi: c.us_aqi,
     pm25: c.pm2_5 ?? null,
     pm10: c.pm10 ?? null,
     o3: c.ozone ?? null,
@@ -220,7 +220,7 @@ export async function fetchOpenMeteoHistory(
     const timestamp = new Date(timeStr)
     if (Number.isNaN(timestamp.getTime()) || timestamp.getTime() < sinceMs) continue
 
-    const aqi = data.hourly?.european_aqi?.[i]
+    const aqi = data.hourly?.us_aqi?.[i]
     if (typeof aqi !== 'number' || !Number.isFinite(aqi)) continue
 
     const numOrNull = (v: number | null | undefined): number | null =>
@@ -254,7 +254,7 @@ export async function fetchOpenMeteoForecast(
     params: {
       latitude: lat,
       longitude: lng,
-      hourly: 'european_aqi',
+      hourly: 'us_aqi',
       forecast_days: forecastDays,
       timezone: 'auto',
     },
@@ -262,7 +262,7 @@ export async function fetchOpenMeteoForecast(
   })
 
   const times = data.hourly?.time ?? []
-  const aqis = data.hourly?.european_aqi ?? []
+  const aqis = data.hourly?.us_aqi ?? []
 
   return times.map((time, i) => ({
     time,
